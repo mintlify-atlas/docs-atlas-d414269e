@@ -1,0 +1,478 @@
+---
+title: "Tree Nodes"
+description: "Understanding TTreeNodeShape and the node hierarchy in TeeTree"
+---
+
+The `TTreeNodeShape` class is the fundamental building block of TeeTree. Each node is a full standalone component with comprehensive properties, methods, and events.
+
+## Overview
+
+Unlike traditional tree controls where nodes are simple data items, TeeTree nodes are complete visual components with rich formatting capabilities.
+
+```pascal
+// Creating a node
+var
+  Node: TTreeNodeShape;
+begin
+  Node := Tree.Shapes.Add('My Node');
+  Node.Color := clYellow;
+  Node.Border.Width := 2;
+end;
+```
+
+<Note>
+Every node in TeeTree is a `TTreeNodeShape` instance derived from `TCustomTreeElement`, which provides core functionality shared with connections.
+</Note>
+
+## Node Properties
+
+### Position and Size
+
+Nodes have explicit position and size properties:
+
+```pascal
+// Position (top-left corner)
+Node.X0 := 100;  // or Node.Left := 100;
+Node.Y0 := 50;   // or Node.Top := 50;
+
+// Size (bottom-right corner)
+Node.X1 := 200;
+Node.Y1 := 100;
+
+// Alternative: Width and Height
+Node.Width := 100;
+Node.Height := 50;
+```
+
+<Info>
+`Left` and `Top` are aliases for `X0` and `Y0` respectively. Use whichever is more intuitive for your code.
+</Info>
+
+### Visual Appearance
+
+<AccordionGroup>
+  <Accordion title="Colors and Brushes">
+    ```pascal
+    // Background color
+    Node.Color := clWhite;        // Default white
+    Node.Brush.Color := clYellow; // Alternative way
+    
+    // Border
+    Node.Border.Color := clBlack;
+    Node.Border.Width := 1;
+    Node.Border.Style := psSolid;
+    
+    // Transparency
+    Node.Transparency := 50;  // 0-100%
+    Node.Transparent := True; // No interior fill
+    ```
+  </Accordion>
+
+  <Accordion title="Gradients">
+    ```pascal
+    // Apply gradient fill
+    with Node.Gradient do
+    begin
+      Visible := True;
+      StartColor := clWhite;
+      EndColor := clBlue;
+      Direction := gdTopBottom;
+    end;
+    
+    // Gradient clipping
+    Node.GradientClip := True;  // Clip to shape bounds
+    ```
+  </Accordion>
+
+  <Accordion title="Shadows">
+    ```pascal
+    with Node.Shadow do
+    begin
+      Visible := True;
+      Size := 5;
+      Color := clGray;
+      Transparency := 50;
+    end;
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Node Styles
+
+Nodes support various visual styles:
+
+```pascal
+type
+  TTreeShapeStyle = (
+    tssRectangle,        // Default
+    tssCircle,
+    tssVertLine,
+    tssHorizLine,
+    tssLine,
+    tssInvertLine,
+    tssDiamond,
+    tssTriangleTop,
+    tssTriangleBottom,
+    tssTriangleLeft,
+    tssTriangleRight,
+    tssRoundRectangle,
+    tssCustom,
+    tssChamfer
+  );
+
+// Apply style
+Node.Style := tssRoundRectangle;
+Node.RoundSize := 10;  // Corner radius
+```
+
+<Warning>
+When using `tssCustom` style, you'll need to override the `GetShapePoints` method to define your custom shape.
+</Warning>
+
+## Text Properties
+
+Nodes have sophisticated text handling:
+
+```pascal
+// Simple text assignment
+Node.SimpleText := 'Hello World';
+
+// Multi-line text
+Node.Text.Clear;
+Node.Text.Add('Line 1');
+Node.Text.Add('Line 2');
+
+// Text formatting
+Node.Text.HorizAlign := htaCenter;  // htaLeft, htaRight
+Node.Text.VertAlign := vtaCenter;   // vtaTop, vtaBottom
+Node.Text.Angle := 45;              // 0..360 degrees
+Node.Text.ClipText := False;        // Allow text outside bounds
+
+// Font
+Node.Font.Name := 'Arial';
+Node.Font.Size := 12;
+Node.Font.Style := [fsBold];
+Node.Font.Color := clBlack;
+```
+
+## AutoSize
+
+Nodes can automatically size themselves based on content:
+
+```pascal
+Node.AutoSize := True;  // Default
+Node.SimpleText := 'This text determines the node size';
+
+// Disable for manual sizing
+Node.AutoSize := False;
+Node.Width := 200;
+Node.Height := 100;
+```
+
+<Note>
+When `AutoSize` is enabled, the node calculates its size based on text and image dimensions plus margins.
+</Note>
+
+## Images
+
+Nodes can display images in various positions:
+
+```pascal
+// Using stock images
+Node.ImageIndex := tiFolderClose;
+Node.Expanded := False;
+
+// Using custom image
+Node.Image.LoadFromFile('myimage.png');
+
+// Image alignment
+Node.ImageAlignment := iaLeft;  // iaAutomatic, iaLeftTop, iaRight, etc.
+
+// Custom image size
+Node.ImageWidth := 32;
+Node.ImageHeight := 32;
+
+// Using ImageList
+Node.ImageListIndex := 0;  // Index in Tree.Images
+```
+
+### Image Alignment Options
+
+```pascal
+type
+  TTreeImageAlignment = (
+    iaAutomatic,    // Smart positioning
+    iaLeftTop,
+    iaRightBottom,
+    iaLeftBottom,
+    iaRightTop,
+    iaLeft,
+    iaTop,
+    iaRight,
+    iaBottom,
+    iaCenter
+  );
+```
+
+## Parent-Child Relationships
+
+Nodes form hierarchies through parent-child relationships:
+
+```pascal
+// Create hierarchy
+var
+  Parent, Child1, Child2: TTreeNodeShape;
+begin
+  Parent := Tree.Shapes.Add('Parent');
+  Child1 := Parent.AddChild('Child 1');
+  Child2 := Parent.AddChild('Child 2');
+  
+  // Alternative: Set parent explicitly
+  Child1.Parent := Parent;
+end;
+
+// Access children
+for i := 0 to Parent.Children.Count - 1 do
+  ProcessChild(Parent.Children[i]);
+
+// Check if node has children
+if Node.HasChildren then
+  Node.Expanded := True;
+```
+
+<Info>
+When a parent node is destroyed, all its children are automatically freed.
+</Info>
+
+### Child Management Methods
+
+```pascal
+// Add children
+Child := Node.AddChild('New Child');          // Add at end
+Child := Node.AddChildFirst('First Child');   // Add at beginning
+Child := Node.Insert(1, 'Insert at Index 1'); // Insert at position
+
+// Add with data
+Child := Node.AddChildObject('Child', MyDataPointer);
+
+// Add sibling
+Brother := Node.AddBrother('Sibling Node');
+
+// Node count
+Count := Node.Count;  // Number of direct children
+```
+
+## Expand and Collapse
+
+Nodes can be expanded or collapsed to show/hide children:
+
+```pascal
+// Expand/Collapse
+Node.Expanded := True;
+Node.Expanded := False;
+
+// Toggle
+Node.Toggle;
+
+// Collapse recursively
+Node.Collapse(True);  // Collapse this and all descendants
+
+// Show CrossBox
+Node.ShowCross := scAuto;    // scAuto, scAlways, scNever
+```
+
+### CrossBox Styles
+
+```pascal
+type
+  TTreeNodeShapeShowCross = (
+    scAuto,    // Show only when node has children
+    scAlways,  // Always show
+    scNever    // Never show
+  );
+```
+
+## AutoPosition
+
+Control automatic positioning of nodes:
+
+```pascal
+// Enable both Left and Top auto-positioning
+Node.AutoPosition.Left := True;   // Default
+Node.AutoPosition.Top := True;    // Default
+
+// Manual X position, automatic Y
+Node.AutoPosition.Left := False;
+Node.AutoPosition.Top := True;
+Node.X0 := 100;  // Fixed X position
+```
+
+<Note>
+The `ChildManager` class calculates positions for nodes with `AutoPosition` enabled. See [Child Managers](/concepts/child-managers) for details.
+</Note>
+
+## Selection and Interaction
+
+```pascal
+// Select a node
+Node.Selected := True;
+
+// Check if selected
+if Node.Selected then
+  ShowMessage('Node is selected');
+
+// Add to tree selection
+Tree.Selected.Add(Node);
+
+// Events
+Node.OnClick := NodeClickHandler;
+Node.OnDblClick := NodeDblClickHandler;
+Node.OnMouseEnter := NodeMouseEnterHandler;
+Node.OnMouseLeave := NodeMouseLeaveHandler;
+```
+
+### Event Handlers
+
+```pascal
+procedure TForm1.NodeClickHandler(Sender: TTreeNodeShape;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  ShowMessage('Clicked: ' + Sender.SimpleText);
+end;
+```
+
+## Node Navigation
+
+```pascal
+// Access parent and siblings
+ParentNode := Node.Parent;
+RootNode := Node.Root;
+PreviousNode := Node.PreviousBrother;
+
+// Get node level (depth in tree)
+Level := Node.Level;  // 0 for root nodes
+
+// Brother index (position among siblings)
+Index := Node.BrotherIndex;
+Node.BrotherIndex := 0;  // Move to first position
+```
+
+## Visibility Control
+
+```pascal
+// Show/Hide
+Node.Visible := True;
+Node.Show;
+Node.Hide;
+
+// Check if inside tree bounds
+if Node.InsideTreeBounds then
+  ProcessNode(Node);
+```
+
+## Data Association
+
+```pascal
+// Store custom data
+Node.Data := MyDataPointer;
+Node.TagObject := MyObject;
+Node.Tag := 123;
+
+// Retrieve data
+MyData := PMyDataType(Node.Data);
+MyObj := Node.TagObject as TMyClass;
+```
+
+<Warning>
+The `Data` property is a raw pointer. Ensure proper memory management. `TagObject` provides automatic reference counting on supported platforms.
+</Warning>
+
+## Advanced Features
+
+### Checkboxes
+
+```pascal
+// Use checkbox images
+Node.ImageIndex := tiUnChecked;
+Node.Checked := False;
+
+// Toggle checkbox
+Node.ToggleCheck;
+Node.Checked := True;  // Now shows tiChecked
+
+// Check all selected
+Tree.Selected.ToggleCheck;
+```
+
+### Custom Drawing
+
+```pascal
+// Override DrawShapeCanvas for custom rendering
+type
+  TMyNode = class(TTreeNodeShape)
+  protected
+    procedure DrawShapeCanvas(const ACanvas: TCanvas3D;
+      const R: TRect); override;
+  end;
+```
+
+### Z-Order
+
+```pascal
+// Control drawing order
+Node.BringToFront;
+Node.SendToBack;
+```
+
+## Utility Methods
+
+```pascal
+// Geometry
+CenterX := Node.XCenter;
+CenterY := Node.YCenter;
+Bounds := Node.Bounds;  // TRect
+Adjusted := Node.AdjustedRectangle;  // Includes image
+
+// Sorting children
+Node.SortChildsText(True, False);  // Ascending, case-sensitive
+
+// Select all children
+Node.SelectChilds;
+
+// Move node
+Node.MoveRelative(10, 20, True);  // DeltaX, DeltaY, MoveChildren
+
+// Resize
+Node.Resize(rcRightBottom, 10, 10);  // Corner, DeltaX, DeltaY
+```
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Use AutoSize" icon="expand">
+    Let nodes automatically size themselves based on content for consistent appearance
+  </Card>
+  <Card title="Leverage Parent-Child" icon="diagram-nested">
+    Use parent-child relationships instead of manual positioning when possible
+  </Card>
+  <Card title="Cache References" icon="database">
+    Store node references in data structures for quick access instead of searching
+  </Card>
+  <Card title="Handle Events" icon="bolt">
+    Use node events for interactive features rather than polling
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<CardGroup cols={3}>
+  <Card title="Connections" icon="link" href="/concepts/connections">
+    Learn how to link nodes together
+  </Card>
+  <Card title="Child Managers" icon="diagram-project" href="/concepts/child-managers">
+    Understand automatic layout management
+  </Card>
+  <Card title="Styling Guide" icon="palette" href="/guides/styling">
+    Master visual customization
+  </Card>
+</CardGroup>

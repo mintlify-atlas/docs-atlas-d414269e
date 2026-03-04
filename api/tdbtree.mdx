@@ -1,0 +1,494 @@
+---
+title: TDBTree
+description: Database-aware tree component that displays hierarchical data from datasets with automatic parent-child relationships
+---
+
+## Overview
+
+`TDBTree` (and its base class `TCustomDBTree`) is a database-aware tree component that automatically populates a tree structure from dataset records. It supports parent-code relationships, grouping, and master-detail scenarios.
+
+## Class Hierarchy
+
+```
+TCustomTree
+  └─ TCustomDBTree
+      └─ TDBTree
+```
+
+## Key Features
+
+- Automatic tree population from datasets
+- Parent-code hierarchical relationships
+- Field grouping for tree levels
+- Master-detail dataset support
+- Multiple layout configurations
+- Custom node formatting per level
+- Grid display mode support
+
+## Properties
+
+### Basic Database Connection
+
+<ResponseField name="DataSet" type="TDataSet" >
+The main dataset (table or query) to display in the tree.
+</ResponseField>
+
+<ResponseField name="CodeField" type="String" >
+Field name containing unique record codes. Used for parent-code relationships (Situation 1).
+</ResponseField>
+
+<ResponseField name="ParentField" type="String" >
+Field name containing parent codes or grouping field. Determines the hierarchical structure.
+</ResponseField>
+
+<ResponseField name="TextFields" type="String" >
+Semicolon-separated list of field names to display as node text.
+
+Example: `'Name;Address;Phone'`
+</ResponseField>
+
+### Master-Detail Support
+
+<ResponseField name="Detail" type="TDataSet" >
+Detail dataset for master-detail relationships (Situation 3).
+</ResponseField>
+
+<ResponseField name="DetailFields" type="String" >
+Semicolon-separated list of field names from the detail dataset to display.
+</ResponseField>
+
+### Display Options
+
+<ResponseField name="MultiLineText" type="Boolean" default="False">
+When True, displays each field on a separate line.
+When False, joins all fields into a single line.
+</ResponseField>
+
+### Advanced Layout
+
+<ResponseField name="Layout" type="TDBTreeLayout" >
+Collection of layout items for complex multi-dataset trees. Each layout item can represent a different dataset level.
+</ResponseField>
+
+## Layout Collection
+
+The `Layout` property is a collection of `TDBLayout` items, each representing a dataset level:
+
+### TDBLayout Properties
+
+<ResponseField name="DataSet" type="TDataSet" >
+Dataset for this layout level.
+</ResponseField>
+
+<ResponseField name="Fields" type="String" >
+Semicolon-separated field names to display.
+</ResponseField>
+
+<ResponseField name="CodeField" type="String" >
+Unique identifier field name.
+</ResponseField>
+
+<ResponseField name="ParentField" type="String" >
+Parent or grouping field name.
+</ResponseField>
+
+<ResponseField name="DisplayMode" type="TDBLayoutDisplay" default="ldSingle">
+How to display fields:
+- `ldSingle` - All fields on one line
+- `ldMultiLine` - Each field on separate line
+- `ldGrid` - Fields displayed in grid columns
+</ResponseField>
+
+<ResponseField name="Format" type="TTreeNodeShape" >
+Template node defining visual appearance for nodes at this level.
+</ResponseField>
+
+<ResponseField name="HeaderFormat" type="TTreeNodeShape" >
+Optional header node displayed before this level's data.
+</ResponseField>
+
+## Methods
+
+<ParamField path="Refresh" type="procedure" >
+Rebuilds the entire tree from the dataset(s).
+
+```pascal
+procedure Refresh;
+```
+
+Call this after changing dataset properties or when data changes.
+</ParamField>
+
+<ParamField path="FindNodeCode" type="function" >
+Finds a node by its code value.
+
+```pascal
+function FindNodeCode(ACode: Integer): TTreeNodeShape;
+```
+
+**Parameters:**
+- `ACode` - The code value to search for (from CodeField)
+
+**Returns:** Node with matching Tag property, or nil
+</ParamField>
+
+## Usage Scenarios
+
+### Situation 1: Parent-Code Relationship
+
+When your dataset has Code and Parent fields:
+
+**Dataset Example:**
+```
+Code   Parent   Text
+----   ------   ------------
+1      0        Continents
+2      1          America
+3      1          Africa
+4      1          Australia
+5      2            USA
+6      5              California
+7      4            Sydney
+```
+
+**Code:**
+```pascal
+with DBTree1 do
+begin
+  DataSet := Table1;
+  CodeField := 'Code';
+  ParentField := 'Parent';
+  TextFields := 'Text';
+  Refresh;
+end;
+```
+
+**Result:**
+```
+Continents
+  → America
+      → USA
+          → California
+  → Africa
+  → Australia
+      → Sydney
+```
+
+### Situation 2: Grouping (No Code Field)
+
+When grouping by a field without explicit parent-child codes:
+
+**Dataset Example:**
+```
+Country      City
+----------   ---------------
+AUSTRALIA    Sydney
+USA          New York
+UK           London
+AUSTRALIA    Canberra
+UK           Manchester
+USA          Chicago
+```
+
+**Code:**
+```pascal
+with DBTree1 do
+begin
+  DataSet := Table1;
+  CodeField := '';  // No code field
+  ParentField := 'Country';  // Group by country
+  TextFields := 'City';
+  Refresh;
+end;
+```
+
+**Result:**
+```
+AUSTRALIA
+  → Sydney
+  → Canberra
+UK
+  → London
+  → Manchester
+USA
+  → New York
+  → Chicago
+```
+
+### Situation 3: Master-Detail Relationship
+
+For master-detail dataset relationships:
+
+**Master Dataset:**
+```
+Person   Department
+-------  --------------
+John     Accounting
+Chris    Management
+Anne     Sales
+```
+
+**Detail Dataset:**
+```
+Person  Month  Salary
+------  -----  -------
+John    April  $1000
+John    May    $1100
+Chris   March  $900
+```
+
+**Code:**
+```pascal
+with DBTree1 do
+begin
+  DataSet := MasterTable;      // Master
+  CodeField := '';
+  ParentField := 'Department';
+  TextFields := 'Person';
+  
+  Detail := DetailTable;       // Detail
+  DetailFields := 'Month;Salary';
+  
+  Refresh;
+end;
+```
+
+**Result:**
+```
+Accounting
+  → John
+      → April $1000
+      → May $1100
+Management
+  → Chris
+      → March $900
+Sales
+  → Anne
+```
+
+## Advanced Layout Examples
+
+### Multiple Layouts
+
+```pascal
+with DBTree1 do
+begin
+  // First layout - Countries
+  with Layout.Add do
+  begin
+    DataSet := CountryTable;
+    ParentField := 'Region';
+    Fields := 'CountryName';
+    DisplayMode := ldSingle;
+    
+    // Custom format
+    Format.Color := clYellow;
+    Format.Font.Style := [fsBold];
+  end;
+  
+  // Second layout - Cities
+  with Layout.Add do
+  begin
+    DataSet := CityTable;
+    ParentField := 'Country';
+    Fields := 'CityName;Population';
+    DisplayMode := ldMultiLine;
+    
+    Format.Color := clWhite;
+  end;
+  
+  Refresh;
+end;
+```
+
+### Grid Display Mode
+
+```pascal
+with DBTree1.Layout.Add do
+begin
+  DataSet := Table1;
+  Fields := 'Name;Age;Email';
+  DisplayMode := ldGrid;  // Display as grid
+  
+  Format.Border.Visible := True;
+  Format.AutoSize := True;
+end;
+
+DBTree1.Refresh;
+```
+
+### Using Header Format
+
+```pascal
+with DBTree1.Layout.Add do
+begin
+  DataSet := EmployeeTable;
+  Fields := 'Name;Position';
+  
+  // Header node
+  HeaderFormat.Text.Add('EMPLOYEES');
+  HeaderFormat.Color := clNavy;
+  HeaderFormat.Font.Color := clWhite;
+  HeaderFormat.Font.Style := [fsBold];
+  
+  // Data nodes
+  Format.Color := clSilver;
+end;
+
+DBTree1.Refresh;
+```
+
+### Conditional Formatting
+
+```pascal
+DBTree1.DataSet := Table1;
+DBTree1.CodeField := 'ID';
+DBTree1.ParentField := 'ParentID';
+DBTree1.TextFields := 'Name';
+DBTree1.Refresh;
+
+// Format nodes after refresh
+var
+  i: Integer;
+  Node: TTreeNodeShape;
+begin
+  for i := 0 to DBTree1.Shapes.Count - 1 do
+  begin
+    Node := DBTree1.Shapes[i];
+    
+    // Color by level
+    case Node.Level of
+      0: Node.Color := clYellow;
+      1: Node.Color := clSkyBlue;
+      2: Node.Color := clLime;
+    end;
+    
+    // Bold root nodes
+    if Node.Parent = nil then
+      Node.Font.Style := [fsBold];
+  end;
+end;
+```
+
+## Common Patterns
+
+### Refreshing on Dataset Changes
+
+```pascal
+procedure TForm1.Table1AfterPost(DataSet: TDataSet);
+begin
+  DBTree1.Refresh;
+end;
+
+procedure TForm1.Table1AfterDelete(DataSet: TDataSet);
+begin
+  DBTree1.Refresh;
+end;
+```
+
+### Finding and Selecting a Node
+
+```pascal
+var
+  Node: TTreeNodeShape;
+  SearchCode: Integer;
+begin
+  SearchCode := 42;
+  Node := DBTree1.FindNodeCode(SearchCode);
+  
+  if Assigned(Node) then
+  begin
+    Node.Selected := True;
+    DBTree1.CenterInView(Node);
+  end
+  else
+    ShowMessage('Node not found');
+end;
+```
+
+### Multi-Field Display
+
+```pascal
+// Single line with multiple fields
+DBTree1.TextFields := 'LastName;FirstName;Email';
+DBTree1.MultiLineText := False;  // "Smith John john@example.com"
+
+// Multi-line
+DBTree1.MultiLineText := True;
+// Result:
+// Smith
+// John
+// john@example.com
+```
+
+### Performance Optimization
+
+```pascal
+procedure TForm1.LoadLargeDataset;
+begin
+  DBTree1.BeginUpdate;
+  try
+    DBTree1.DataSet := LargeTable;
+    DBTree1.CodeField := 'ID';
+    DBTree1.ParentField := 'ParentID';
+    DBTree1.TextFields := 'Description';
+    DBTree1.Refresh;
+  finally
+    DBTree1.EndUpdate;
+  end;
+end;
+```
+
+### Combining with Manual Nodes
+
+```pascal
+// Load from database
+DBTree1.Refresh;
+
+// Add manual nodes
+var
+  ManualNode: TTreeNodeShape;
+begin
+  ManualNode := DBTree1.AddRoot('Manual Entry');
+  ManualNode.Color := clAqua;
+  ManualNode.AddChild('Custom Child 1');
+  ManualNode.AddChild('Custom Child 2');
+end;
+```
+
+## Events
+
+DBTree inherits all events from TCustomTree:
+
+```pascal
+procedure TForm1.DBTree1SelectShape(Sender: TTreeNodeShape);
+var
+  RecordCode: Integer;
+begin
+  // Get the database record code
+  RecordCode := Sender.Tag;
+  
+  // Locate in dataset
+  if Table1.Locate('ID', RecordCode, []) then
+  begin
+    // Display record details
+    ShowMessage(Table1.FieldByName('Name').AsString);
+  end;
+end;
+```
+
+## Tips and Best Practices
+
+1. **Always call Refresh** after changing dataset or field properties
+2. **Use BeginUpdate/EndUpdate** for better performance with large datasets
+3. **Set CodeField to empty string** when using grouping without codes
+4. **Use Layout collection** for complex multi-level trees
+5. **Format nodes** after Refresh for conditional styling
+6. **Store record IDs** in node Tag property for quick lookups
+7. **Handle dataset events** (AfterPost, AfterDelete) to keep tree synchronized
+
+## See Also
+
+- [TTree](/api/ttree) - Base tree component
+- [TTreeNodeShape](/api/ttreenodeshape) - Individual nodes
+- [TTreeConnection](/api/ttreeconnection) - Node connections

@@ -1,0 +1,182 @@
+---
+title: Introduction to TeeTree
+description: A powerful component library for flowcharting, diagramming, and hierarchical data visualization in Delphi VCL and FireMonkey FMX
+---
+
+## What is TeeTree?
+
+TeeTree is a comprehensive component library for Delphi and C++ that provides advanced flowcharting, diagramming, and hierarchical tree visualization capabilities. Originally developed in 1999, TeeTree has evolved to support modern RAD Studio versions up to 13.0 Florence 2025.
+
+<Info>
+  TeeTree is more than just a TreeView alternative. Every node is a full standalone component with its own properties, methods, and events, offering unprecedented flexibility for creating complex visualizations.
+</Info>
+
+## Platform Support
+
+TeeTree supports both major Delphi frameworks:
+
+<CardGroup cols={2}>
+  <Card title="VCL" icon="desktop">
+    Traditional Windows desktop applications with the `TeeTree` unit
+  </Card>
+  <Card title="FireMonkey (FMX)" icon="mobile">
+    Cross-platform applications using the `FMXTee.Tree` unit
+  </Card>
+</CardGroup>
+
+## Core Architecture
+
+TeeTree's architecture is built around three main component types:
+
+### TTree Component
+
+The main container component that maintains a network-hierarchy of nodes. It provides:
+
+- Visual rendering and layout management
+- Node selection and interaction handling
+- Zoom and scroll capabilities
+- Global formatting options
+- Print preview functionality
+
+### TTreeNodeShape
+
+Every node in TeeTree is a full component with extensive properties:
+
+```delphi
+var
+  MyNode: TTreeNodeShape;
+begin
+  MyNode := Tree1.AddRoot('Root Node');
+  MyNode.Font.Color := clRed;
+  MyNode.Border.Visible := True;
+  MyNode.Gradient.Visible := True;
+  MyNode.ImageIndex := tiFolderOpenClose;
+end;
+```
+
+Node properties include:
+- Color, border, brush, font, text
+- Gradient effects and transparency
+- Custom shapes and sizes
+- Shadow and 3D effects
+- Images and icons
+
+### TTreeConnection
+
+Connections are components that display lines between nodes:
+
+```delphi
+var
+  Connection: TTreeConnection;
+begin
+  Connection := NodeA.AddConnection(NodeC);
+  Connection.Style := csLine;
+  Connection.Border.Color := clBlue;
+  Connection.Border.Width := 2;
+end;
+```
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Per-Node Formatting" icon="palette">
+    Full control over each node's appearance with fonts, colors, gradients, borders, shadows, and custom shapes
+  </Card>
+  
+  <Card title="Interactive Editing" icon="edit">
+    Node selection, resizing, positioning, drag-and-drop, and in-place text editing
+  </Card>
+  
+  <Card title="Database Integration" icon="database">
+    DBTree component for automatic hierarchy generation from datasets
+  </Card>
+  
+  <Card title="Virtual Mode" icon="layer-group">
+    Create children nodes on-demand for handling large datasets efficiently
+  </Card>
+  
+  <Card title="Connections & Links" icon="link">
+    Create visual connections between any nodes, either by code or mouse interaction
+  </Card>
+  
+  <Card title="Custom Shapes" icon="shapes">
+    Rectangle, RoundRectangle, Circle, Diamond, and fully custom polygonal shapes
+  </Card>
+  
+  <Card title="Child Managers" icon="sitemap">
+    Multiple layout algorithms including Explorer-style, circular, top-bottom, and custom arrangements
+  </Card>
+  
+  <Card title="Export & Import" icon="file-export">
+    Save and load tree structures, clipboard operations, and export to various formats
+  </Card>
+</CardGroup>
+
+## Use Cases
+
+TeeTree excels at visualizing:
+
+- **Organizational charts** - Company hierarchies and reporting structures
+- **Flowcharts** - Process diagrams and workflow visualization
+- **Decision trees** - Logic flow and decision-making processes
+- **Network diagrams** - System architecture and component relationships
+- **Mind maps** - Brainstorming and concept mapping
+- **File system browsers** - Hierarchical file and folder structures
+- **UML diagrams** - Class hierarchies and object relationships
+
+## Component Hierarchy
+
+The component inheritance model:
+
+```
+TCustomTreeElement (base class)
+├── TTreeNodeShape (nodes)
+│   ├── TTextShape (text-only nodes)
+│   ├── TTreeNodeShape (standard nodes)
+│   └── Custom shape classes
+└── TTreeConnection (connections between nodes)
+```
+
+<Note>
+  Both nodes and connections share the same base class `TCustomTreeElement`, which provides common functionality for text, fonts, cursors, and tree ownership.
+</Note>
+
+## Why Choose TeeTree?
+
+<CardGroup cols={3}>
+  <Card title="Mature & Stable" icon="certificate">
+    25+ years of development and real-world usage
+  </Card>
+  
+  <Card title="Pure Pascal" icon="code">
+    100% Object Pascal source code included
+  </Card>
+  
+  <Card title="Highly Customizable" icon="sliders">
+    Every aspect can be customized programmatically or at design-time
+  </Card>
+  
+  <Card title="Performance" icon="gauge-high">
+    Optimized for handling thousands of nodes efficiently
+  </Card>
+  
+  <Card title="Rich Events" icon="bolt">
+    Comprehensive event model for mouse, keyboard, and node lifecycle events
+  </Card>
+  
+  <Card title="Designer Tools" icon="wrench">
+    Visual node editor, connection designer, and property editors
+  </Card>
+</CardGroup>
+
+## What's Next?
+
+Ready to get started? Continue to the [Installation](/installation) guide to set up TeeTree in your RAD Studio environment, or jump straight to the [Quick Start](/quickstart) to create your first tree diagram.
+
+## Related Libraries
+
+TeeTree is part of the Steema component family:
+
+- **[TeeChart](https://github.com/Steema/TeeChart-VCL-FMX-Samples)** - Charting components
+- **[TeeGrid](https://github.com/Steema/TeeGrid-VCL-FMX-Samples)** - 100% Grid pure Pascal
+- **[TeeBI](https://github.com/Steema/TeeBI)** - Data-mining, fast queries, big data visualization

@@ -1,0 +1,246 @@
+---
+title: "Tree Component"
+description: "Understanding the TTree component and its role in TeeTree"
+---
+
+The `TTree` component is the central visual control in TeeTree. It maintains a network-hierarchy of nodes, similar to Microsoft's TreeView control, but with significantly more power and flexibility.
+
+## Overview
+
+TTree is a visual component that manages a collection of nodes and their relationships. Unlike traditional tree controls, every node in TeeTree is a full standalone component with its own properties, methods, and events.
+
+```pascal
+// Creating a basic tree
+var
+  Tree: TTree;
+begin
+  Tree := TTree.Create(Self);
+  Tree.Parent := Self;
+end;
+```
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Node Management" icon="diagram-project">
+    Maintains a network-hierarchy of nodes with parent-child relationships
+  </Card>
+  <Card title="Visual Connections" icon="link">
+    Links nodes using connection components with customizable styles
+  </Card>
+  <Card title="Auto-Positioning" icon="grip">
+    Automatic layout management through child manager classes
+  </Card>
+  <Card title="Rich Formatting" icon="palette">
+    Full control over colors, borders, fonts, gradients, and more
+  </Card>
+</CardGroup>
+
+## Component Architecture
+
+TeeTree follows a component-based architecture where the Tree acts as a container:
+
+```pascal
+TCustomTree (Base Class)
+  ├── TCustomTreeElement (Base for nodes and connections)
+  │   ├── TTreeNodeShape (Individual nodes)
+  │   └── TTreeConnection (Links between nodes)
+  └── Child Managers (Layout algorithms)
+```
+
+<Note>
+The `TCustomTree` class is the base class, while `TTree` is the published component you'll typically use in your applications.
+</Note>
+
+## Global Configuration
+
+<AccordionGroup>
+  <Accordion title="Global Variables">
+    TeeTree provides several global variables for fine-tuning behavior:
+
+    ```pascal
+    var
+      TeeTreeAnimatedScroll  : Boolean = True;
+      TeeLineClickTolerance  : Integer = 3;
+      TeeConnectionCursor    : TCursor = crHandPoint;
+      TreeListCapacity       : Integer = 100;
+    ```
+
+    <Warning>
+    These global variables might be removed or replaced in future versions. Use with caution.
+    </Warning>
+  </Accordion>
+
+  <Accordion title="Performance Tuning">
+    Adjust list capacities for better performance:
+
+    ```pascal
+    // Minimize memory usage
+    TreeListCapacity := 0;
+    TreeShapeListCapacity := 0;
+
+    // Optimize for large trees (1000+ nodes)
+    TreeListCapacity := 1000;
+    TreeShapeListCapacity := 1000;
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Working with Roots
+
+The Tree maintains a collection of root nodes (nodes without parents):
+
+```pascal
+// Add root nodes
+var
+  RootNode: TTreeNodeShape;
+begin
+  RootNode := Tree.Shapes.Add('Root 1');
+  RootNode.X0 := 10;
+  RootNode.Y0 := 10;
+end;
+
+// Access all root nodes
+for i := 0 to Tree.Roots.Count - 1 do
+  ShowMessage(Tree.Roots[i].SimpleText);
+```
+
+<Info>
+Root nodes are automatically positioned based on the Tree's `GlobalFormat.ChildManager` when their `AutoPosition` property is enabled.
+</Info>
+
+## Layout Management
+
+The Tree's layout is controlled by the `GlobalFormat.ChildManager` object:
+
+```pascal
+// Use Explorer-style layout (default)
+Tree.GlobalFormat.ChildManager := TTreeExplorerAlignChild.Create;
+
+// Use circular layout
+Tree.GlobalFormat.ChildManager := TTreeCircularAlignChild.Create;
+
+// Use top-to-bottom layout
+Tree.GlobalFormat.ChildManager := TTreeTopBottomAlignChild.Create;
+```
+
+<Note>
+Child managers determine how parent and children nodes are arranged on screen when nodes are auto-positioned. See [Child Managers](/concepts/child-managers) for details.
+</Note>
+
+## Selection Management
+
+TTree provides a built-in selection system:
+
+```pascal
+// Select a node
+Tree.Selected.Add(MyNode);
+
+// Select multiple nodes
+Tree.Selected.ShiftState := [ssShift];  // Enable multi-select
+
+// Access selected nodes
+for i := 0 to Tree.Selected.Count - 1 do
+  ProcessNode(Tree.Selected[i]);
+
+// Clear selection
+Tree.Selected.Clear;
+```
+
+## CrossBox (Expand/Collapse)
+
+The CrossBox is the visual indicator (+/-) for expanding and collapsing nodes:
+
+```pascal
+// Configure CrossBox appearance
+with Tree.CrossBox do
+begin
+  Size := 15;
+  Style := cbsSquare;     // Square, Diamond, or Circle
+  SignStyle := cssCross;  // Cross or Triangle
+  Border.Color := clGray;
+  Brush.Color := clWhite;
+end;
+```
+
+## VCL vs FireMonkey
+
+TeeTree supports both VCL and FireMonkey frameworks:
+
+- **VCL**: Uses `TeeTree.pas` unit
+- **FireMonkey**: Uses `FMXTee.Tree.pas` unit
+
+<Info>
+The API is consistent across both frameworks, with minor platform-specific differences in rendering and events.
+</Info>
+
+## Common Patterns
+
+### Creating a Simple Hierarchy
+
+```pascal
+var
+  Root, Child1, Child2: TTreeNodeShape;
+begin
+  Root := Tree.Shapes.Add('Root');
+  Child1 := Root.AddChild('Child 1');
+  Child2 := Root.AddChild('Child 2');
+  
+  Root.Expanded := True;
+end;
+```
+
+### Iterating All Nodes
+
+```pascal
+// Iterate through all shapes
+for i := 0 to Tree.Shapes.Count - 1 do
+begin
+  Node := Tree.Shapes[i];
+  // Process node
+end;
+```
+
+### Finding Nodes
+
+```pascal
+// Find by text
+Node := Tree.Shapes.Find('Search Text');
+
+// Find by partial match
+Node := Tree.Shapes.Find('Search', True);
+
+// Find by object reference
+Node := Tree.Shapes.FindObject(MyDataObject);
+```
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Use AutoPosition" icon="wand-magic-sparkles">
+    Enable `AutoPosition` for automatic layout management instead of manually positioning every node
+  </Card>
+  <Card title="Set List Capacity" icon="gauge-high">
+    Pre-allocate list capacity for better performance when adding many nodes
+  </Card>
+  <Card title="Batch Updates" icon="layer-group">
+    Use `BeginUpdate`/`EndUpdate` when making multiple changes to prevent flickering
+  </Card>
+  <Card title="Choose Right ChildManager" icon="diagram-project">
+    Select the appropriate child manager for your tree's visual structure
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<CardGroup cols={3}>
+  <Card title="Nodes" icon="circle-nodes" href="/concepts/nodes">
+    Learn about TTreeNodeShape and node hierarchy
+  </Card>
+  <Card title="Connections" icon="link" href="/concepts/connections">
+    Understand how to link nodes with connections
+  </Card>
+  <Card title="Child Managers" icon="diagram-project" href="/concepts/child-managers">
+    Explore layout management options
+  </Card>
+</CardGroup>

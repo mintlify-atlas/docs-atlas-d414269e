@@ -1,0 +1,284 @@
+---
+title: 'TTreeEditor'
+description: 'Visual designer component for editing TeeTree diagrams at runtime or design-time'
+---
+
+## Overview
+
+The `TTreeEditor` component provides a complete visual designer for editing TeeTree diagrams. It offers a comprehensive interface with toolbars, property editors, and visual tools for creating and modifying tree structures.
+
+## Components
+
+### TTreeEditor
+
+The main editor form that provides a full-featured tree diagram designer.
+
+```pascal
+type
+  TTreeEditor = class(TForm)
+  public
+    TheTree : TCustomTree;
+    PersistOptions : Boolean;
+    
+    Procedure RegisterTreeShape(AGroup:Integer;
+                               Const AName:String;
+                               AStyle:TTreeShapeStyle);
+    Procedure LoadEditorParameters;
+    Procedure SaveEditorParameters;
+  end;
+```
+
+**Key Features:**
+- Full visual tree editor with toolbars and property panels
+- Shape palette with standard and custom shapes
+- Node tree view for hierarchical navigation
+- Property inspector for detailed editing
+- Undo/redo functionality
+- Grid and ruler support
+- Zoom and pan controls
+
+### TTreeEdit
+
+Non-visual component to invoke the Tree Editor dialog.
+
+```pascal
+type
+  TTreeEdit = class(TCustomTreeLink)
+  published
+    property Hide:TTreeEditWindows;
+    property Maximized:Boolean;
+    property PersistOptions:Boolean;
+    property Position:TPosition;
+    property Title:String;
+    property OnClose: TNotifyEvent;
+    
+    Procedure Execute;
+  end;
+```
+
+**Properties:**
+- `Hide` - Set of windows to hide from the editor interface
+- `Maximized` - Whether to show the editor maximized
+- `PersistOptions` - Save/load editor settings from registry
+- `Position` - Initial position of the editor window
+- `Title` - Custom title for the editor window
+
+### TTreeEditorPanel
+
+Embeddable editor panel for hosting the tree editor within your application.
+
+```pascal
+type
+  TTreeEditorPanel = class(TCustomPanelTreeLink)
+  public
+    property Editor:TTreeEditor;
+    Procedure PreviewMode;
+  published
+    property HideWindows:TTreeEditWindows;
+    property Tree;
+  end;
+```
+
+## Edit Windows
+
+```pascal
+type
+  TTreeEditWindow = (
+    teInspector,    // Property inspector
+    teNodeTree,     // Hierarchical node tree view
+    teToolbar,      // Main toolbar
+    teToolShapes,   // Shape selection toolbar
+    teEditors,      // Property editor tabs
+    teFont,         // Font toolbar
+    teFormat,       // Format toolbar
+    teRulers,       // Horizontal and vertical rulers
+    teStatus,       // Status bar
+    teModeTabs,     // Mode selection tabs
+    teMainMenu      // Main menu
+  );
+```
+
+## Usage Examples
+
+### Show Editor Dialog
+
+```pascal
+uses TreeEd;
+
+procedure TForm1.Button1Click(Sender: TObject);
+begin
+  EditTree(Self, Tree1);
+end;
+```
+
+### Show Editor Without About Box
+
+```pascal
+uses TreeEd;
+
+procedure TForm1.EditTreeClick(Sender: TObject);
+begin
+  EditTreeNoAbout(Self, Tree1);
+end;
+```
+
+### Using TTreeEdit Component
+
+```pascal
+var
+  TreeEdit1: TTreeEdit;
+begin
+  TreeEdit1 := TTreeEdit.Create(Self);
+  TreeEdit1.Tree := Tree1;
+  TreeEdit1.Title := 'My Tree Editor';
+  TreeEdit1.PersistOptions := True;
+  TreeEdit1.Hide := [teEditors, teStatus];
+  TreeEdit1.Execute;
+end;
+```
+
+### Embedded Editor Panel
+
+```pascal
+var
+  EditorPanel: TTreeEditorPanel;
+begin
+  EditorPanel := TTreeEditorPanel.Create(Self);
+  EditorPanel.Parent := Panel1;
+  EditorPanel.Align := alClient;
+  EditorPanel.Tree := Tree1;
+  EditorPanel.HideWindows := [teMainMenu, teStatus];
+end;
+```
+
+### Custom Editor Event
+
+```pascal
+procedure CustomizeEditor(Sender: TTreeEditor);
+begin
+  // Hide specific menu items
+  Sender.Export1.Visible := False;
+  
+  // Customize toolbars
+  Sender.PanelToolbar.Visible := True;
+end;
+
+procedure TForm1.ShowCustomEditor;
+begin
+  EditTreeEvent(Self, Tree1, CustomizeEditor);
+end;
+```
+
+### Register Custom Shapes
+
+```pascal
+procedure TForm1.FormCreate(Sender: TObject);
+var
+  Editor: TTreeEditor;
+begin
+  Editor := TTreeEditor.Create(Self);
+  try
+    Editor.TheTree := Tree1;
+    
+    // Register custom shape in toolbar
+    Editor.RegisterTreeShape(
+      0,                    // Group index (0=Standard)
+      'Custom Shape',       // Shape name
+      tssRoundRectangle    // Shape style
+    );
+    
+    Editor.ShowModal;
+  finally
+    Editor.Free;
+  end;
+end;
+```
+
+### Persist Editor Settings
+
+```pascal
+var
+  TreeEdit1: TTreeEdit;
+begin
+  TreeEdit1 := TTreeEdit.Create(Self);
+  TreeEdit1.Tree := Tree1;
+  TreeEdit1.PersistOptions := True;  // Save to registry
+  TreeEdit1.Execute;
+end;
+```
+
+## Helper Functions
+
+### EditTree
+
+Shows the Tree Editor dialog with About box.
+
+```pascal
+Procedure EditTree(AOwner:TComponent; ATree:TCustomTree);
+```
+
+### EditTreeNoAbout
+
+Shows the Tree Editor dialog without About box.
+
+```pascal
+Procedure EditTreeNoAbout(AOwner:TComponent; ATree:TCustomTree);
+```
+
+### EditTreeEvent
+
+Shows the Tree Editor dialog and calls a customization event.
+
+```pascal
+Procedure EditTreeEvent(
+  AOwner:TComponent; 
+  ATree:TCustomTree;
+  AEvent:TTreeNotifyEvent
+);
+```
+
+## Features
+
+### Visual Design Tools
+- Shape selection palette
+- Drawing mode for creating shapes
+- Connection drawing mode
+- Grid snapping
+- Alignment tools
+- Z-order management
+
+### Property Editing
+- Property inspector panel
+- Font toolbar (face, size, style, alignment)
+- Border toolbar (color, width, style)
+- Format tools (gradient, shadow, transparency)
+- Node-specific editors
+
+### Navigation
+- Node tree view showing hierarchy
+- Zoom controls (trackbar and buttons)
+- Pan and scroll
+- Rulers with units
+- Page navigator for multi-page diagrams
+
+### Clipboard Operations
+- Cut, Copy, Paste nodes
+- Duplicate shapes
+- Delete with confirmation
+
+### File Operations
+- New, Open, Save, Save As
+- Recent files list
+- Import/Export support
+
+## Related Components
+
+- [TTreeExport](/api/tree-export) - Export tree to various formats
+- [TTreeNavigator](/api/tree-navigator) - Page navigation controls
+- [TTreeAnimate](/api/tree-animate) - Animation features
+
+## See Also
+
+- [Getting Started](/quickstart)
+- [Creating Trees](/guides/creating-trees)
+- [Node Operations](/guides/working-with-nodes)

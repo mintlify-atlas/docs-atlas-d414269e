@@ -1,0 +1,278 @@
+---
+title: Installation
+description: Step-by-step guide to installing TeeTree in RAD Studio IDE
+---
+
+## Overview
+
+TeeTree can be used in two ways:
+1. **Design-time installation** - Install packages in the IDE for visual component access
+2. **Code-only usage** - Use TeeTree components programmatically without IDE installation
+
+<Info>
+  Installation is optional. You can use TeeTree entirely by code without installing any packages.
+</Info>
+
+## Code-Only Usage
+
+To use TeeTree without installation, simply reference the units in your code:
+
+<CodeGroup>
+
+```delphi VCL
+uses
+  TeeTree; // VCL version
+
+var
+  Tree1: TTree;
+begin
+  Tree1 := TTree.Create(Self);
+  Tree1.Parent := Self;
+  Tree1.Align := alClient;
+end;
+```
+
+```delphi FireMonkey
+uses
+  FMXTee.Tree; // FireMonkey version
+
+var
+  Tree1: TTree;
+begin
+  Tree1 := TTree.Create(Self);
+  Tree1.Parent := Self;
+  Tree1.BoundsRect := RectF(20, 50, 250, 350);
+end;
+```
+
+</CodeGroup>
+
+## Design-Time Installation
+
+### Prerequisites
+
+<Steps>
+
+<Step title="Determine Your TeeChart Version">
+  TeeTree requires TeeChart. Check which version you have:
+  
+  - **TeeChart Pro** - Use packages in `Sources/Packages/Pro`
+  - **TeeChart Lite** - Use packages in `Sources/Packages/Lite` (free version included with RAD Studio)
+  
+  <Note>
+    If you're unsure, check if you have a licensed copy of TeeChart Pro. Otherwise, use the Lite packages.
+  </Note>
+</Step>
+
+<Step title="Locate Package Files">
+  Navigate to the appropriate folder:
+  
+  ```
+  Sources/Packages/Lite/TeeTree_Lite.groupproj
+  ```
+  
+  or
+  
+  ```
+  Sources/Packages/Pro/TeeTree_Pro.groupproj
+  ```
+</Step>
+
+<Step title="Open Package Group">
+  Open the `.groupproj` file in RAD Studio. You'll see multiple packages:
+  
+  - **Runtime packages** (VCL and FMX)
+  - **DclVCL** - VCL design-time package
+  - **DclFMX** - FireMonkey design-time package
+</Step>
+
+<Step title="Install VCL Package">
+  1. Right-click the **DclVCL** package in Project Manager
+  2. Select **Install**
+  3. Wait for compilation and installation to complete
+  
+  <img src="https://github.com/user-attachments/assets/2e4ecfbf-269f-4841-bffb-c946bacc450b" alt="Install VCL Package" />
+</Step>
+
+<Step title="Install FMX Package (Optional)">
+  If you're developing FireMonkey applications:
+  
+  1. Right-click the **DclFMX** package
+  2. Select **Install**
+  3. Wait for compilation and installation to complete
+</Step>
+
+</Steps>
+
+### Verify Installation
+
+After installation, verify TeeTree is available:
+
+<Steps>
+
+<Step title="Create New VCL Application">
+  File → New → VCL Forms Application
+</Step>
+
+<Step title="Find TTree Component">
+  Open the Component Palette and look for **TTree** component in the **TeeTree** tab.
+  
+  <img src="https://github.com/user-attachments/assets/752b2ec7-e249-4e53-a4b2-302403d1cab1" alt="TTree in Component Palette" />
+</Step>
+
+<Step title="Place Component on Form">
+  Double-click TTree or drag it onto your form. The component should appear and be ready to use.
+</Step>
+
+</Steps>
+
+## Configure Library Paths
+
+<Warning>
+  You must configure library paths for compilation to work properly.
+</Warning>
+
+Add TeeTree source paths to your project or global library paths:
+
+<Steps>
+
+<Step title="Global Library Configuration (Recommended)">
+  1. Go to **Tools → Options**
+  2. Navigate to **Language → Delphi → Library**
+  3. Select your platform (Win32, Win64, etc.)
+  4. Click the **[...]** button next to **Library path**
+  5. Add the TeeTree sources path:
+  
+  ```
+  C:\TeeTree\Sources
+  ```
+  
+  <img src="https://github.com/user-attachments/assets/7815ce7f-7188-4dba-9da6-fdd49d0898b7" alt="Library Path Configuration" />
+</Step>
+
+<Step title="Add Namespace Prefixes">
+  In the same Library configuration:
+  
+  1. Find **Unit scope names**
+  2. Add the following prefixes (if not already present):
+  
+  ```
+  VclTee;FMXTee
+  ```
+  
+  <img src="https://github.com/user-attachments/assets/7513b8dc-c761-4a92-b5b9-f15bf8aa5f6c" alt="Namespace Configuration" />
+</Step>
+
+</Steps>
+
+### Per-Project Configuration
+
+Alternatively, configure paths per project:
+
+1. **Project → Options**
+2. **Building → Delphi Compiler**
+3. Add to **Search Path**:
+
+```
+$(TeeTreePath)\Sources
+```
+
+## Optional: TeeChart Lite Update
+
+For RAD Studio 13.0 Florence users, install the free TeeChart Lite update:
+
+<Card title="Download TeeChart Lite Patch" icon="download" href="https://www.steema.com/files/public/teechart/vcl/TeeChart_Lite_RAD13_Patch_251209.7z">
+  Optional performance and compatibility update for RAD 13.0 Florence
+</Card>
+
+## FireMonkey Verification
+
+For FireMonkey applications:
+
+<Steps>
+
+<Step title="Create FMX Application">
+  File → New → Multi-Device Application
+</Step>
+
+<Step title="Find TTree Component">
+  The TTree component should appear in the Component Palette.
+  
+  <img src="https://github.com/user-attachments/assets/d294b89c-bec5-405a-9242-89618ee33b01" alt="FMX TTree Component" />
+</Step>
+
+<Step title="Test on Multiple Platforms">
+  TeeTree supports:
+  - Windows (32-bit and 64-bit)
+  - macOS (Intel and Apple Silicon)
+  - iOS (Simulator and Device)
+  - Android (ARM32 and ARM64)
+</Step>
+
+</Steps>
+
+## Troubleshooting
+
+### Package Compilation Errors
+
+<AccordionGroup>
+
+<Accordion title="Cannot find TeeChart units">
+  **Solution**: Ensure you're using the correct package group:
+  - If you have TeeChart Pro, use `Sources/Packages/Pro`
+  - If you have TeeChart Lite (included with RAD Studio), use `Sources/Packages/Lite`
+</Accordion>
+
+<Accordion title="Unit scope name errors">
+  **Solution**: Add `VclTee` and `FMXTee` to Unit scope names in Library settings
+</Accordion>
+
+<Accordion title="Platform not supported errors">
+  **Solution**: Select the correct platform target (Win32/Win64) that matches your RAD Studio edition
+</Accordion>
+
+</AccordionGroup>
+
+### Runtime Errors
+
+<AccordionGroup>
+
+<Accordion title="TTree component not visible at runtime">
+  **Solution**: Ensure `Parent` property is set and component has valid bounds:
+  
+  ```delphi
+  Tree1.Parent := Self;
+  Tree1.Align := alClient; // or set specific bounds
+  ```
+</Accordion>
+
+<Accordion title="Access violations when creating nodes">
+  **Solution**: Ensure the Tree component is fully created before adding nodes:
+  
+  ```delphi
+  Tree1 := TTree.Create(Self);
+  Tree1.Parent := Self;
+  // Now safe to add nodes
+  Tree1.AddRoot('My Node');
+  ```
+</Accordion>
+
+</AccordionGroup>
+
+## Next Steps
+
+Now that TeeTree is installed, proceed to the [Quick Start Guide](/quickstart) to create your first tree diagram.
+
+## Uninstallation
+
+To uninstall TeeTree from the IDE:
+
+1. Go to **Tools → Options**
+2. Navigate to **Language → Delphi → Library**
+3. Remove TeeTree paths from Library path
+4. In **Component → Install Packages**
+5. Find TeeTree packages and click **Remove**
+
+<Note>
+  Uninstalling only removes design-time support. Your existing projects will continue to work as long as source files are accessible.
+</Note>

@@ -1,0 +1,471 @@
+---
+title: "Child Managers"
+description: "Understanding automatic layout management with child managers in TeeTree"
+---
+
+Child managers are classes that control the automatic positioning of nodes and the drawing of connections in TeeTree. They implement different layout algorithms for organizing hierarchical structures.
+
+## Overview
+
+The `TChildManager` base class and its descendants determine how parent and children nodes are arranged on screen when nodes have their `AutoPosition` property enabled.
+
+```pascal
+// Set the global child manager
+Tree.GlobalFormat.ChildManager := TTreeExplorerAlignChild.Create;
+```
+
+<Note>
+Child managers are assigned to `Tree.GlobalFormat.ChildManager` and control the layout for all auto-positioned nodes in the tree.
+</Note>
+
+## Base Class: TChildManager
+
+The `TChildManager` class provides the foundation for all layout algorithms:
+
+```pascal
+type
+  TChildManager = class(TPersistent)
+  public
+    // Calculate X position for a node
+    function XPosition(const ANode: TTreeNodeShape;
+      ABrotherIndex: Integer): Integer; virtual; abstract;
+
+    // Calculate Y position for a node
+    function YPosition(const ANode: TTreeNodeShape;
+      ABrotherIndex: Integer): Integer; virtual; abstract;
+
+    // Calculate CrossBox position
+    function CalcXYCross(const ANode, AParent: TTreeNodeShape): TPoint; virtual; abstract;
+
+    // Draw connection between nodes
+    function DrawConnection(const AConnection: TTreeConnection): Boolean; virtual;
+  end;
+```
+
+<Info>
+All child manager classes must implement `XPosition`, `YPosition`, and `CalcXYCross` methods to define their layout algorithm.
+</Info>
+
+## TTreeExplorerAlignChild
+
+The default child manager providing Windows Explorer-style layout (vertical hierarchy, left-aligned):
+
+```pascal
+// Default Explorer layout
+var
+  Manager: TTreeExplorerAlignChild;
+begin
+  Manager := TTreeExplorerAlignChild.Create;
+  Manager.HorizMargin := 19;  // Default horizontal spacing
+  Manager.VertMargin := 1;    // Default vertical spacing
+  Manager.CrossMargin := 5;   // CrossBox margin
+
+  Tree.GlobalFormat.ChildManager := Manager;
+end;
+```
+
+### Configuration Properties
+
+```pascal
+property HorizMargin: Integer;  // Horizontal spacing between parent and child
+property VertMargin: Integer;   // Vertical spacing between siblings
+property CrossMargin: Integer;  // Margin around CrossBox
+property ArrowToAngle: Integer; // Arrow angle (default: 0)
+```
+
+<AccordionGroup>
+  <Accordion title="Layout Behavior">
+    - Children are positioned to the right of their parent
+    - Siblings are stacked vertically
+    - CrossBox appears to the left of nodes with children
+    - Connections use multi-segment paths (csSides style)
+  </Accordion>
+
+  <Accordion title="Example Usage">
+    ```pascal
+    with TTreeExplorerAlignChild(Tree.GlobalFormat.ChildManager) do
+    begin
+      HorizMargin := 25;  // More space between levels
+      VertMargin := 5;    // More space between siblings
+      CrossMargin := 8;   // Larger CrossBox margin
+    end;
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## TTreeExplorerAlignRight
+
+Mirror of the Explorer layout with nodes expanding to the left:
+
+```pascal
+var
+  Manager: TTreeExplorerAlignRight;
+begin
+  Manager := TTreeExplorerAlignRight.Create;
+  Manager.ArrowToAngle := 180;  // Arrows point left
+
+  Tree.GlobalFormat.ChildManager := Manager;
+end;
+```
+
+<Info>
+Useful for right-to-left tree layouts or organizational charts with reversed hierarchy.
+</Info>
+
+## TTreeTopBottomAlignChild
+
+Arranges children below their parent in a horizontal row:
+
+```pascal
+var
+  Manager: TTreeTopBottomAlignChild;
+begin
+  Manager := TTreeTopBottomAlignChild.Create;
+  Manager.VertMargin := 32;   // Vertical spacing between levels
+  Manager.HorizMargin := 8;   // Horizontal spacing between siblings
+  Manager.CrossMargin := 8;   // CrossBox margin
+  Manager.ToShapeOffset := -4; // Connection offset
+
+  Tree.GlobalFormat.ChildManager := Manager;
+end;
+```
+
+### Layout Characteristics
+
+<CardGroup cols={2}>
+  <Card title="Vertical Hierarchy" icon="arrow-down">
+    Parent at top, children arranged horizontally below
+  </Card>
+  <Card title="Centered Alignment" icon="align-center">
+    Children centered under parent node
+  </Card>
+  <Card title="Vertical Connections" icon="grip-lines-vertical">
+    Multi-segment connections running downward
+  </Card>
+  <Card title="Bottom CrossBox" icon="square-plus">
+    CrossBox positioned below parent node
+  </Card>
+</CardGroup>
+
+### Connection Drawing
+
+```pascal
+function TTreeTopBottomAlignChild.DrawConnection(
+  const AConnection: TTreeConnection): Boolean;
+begin
+  // Creates 4-point connection path:
+  // 1. Start at bottom-center of parent (50%, 100%)
+  // 2. Move down by VertMargin/2
+  // 3. Move horizontally to child center
+  // 4. Move down to child top
+  with AConnection.Points do
+  begin
+    Add(cpsFromPercent, 50, cpsFromPercent, 100);
+    Add(cpsPrevious, 0, cpsPrevious, VertMargin div 2);
+    Add(cpsToPercent, 50, cpsPrevious, 0);
+    Add(cpsPrevious, 0, cpsToRel, ToShapeOffset);
+  end;
+end;
+```
+
+## TTreeLeftRightAlignChild
+
+Arranges children to the right of their parent in a vertical column:
+
+```pascal
+var
+  Manager: TTreeLeftRightAlignChild;
+begin
+  Manager := TTreeLeftRightAlignChild.Create;
+  Manager.HorizMargin := 32;  // Horizontal spacing between levels
+  Manager.VertMargin := 8;    // Vertical spacing between siblings
+  Manager.CrossMargin := 8;
+  Manager.ToShapeOffset := -4;
+
+  Tree.GlobalFormat.ChildManager := Manager;
+end;
+```
+
+<Note>
+Similar to `TTreeExplorerAlignChild` but with different spacing defaults and connection style optimized for wider spacing.
+</Note>
+
+## TTreeCircularAlignChild
+
+Arranges children in a circular pattern around their parent:
+
+```pascal
+var
+  Manager: TTreeCircularAlignChild;
+begin
+  Manager := TTreeCircularAlignChild.Create;
+  Manager.XRadius := 100;      // Horizontal radius
+  Manager.YRadius := 100;      // Vertical radius
+  Manager.TotalAngle := 360;   // Full circle (or partial arc)
+  Manager.AngleOffset := 0;    // Starting angle
+  Manager.XOffset := 0;        // Center X offset
+  Manager.YOffset := 0;        // Center Y offset
+
+  Tree.GlobalFormat.ChildManager := Manager;
+end;
+```
+
+### Properties
+
+```pascal
+property XRadius: Integer;      // Horizontal radius from parent center
+property YRadius: Integer;      // Vertical radius from parent center
+property TotalAngle: Integer;   // Arc angle (0-360 degrees)
+property AngleOffset: Integer;  // Starting angle offset
+property XOffset: Integer;      // Horizontal offset from parent
+property YOffset: Integer;      // Vertical offset from parent
+```
+
+### Position Calculation
+
+```pascal
+// Nodes are positioned using trigonometry
+function TTreeCircularAlignChild.AngleNode(
+  const ANode: TTreeNodeShape): Double;
+begin
+  // Calculate angle for this node
+  Result := TeePiStep * (AngleOffset +
+    (TotalAngle * ANode.BrotherIndex / ANode.Parent.Count));
+end;
+
+// X position: parent center + radius * sin(angle)
+// Y position: parent center + radius * cos(angle)
+```
+
+<Warning>
+Circular layouts work best with a small number of children (typically under 12) to avoid overlap.
+</Warning>
+
+### Example Configurations
+
+<AccordionGroup>
+  <Accordion title="Full Circle">
+    ```pascal
+    Manager.TotalAngle := 360;
+    Manager.AngleOffset := 0;
+    // Children distributed evenly around parent
+    ```
+  </Accordion>
+
+  <Accordion title="Semicircle">
+    ```pascal
+    Manager.TotalAngle := 180;
+    Manager.AngleOffset := 90;
+    // Half circle starting from right
+    ```
+  </Accordion>
+
+  <Accordion title="Elliptical">
+    ```pascal
+    Manager.XRadius := 150;
+    Manager.YRadius := 75;
+    // Ellipse shape instead of circle
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## TTreeListViewAlignChild
+
+Arranges nodes in a grid pattern, similar to list view controls:
+
+```pascal
+var
+  Manager: TTreeListViewAlignChild;
+begin
+  Manager := TTreeListViewAlignChild.Create;
+  Manager.HorizMargin := 5;  // Horizontal spacing
+  Manager.VertMargin := 2;   // Vertical spacing
+  Manager.ColWidth := 0;     // Auto column width (or fixed)
+
+  Tree.GlobalFormat.ChildManager := Manager;
+end;
+```
+
+### Properties
+
+```pascal
+property HorizMargin: Integer;  // Horizontal spacing
+property VertMargin: Integer;   // Vertical spacing
+property ColWidth: Integer;     // Column width (0 = auto)
+```
+
+### Layout Behavior
+
+- Nodes arranged in columns and rows
+- Rows calculated based on tree height
+- Columns auto-sized or fixed width
+- No connections drawn between nodes
+- Optimal for flat lists or grid displays
+
+```pascal
+// Automatic row calculation
+RowHeight := NodeHeight + VertMargin;
+RowCount := TreeHeight div RowHeight;
+
+// Automatic column width
+ColumnWidth := MaxNodeWidth + HorizMargin;
+```
+
+<Info>
+Connections are not drawn in list view mode. The `DrawConnection` method returns `True` but doesn't render anything.
+</Info>
+
+## Creating Custom Child Managers
+
+You can create custom layout algorithms by deriving from `TChildManager`:
+
+```pascal
+type
+  TMyCustomManager = class(TChildManager)
+  public
+    function XPosition(const ANode: TTreeNodeShape;
+      ABrotherIndex: Integer): Integer; override;
+    function YPosition(const ANode: TTreeNodeShape;
+      ABrotherIndex: Integer): Integer; override;
+    function CalcXYCross(const ANode, AParent: TTreeNodeShape): TPoint; override;
+    function DrawConnection(const AConnection: TTreeConnection): Boolean; override;
+  end;
+
+implementation
+
+function TMyCustomManager.XPosition(const ANode: TTreeNodeShape;
+  ABrotherIndex: Integer): Integer;
+begin
+  if Assigned(ANode.Parent) then
+    // Calculate X based on parent position
+    Result := ANode.Parent.X1 + 50
+  else
+    // Root node
+    Result := ABrotherIndex * 100;
+end;
+
+function TMyCustomManager.YPosition(const ANode: TTreeNodeShape;
+  ABrotherIndex: Integer): Integer;
+begin
+  if Assigned(ANode.Parent) then
+    // Calculate Y based on siblings
+    Result := ANode.Parent.Y0 + (ABrotherIndex * 30)
+  else
+    Result := 10;
+end;
+
+function TMyCustomManager.CalcXYCross(const ANode,
+  AParent: TTreeNodeShape): TPoint;
+begin
+  // Position CrossBox to the left of node
+  Result.X := ANode.X0 - 20;
+  Result.Y := ANode.YCenter;
+end;
+
+function TMyCustomManager.DrawConnection(
+  const AConnection: TTreeConnection): Boolean;
+begin
+  Result := True;
+  AConnection.Style := csLine;  // Simple straight line
+end;
+```
+
+<Warning>
+Always call `Tree.Invalidate` after changing child manager properties to refresh the layout.
+</Warning>
+
+## Applying Child Managers
+
+```pascal
+// Global application
+Tree.GlobalFormat.ChildManager := TTreeTopBottomAlignChild.Create;
+
+// All auto-positioned nodes use this manager
+Node1.AutoPosition.Left := True;
+Node1.AutoPosition.Top := True;
+```
+
+<Note>
+The child manager is stored in `Tree.GlobalFormat` and applies to all nodes with `AutoPosition` enabled.
+</Note>
+
+## Common Patterns
+
+### Switching Layouts Dynamically
+
+```pascal
+procedure TForm1.ChangeLayout(LayoutType: Integer);
+begin
+  case LayoutType of
+    0: Tree.GlobalFormat.ChildManager := TTreeExplorerAlignChild.Create;
+    1: Tree.GlobalFormat.ChildManager := TTreeTopBottomAlignChild.Create;
+    2: Tree.GlobalFormat.ChildManager := TTreeCircularAlignChild.Create;
+  end;
+
+  Tree.Invalidate;  // Refresh display
+end;
+```
+
+### Configuring Connection Styles
+
+```pascal
+// Child managers can customize connection appearance
+type
+  TMyExplorerManager = class(TTreeExplorerAlignChild)
+  public
+    function DrawConnection(const AConnection: TTreeConnection): Boolean; override;
+  end;
+
+function TMyExplorerManager.DrawConnection(
+  const AConnection: TTreeConnection): Boolean;
+begin
+  Result := inherited DrawConnection(AConnection);
+
+  // Customize connection appearance
+  AConnection.Border.Color := clBlue;
+  AConnection.Border.Width := 2;
+  AConnection.ArrowTo.Size := 10;
+end;
+```
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Choose Appropriate Layout" icon="diagram-project">
+    Select the child manager that best fits your data structure and visual requirements
+  </Card>
+  <Card title="Adjust Margins" icon="ruler">
+    Fine-tune spacing properties for optimal visual density and clarity
+  </Card>
+  <Card title="Consider Performance" icon="gauge-high">
+    Complex layouts (like circular) may be slower with large numbers of nodes
+  </Card>
+  <Card title="Test Interactively" icon="hand-pointer">
+    Ensure nodes and connections respond well to expansion, collapse, and selection
+  </Card>
+</CardGroup>
+
+## Comparison Table
+
+| Manager | Direction | Best For | Connections | Performance |
+|---------|-----------|----------|-------------|-------------|
+| TTreeExplorerAlignChild | Left→Right | File trees, hierarchies | Multi-segment | Excellent |
+| TTreeExplorerAlignRight | Right→Left | RTL layouts | Multi-segment | Excellent |
+| TTreeTopBottomAlignChild | Top→Bottom | Org charts, flowcharts | Multi-segment | Excellent |
+| TTreeLeftRightAlignChild | Left→Right | Wide hierarchies | Multi-segment | Excellent |
+| TTreeCircularAlignChild | Radial | Mind maps, small trees | Straight | Good |
+| TTreeListViewAlignChild | Grid | Flat lists, catalogs | None | Excellent |
+
+## Next Steps
+
+<CardGroup cols={3}>
+  <Card title="Nodes" icon="circle-nodes" href="/concepts/nodes">
+    Learn about node AutoPosition properties
+  </Card>
+  <Card title="Connections" icon="link" href="/concepts/connections">
+    Understand connection point calculation
+  </Card>
+  <Card title="Layout Examples" icon="diagram-project" href="/examples/layouts">
+    See practical layout implementations
+  </Card>
+</CardGroup>

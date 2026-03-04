@@ -1,0 +1,295 @@
+---
+title: 'Circular Layout'
+description: 'Radial tree layout with children arranged in a circle around parent nodes'
+---
+
+## Overview
+
+The `TTreeCircularAlignChild` class arranges child nodes in a circular pattern around their parent node, creating radial layouts ideal for visualizing networks and radial relationships.
+
+## Class Reference
+
+### TTreeCircularAlignChild
+
+Positions children in a circular arrangement around the parent node.
+
+<Note>
+This class is defined in the `TreeChildManagers` unit.
+</Note>
+
+#### Properties
+
+<ParamField path="XRadius" type="Integer" default="100">
+  Horizontal radius of the circle in pixels. Determines how far children are positioned horizontally from the parent's center.
+</ParamField>
+
+<ParamField path="YRadius" type="Integer" default="100">
+  Vertical radius of the circle in pixels. Determines how far children are positioned vertically from the parent's center.
+</ParamField>
+
+<ParamField path="AngleOffset" type="Integer" default="0">
+  Starting angle offset in degrees (0-360). Rotates the entire circular arrangement.
+</ParamField>
+
+<ParamField path="TotalAngle" type="Integer" default="360">
+  Total angle span in degrees. Use less than 360 for partial circles or arcs.
+</ParamField>
+
+<ParamField path="XOffset" type="Integer" default="0">
+  Additional horizontal offset applied to all child positions.
+</ParamField>
+
+<ParamField path="YOffset" type="Integer" default="0">
+  Additional vertical offset applied to all child positions.
+</ParamField>
+
+## Layout Behavior
+
+The circular layout algorithm:
+
+1. **Center Point** - Parent node's center (XCenter, YCenter)
+2. **Angle Distribution** - Children evenly distributed around circle
+3. **Positioning** - Each child placed at `(XRadius, YRadius)` distance using trigonometry
+4. **Auto-centering** - Children are centered at their calculated position
+
+### Visual Description
+
+Full circle (360°):
+
+```
+        Child 1
+           │
+  Child 4─ • ─Child 2
+           │
+        Child 3
+```
+
+Partial arc (180°):
+
+```
+Child 1  Child 2  Child 3
+    \      |      /
+     \     |     /
+       \   |   /
+         \ | /
+           •
+         Parent
+```
+
+## Usage
+
+### Setting Circular Layout
+
+```pascal
+uses TreeChildManagers;
+
+var
+  Circular: TTreeCircularAlignChild;
+begin
+  // Replace default child manager
+  Tree1.GlobalFormat.ChildManager.Free;
+  
+  Circular := TTreeCircularAlignChild.Create;
+  Circular.XRadius := 100;
+  Circular.YRadius := 100;
+  
+  Tree1.GlobalFormat.ChildManager := Circular;
+end;
+```
+
+### Customizing the Circle
+
+```pascal
+var
+  Circular: TTreeCircularAlignChild;
+begin
+  Circular := TTreeCircularAlignChild.Create;
+  
+  // Create an ellipse
+  Circular.XRadius := 150;  // Wider
+  Circular.YRadius := 80;   // Shorter
+  
+  // Rotate starting position
+  Circular.AngleOffset := 45;  // Start at 45 degrees
+  
+  // Create a half-circle arc
+  Circular.TotalAngle := 180;
+  
+  Tree1.GlobalFormat.ChildManager := Circular;
+end;
+```
+
+### Creating a Radial Menu
+
+```pascal
+var
+  Center: TTreeNodeShape;
+  Circular: TTreeCircularAlignChild;
+  i: Integer;
+begin
+  // Set up circular layout
+  Circular := TTreeCircularAlignChild.Create;
+  Circular.XRadius := 120;
+  Circular.YRadius := 120;
+  Tree1.GlobalFormat.ChildManager := Circular;
+  
+  // Create center node
+  Center := Tree1.AddRoot('Menu');
+  Center.X0 := 200;
+  Center.Y0 := 200;
+  Center.Style := tssCircle;
+  Center.Color := clRed;
+  Center.Expanded := True;
+  
+  // Add menu items in circle
+  Center.AddChild('New');
+  Center.AddChild('Open');
+  Center.AddChild('Save');
+  Center.AddChild('Print');
+  Center.AddChild('Exit');
+end;
+```
+
+### Creating Nested Circles
+
+```pascal
+var
+  Root, Child: TTreeNodeShape;
+  Circular: TTreeCircularAlignChild;
+begin
+  Circular := TTreeCircularAlignChild.Create;
+  Circular.XRadius := 80;
+  Circular.YRadius := 80;
+  Tree1.GlobalFormat.ChildManager := Circular;
+  
+  // Center node
+  Root := Tree1.AddRoot('Core');
+  Root.X0 := 250;
+  Root.Y0 := 150;
+  Root.Expanded := True;
+  
+  // First circle
+  Child := Root.AddChild('Level 1-A');
+  Child.Expanded := True;
+  Root.AddChild('Level 1-B');
+  Root.AddChild('Level 1-C');
+  Root.AddChild('Level 1-D');
+  
+  // Second circle (around one of the first level nodes)
+  Child.AddChild('Level 2-A');
+  Child.AddChild('Level 2-B');
+  Child.AddChild('Level 2-C');
+end;
+```
+
+## Position Calculation
+
+The circular layout uses this formula for each child:
+
+```pascal
+// Angle for each child
+Angle := AngleOffset + (TotalAngle * ChildIndex / TotalChildren)
+
+// Position calculation
+Child.X := Parent.XCenter + XOffset + Round(XRadius * Sin(Angle))
+Child.Y := Parent.YCenter + YOffset + Round(YRadius * Cos(Angle))
+```
+
+## Connection Style
+
+The circular layout draws connections as:
+
+- **Style** - Straight lines from parent center to child
+- **From point** - Parent's center
+- **To point** - Child's edge (calculated automatically)
+- **No branching** - Each child gets individual line
+
+## Common Use Cases
+
+<CardGroup cols={2}>
+  <Card title="Radial Menus" icon="circle-nodes">
+    Create circular menu interfaces and navigation systems.
+  </Card>
+  <Card title="Mind Maps" icon="brain">
+    Central idea with concepts radiating outward.
+  </Card>
+  <Card title="Network Diagrams" icon="network-wired">
+    Show hub-and-spoke network topologies.
+  </Card>
+  <Card title="Relationship Maps" icon="project-diagram">
+    Visualize entities connected to a central concept.
+  </Card>
+</CardGroup>
+
+## Tips
+
+<Tip>
+For elliptical arrangements, use different values for `XRadius` and `YRadius`.
+</Tip>
+
+<Tip>
+To create a partial arc (like a fan), set `TotalAngle` to less than 360 degrees.
+</Tip>
+
+<Tip>
+Use `AngleOffset` to rotate the entire arrangement. For example, `AngleOffset := 90` starts at the top instead of the right.
+</Tip>
+
+<Warning>
+With many children, reduce radius values to prevent overlapping nodes.
+</Warning>
+
+## Advanced Examples
+
+### Clock Layout
+
+```pascal
+var
+  Clock: TTreeNodeShape;
+  Circular: TTreeCircularAlignChild;
+  i: Integer;
+begin
+  Circular := TTreeCircularAlignChild.Create;
+  Circular.XRadius := 100;
+  Circular.YRadius := 100;
+  Circular.AngleOffset := 90;  // Start at 12 o'clock
+  Tree1.GlobalFormat.ChildManager := Circular;
+  
+  Clock := Tree1.AddRoot('12');
+  Clock.Expanded := True;
+  
+  for i := 1 to 11 do
+    Clock.AddChild(IntToStr(i));
+end;
+```
+
+### Dynamic Radius Based on Children Count
+
+```pascal
+var
+  Circular: TTreeCircularAlignChild;
+  ChildCount: Integer;
+begin
+  Circular := TTreeCircularAlignChild.Create;
+  
+  ChildCount := ParentNode.Count;
+  
+  // Increase radius if many children
+  if ChildCount > 8 then
+    Circular.XRadius := 150
+  else if ChildCount > 4 then
+    Circular.XRadius := 100
+  else
+    Circular.XRadius := 60;
+    
+  Circular.YRadius := Circular.XRadius;
+  Tree1.GlobalFormat.ChildManager := Circular;
+end;
+```
+
+## Related Classes
+
+- [Explorer Layout](/api/child-managers/explorer) - Traditional hierarchical layout
+- [Horizontal Layout](/api/child-managers/horizontal) - Left-to-right expansion
+- [Vertical Layout](/api/child-managers/vertical) - Top-to-bottom expansion
+- [Custom Layout](/api/child-managers/custom) - Create your own layout algorithm

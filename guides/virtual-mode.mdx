@@ -1,0 +1,280 @@
+---
+title: "Virtual Mode (On-Demand Node Creation)"
+description: "Create nodes dynamically only when needed for optimal performance with large hierarchies"
+---
+
+## Overview
+
+Virtual mode, also called "on-demand node creation," allows you to create child nodes only when a parent node is expanded for the first time. This approach dramatically improves performance when working with large tree hierarchies by deferring node creation until absolutely necessary.
+
+<Note>
+  Virtual mode is ideal for:
+  - Large datasets (thousands of nodes)
+  - Database-driven trees
+  - File system browsers
+  - Any hierarchical data where children are expensive to load
+</Note>
+
+## How It Works
+
+Instead of creating all nodes upfront, you:
+
+1. Create only the root level nodes initially
+2. Set `ShowCross` to `scAlways` so expand/collapse icons appear
+3. Listen to the `OnExpandingCollapsing` event
+4. Create child nodes dynamically when a node is first expanded
+
+<Steps>
+  <Step title="Initialize Root Nodes">
+    Create only the top-level nodes when your tree loads:
+
+    ```pascal
+    // Add first level "Root" example nodes only
+    for t := 1 to 10 do
+        Tree1.Add('Root ' + IntToStr(t));
+    ```
+  </Step>
+
+  <Step title="Configure ShowCross Property">
+    Set nodes to always show the expand/collapse box, even when they have no children yet:
+
+    ```pascal
+    // Important: Set ShowCross property to scAlways
+    // so the +/- box is always visible
+    for t := 0 to Tree1.Roots.Count-1 do
+        Tree1.Roots[t].ShowCross := scAlways;
+    ```
+
+    <Warning>
+      Without setting `ShowCross := scAlways`, users won't see any indication that nodes can be expanded.
+    </Warning>
+  </Step>
+
+  <Step title="Implement OnExpandingCollapsing Event">
+    Create children only when a node is expanded for the first time:
+
+    ```pascal
+    procedure TForm1.Tree1ExpandingCollapsing(
+      Sender: TTreeNodeShape; var Expand: Boolean);
+    var
+      t: Integer;
+      NumChildren: Integer;
+    begin
+      if Expand then
+        if Sender.Children.Count = 0 then  // First time expanded!
+        begin
+          // Add children nodes
+          NumChildren := 1 + Random(5);  // How many? (random example)
+          
+          for t := 1 to NumChildren do
+            Sender.AddChild('Child ' + IntToStr(t));
+          
+          // Set ShowCross for children too
+          for t := 1 to NumChildren do
+            Sender.Children[t-1].ShowCross := scAlways;
+        end;
+    end;
+    ```
+  </Step>
+</Steps>
+
+## Complete Example
+
+Here's a full working example from the TeeTree source:
+
+<CodeGroup>
+
+```pascal CreateOnDemand.pas
+unit CreateOnDemand;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms,
+  TeeTree, ExtCtrls, StdCtrls;
+
+type
+  TCreateOnDemandForm = class(TForm)
+    Tree1: TTree;
+    procedure FormCreate(Sender: TObject);
+    procedure Tree1ExpandingCollapsing(Sender: TTreeNodeShape;
+      var Expand: Boolean);
+  end;
+
+implementation
+
+procedure TCreateOnDemandForm.FormCreate(Sender: TObject);
+var
+  t: Integer;
+begin
+  // Add first level "Root" example nodes only
+  for t := 1 to 10 do
+      Tree1.Add('Root ' + IntToStr(t));
+  
+  // Set nodes ShowCross property to "scAlways"
+  for t := 0 to Tree1.Roots.Count-1 do
+      Tree1.Roots[t].ShowCross := scAlways;
+  
+  // Remove border
+  Tree1.GlobalFormat.Border.Visible := False;
+end;
+
+procedure TCreateOnDemandForm.Tree1ExpandingCollapsing(
+  Sender: TTreeNodeShape; var Expand: Boolean);
+var
+  t: Integer;
+  NumChildren: Integer;
+begin
+  if Expand then
+    if Sender.Children.Count = 0 then  // Very first time expanded!
+    begin
+      // Add children nodes
+      NumChildren := 1 + Random(5);
+      
+      for t := 1 to NumChildren do
+        Sender.AddChild('Child ' + IntToStr(t));
+      
+      // Set ShowCross for children
+      for t := 1 to NumChildren do
+        Sender.Children[t-1].ShowCross := scAlways;
+    end;
+end;
+
+end.
+```
+
+</CodeGroup>
+
+## Database Integration
+
+Virtual mode is perfect for database-driven trees:
+
+```pascal
+procedure TForm1.TreeExpandingCollapsing(
+  Sender: TTreeNodeShape; var Expand: Boolean);
+var
+  Query: TQuery;
+  ParentID: Integer;
+begin
+  if Expand and (Sender.Children.Count = 0) then
+  begin
+    ParentID := Integer(Sender.Data);  // Store DB ID in node Data
+    
+    Query := TQuery.Create(nil);
+    try
+      Query.SQL.Text := 'SELECT * FROM Items WHERE ParentID = :PID';
+      Query.Params.ParamByName('PID').AsInteger := ParentID;
+      Query.Open;
+      
+      while not Query.Eof do
+      begin
+        with Sender.AddChild(Query.FieldByName('Name').AsString) do
+        begin
+          Data := Pointer(Query.FieldByName('ID').AsInteger);
+          ShowCross := scAlways;  // May have children
+        end;
+        Query.Next;
+      end;
+    finally
+      Query.Free;
+    end;
+  end;
+end;
+```
+
+## ShowCross Options
+
+The `ShowCross` property controls when the expand/collapse box appears:
+
+| Value | Description |
+|-------|-------------|
+| `scNever` | Never show expand/collapse box |
+| `scAlways` | Always show the box (required for virtual mode) |
+| `scAuto` | Show only when node has children (default) |
+
+## Performance Benefits
+
+<Tabs>
+  <Tab title="Without Virtual Mode">
+    Creating 10,000 nodes upfront:
+    ```pascal
+    // Creates all 10,000 nodes immediately
+    for i := 1 to 100 do
+    begin
+      Root := Tree1.Add('Root ' + IntToStr(i));
+      for j := 1 to 100 do
+        Root.AddChild('Child ' + IntToStr(j));
+    end;
+    // Result: Slow startup, high memory usage
+    ```
+  </Tab>
+  
+  <Tab title="With Virtual Mode">
+    Creating nodes on-demand:
+    ```pascal
+    // Creates only 100 root nodes initially
+    for i := 1 to 100 do
+    begin
+      Root := Tree1.Add('Root ' + IntToStr(i));
+      Root.ShowCross := scAlways;
+    end;
+    // Children created only when expanded
+    // Result: Fast startup, low memory usage
+    ```
+  </Tab>
+</Tabs>
+
+## Advanced: Canceling Expansion
+
+You can prevent a node from expanding by setting the `Expand` parameter to `False`:
+
+```pascal
+procedure TForm1.TreeExpandingCollapsing(
+  Sender: TTreeNodeShape; var Expand: Boolean);
+begin
+  if Expand then
+  begin
+    // Check if user has permission
+    if not UserHasPermission(Sender) then
+    begin
+      ShowMessage('Access denied');
+      Expand := False;  // Cancel the expansion
+      Exit;
+    end;
+    
+    // Create children...
+  end;
+end;
+```
+
+## Best Practices
+
+<CardGroup cols={2}>
+
+<Card title="Check Children Count" icon="check">
+  Always check `Sender.Children.Count = 0` to avoid creating duplicates when re-expanding.
+</Card>
+
+<Card title="Set ShowCross" icon="check">
+  Always set `ShowCross := scAlways` for nodes that may have children.
+</Card>
+
+<Card title="Store Node Data" icon="database">
+  Use the `Data` property to store database IDs or other context needed to load children.
+</Card>
+
+<Card title="Handle Errors" icon="shield">
+  Wrap database queries in try-finally blocks to ensure proper cleanup.
+</Card>
+
+</CardGroup>
+
+## Related Events
+
+- `OnExpandingCollapsing` - Fired when a node is about to expand or collapse (see TreeEd.pas:2227)
+- `OnClickShape` - Fired when a node is clicked
+- `OnSelectShape` - Fired when a node is selected
+
+<Note>
+  The virtual mode pattern is demonstrated in the TeeTree demo application under "Create On Demand" example.
+</Note>

@@ -1,0 +1,156 @@
+---
+title: 'Explorer Layout'
+description: 'Windows Explorer-style hierarchical tree layout with left-to-right expansion'
+---
+
+## Overview
+
+The `TTreeExplorerAlignChild` class provides the classic Windows Explorer tree layout, where child nodes are positioned to the right of their parent nodes, creating a familiar hierarchical structure.
+
+<Info>
+This is the default child manager for TeeTree components.
+</Info>
+
+## Class Reference
+
+### TTreeExplorerAlignChild
+
+Base class for Explorer-style layouts. Positions children to the right of parent nodes with vertical stacking.
+
+#### Properties
+
+<ParamField path="HorizMargin" type="Integer" default="19">
+  Horizontal spacing between parent and child nodes in pixels.
+</ParamField>
+
+<ParamField path="VertMargin" type="Integer" default="1">
+  Vertical spacing between sibling nodes in pixels.
+</ParamField>
+
+<ParamField path="CrossMargin" type="Integer" default="5">
+  Horizontal margin for the cross-box (expand/collapse control) in pixels.
+</ParamField>
+
+<ParamField path="TopPos" type="Integer" default="2">
+  Default top position for root nodes in pixels.
+</ParamField>
+
+## Layout Behavior
+
+The Explorer layout algorithm:
+
+1. **Root nodes** - Positioned vertically at the left edge of the tree
+2. **Child nodes** - Indented horizontally to the right of their parent
+3. **Siblings** - Stacked vertically with VertMargin spacing
+4. **Connections** - Drawn as angled lines from parent to children
+
+### Visual Description
+
+```
+Root
+├── Child 1
+│   ├── Grandchild 1.1
+│   └── Grandchild 1.2
+└── Child 2
+    └── Grandchild 2.1
+```
+
+## Usage
+
+### Setting Explorer Layout
+
+```pascal
+// Default - Explorer layout is already active
+Tree1.GlobalFormat.ChildManager; // TTreeExplorerAlignChild instance
+```
+
+### Customizing Margins
+
+```pascal
+with TTreeExplorerAlignChild(Tree1.GlobalFormat.ChildManager) do
+begin
+  HorizMargin := 30;  // Wider horizontal spacing
+  VertMargin := 5;    // More vertical spacing between siblings
+  CrossMargin := 8;   // Adjust cross-box position
+end;
+```
+
+### Creating a Basic Tree
+
+```pascal
+var
+  Root, Child1, Child2: TTreeNodeShape;
+begin
+  // Create root node
+  Root := Tree1.AddRoot('Project');
+  Root.Expanded := True;
+  
+  // Add children - they automatically use Explorer layout
+  Child1 := Root.AddChild('Source Files');
+  Child2 := Root.AddChild('Documentation');
+  
+  // Add grandchildren
+  Child1.AddChild('Unit1.pas');
+  Child1.AddChild('Unit2.pas');
+  
+  Child1.Expanded := True;
+end;
+```
+
+## Right-Aligned Explorer
+
+### TTreeExplorerAlignRight
+
+A variant that positions children to the **left** of parents, creating a right-to-left explorer layout.
+
+```pascal
+uses TreeChildManagers;
+
+// Switch to right-aligned explorer
+Tree1.GlobalFormat.ChildManager.Free;
+Tree1.GlobalFormat.ChildManager := TTreeExplorerAlignRight.Create;
+```
+
+### Visual Description (Right-Aligned)
+
+```
+              Root
+        Child 1 ├──
+ Grandchild 1.1 │   ├──
+ Grandchild 1.2 │   └──
+        Child 2 └──
+ Grandchild 2.1     └──
+```
+
+## Connection Drawing
+
+The Explorer layout draws connections with:
+
+- **From point** - Right edge of parent node
+- **To point** - Left edge of child node  
+- **Style** - Angled connector lines with horizontal and vertical segments
+- **Auto-positioning** - Connections update automatically when nodes move
+
+## Common Use Cases
+
+<CardGroup cols={2}>
+  <Card title="File Systems" icon="folder-tree">
+    Perfect for displaying hierarchical folder structures and file explorers.
+  </Card>
+  <Card title="Organization Charts" icon="sitemap">
+    Display company hierarchies with departments and employees.
+  </Card>
+  <Card title="XML/JSON Viewers" icon="code">
+    Show nested data structures with expandable nodes.
+  </Card>
+  <Card title="Decision Trees" icon="diagram-project">
+    Create decision flowcharts with sequential branching.
+  </Card>
+</CardGroup>
+
+## Related Classes
+
+- [Horizontal Layout](/api/child-managers/horizontal) - Top-to-bottom expansion
+- [Vertical Layout](/api/child-managers/vertical) - Left-to-right with centered children
+- [Circular Layout](/api/child-managers/circular) - Radial arrangement
+- [Custom Layout](/api/child-managers/custom) - Create your own layout algorithm

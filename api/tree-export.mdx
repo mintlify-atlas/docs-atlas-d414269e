@@ -1,0 +1,419 @@
+---
+title: 'TTreeExport'
+description: 'Export TeeTree diagrams to multiple file formats including text, XML, HTML, Excel, and JSON'
+---
+
+## Overview
+
+The `TTreeExport` component provides functionality to export tree diagrams to various formats. It supports text files, XML, HTML tables, Excel spreadsheets, and JSON.
+
+## Components
+
+### TTreeExportForm
+
+Dialog form for exporting tree data to various formats.
+
+```pascal
+type
+  TTreeExportForm = class(TTeeExportFormBase)
+  public
+    class function ModalShow(
+      const AOwner:TComponent; 
+      const ATree:TCustomTree
+    ):Boolean;
+  end;
+```
+
+**Properties:**
+- `CBFullSize` - Export using full tree dimensions
+- Inherits all export options from `TTeeExportFormBase`
+
+## Export Data Classes
+
+### TTreeData (Base Class)
+
+Base class for all tree export formats.
+
+```pascal
+type
+  TTreeData = class(TTeeExportData)
+  public
+    property Tree:TCustomTree;
+    
+    Procedure SaveToStream(AStream:TStream); override;
+    Function AsString:String; override;
+  end;
+```
+
+### TTreeDataText
+
+Export tree structure to delimited text format.
+
+```pascal
+type
+  TTreeDataText = class(TTreeData)
+  published
+    property TextDelimiter:Char;  // Default: Tab
+    property TextQuotes:String;
+  end;
+```
+
+**Features:**
+- Hierarchical indentation using delimiters
+- Configurable delimiter character (tab, comma, etc.)
+- Optional text quotes
+- Line-by-line node export
+
+### TTreeDataXML
+
+Export tree to XML format.
+
+```pascal
+type
+  TTreeDataXML = class(TTreeData)
+  public
+    property Compact:Boolean;     // Default: False
+    property Encoding:String;     // Default: UTF-8
+  end;
+```
+
+**Features:**
+- Standard XML structure with node hierarchy
+- Compact or formatted output
+- Configurable encoding
+- Includes node name, class, and text
+
+**XML Structure:**
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<tree>
+  <node name="Root" class="TTreeNodeShape">Root Text
+    <node name="Child1" class="TTreeNodeShape">Child Text</node>
+  </node>
+</tree>
+```
+
+### TTreeDataHTML
+
+Export tree as HTML table.
+
+```pascal
+type
+  TTreeDataHTML = class(TTreeData)
+  end;
+```
+
+**Features:**
+- Hierarchical table structure
+- Indentation using empty table cells
+- Border styling
+- Web-ready output
+
+**HTML Structure:**
+```html
+<table border="1">
+  <tr><td>Root</td></tr>
+  <tr><td></td><td>Child 1</td></tr>
+  <tr><td></td><td></td><td>Grandchild</td></tr>
+</table>
+```
+
+### TTreeDataXLS
+
+Export tree to Excel BIFF format.
+
+```pascal
+type
+  TTreeDataXLS = class(TTreeData)
+  end;
+```
+
+**Features:**
+- Excel 97-2003 compatible format (.xls)
+- Hierarchical column layout
+- Each level in separate column
+- Direct Excel import support
+
+### TTreeDataJSON
+
+Export tree to JSON format.
+
+```pascal
+type
+  TTreeDataJSON = class(TTreeData)
+  end;
+```
+
+**Features:**
+- Nested JSON structure
+- Standard JSON syntax
+- Array-based children
+
+**JSON Structure:**
+```json
+{ "tree": [
+  { "text": "Root", "items": [
+    { "text": "Child 1" },
+    { "text": "Child 2" }
+  ] }
+] }
+```
+
+## Usage Examples
+
+### Show Export Dialog
+
+```pascal
+uses TreeExport;
+
+procedure TForm1.ExportButtonClick(Sender: TObject);
+begin
+  ShowTreeExport(Self, Tree1);
+end;
+```
+
+### Modal Export Dialog
+
+```pascal
+uses TreeExport;
+
+procedure TForm1.ExportTree;
+begin
+  if TTreeExportForm.ModalShow(Self, Tree1) then
+    ShowMessage('Export completed successfully');
+end;
+```
+
+### Export to Text File
+
+```pascal
+uses TreeExport;
+
+procedure TForm1.ExportToText;
+var
+  TextExport: TTreeDataText;
+  FileStream: TFileStream;
+begin
+  TextExport := TTreeDataText.Create(Tree1);
+  try
+    TextExport.TextDelimiter := #9;  // Tab character
+    TextExport.TextQuotes := '"';
+    
+    FileStream := TFileStream.Create('tree.txt', fmCreate);
+    try
+      TextExport.SaveToStream(FileStream);
+    finally
+      FileStream.Free;
+    end;
+  finally
+    TextExport.Free;
+  end;
+end;
+```
+
+### Export to XML
+
+```pascal
+uses TreeExport;
+
+procedure TForm1.ExportToXML;
+var
+  XMLExport: TTreeDataXML;
+  FileStream: TFileStream;
+begin
+  XMLExport := TTreeDataXML.Create(Tree1);
+  try
+    XMLExport.Compact := False;        // Formatted output
+    XMLExport.Encoding := 'UTF-8';
+    
+    FileStream := TFileStream.Create('tree.xml', fmCreate);
+    try
+      XMLExport.SaveToStream(FileStream);
+    finally
+      FileStream.Free;
+    end;
+  finally
+    XMLExport.Free;
+  end;
+end;
+```
+
+### Export to HTML
+
+```pascal
+uses TreeExport;
+
+procedure TForm1.ExportToHTML;
+var
+  HTMLExport: TTreeDataHTML;
+begin
+  HTMLExport := TTreeDataHTML.Create(Tree1);
+  try
+    // Save to file
+    with TStringList.Create do
+    try
+      Text := HTMLExport.AsString;
+      SaveToFile('tree.html');
+    finally
+      Free;
+    end;
+  finally
+    HTMLExport.Free;
+  end;
+end;
+```
+
+### Export to Excel
+
+```pascal
+uses TreeExport;
+
+procedure TForm1.ExportToExcel;
+var
+  XLSExport: TTreeDataXLS;
+  FileStream: TFileStream;
+begin
+  XLSExport := TTreeDataXLS.Create(Tree1);
+  try
+    FileStream := TFileStream.Create('tree.xls', fmCreate);
+    try
+      XLSExport.SaveToStream(FileStream);
+    finally
+      FileStream.Free;
+    end;
+  finally
+    XLSExport.Free;
+  end;
+end;
+```
+
+### Export to JSON
+
+```pascal
+uses TreeExport;
+
+procedure TForm1.ExportToJSON;
+var
+  JSONExport: TTreeDataJSON;
+begin
+  JSONExport := TTreeDataJSON.Create(Tree1);
+  try
+    Memo1.Lines.Text := JSONExport.AsString;
+  finally
+    JSONExport.Free;
+  end;
+end;
+```
+
+### Custom Delimiter Export
+
+```pascal
+uses TreeExport;
+
+procedure TForm1.ExportToCSV;
+var
+  CSVExport: TTreeDataText;
+begin
+  CSVExport := TTreeDataText.Create(Tree1);
+  try
+    CSVExport.TextDelimiter := ',';
+    CSVExport.TextQuotes := '"';
+    
+    with TStringList.Create do
+    try
+      Text := CSVExport.AsString;
+      SaveToFile('tree.csv');
+    finally
+      Free;
+    end;
+  finally
+    CSVExport.Free;
+  end;
+end;
+```
+
+### Compact XML Export
+
+```pascal
+uses TreeExport;
+
+procedure TForm1.ExportCompactXML;
+var
+  XMLExport: TTreeDataXML;
+begin
+  XMLExport := TTreeDataXML.Create(Tree1);
+  try
+    XMLExport.Compact := True;  // No indentation or line breaks
+    
+    Memo1.Lines.Text := XMLExport.AsString;
+  finally
+    XMLExport.Free;
+  end;
+end;
+```
+
+## Helper Functions
+
+### ShowTreeExport
+
+Display the tree export dialog.
+
+```pascal
+Procedure ShowTreeExport(AOwner:TComponent; ATree:TCustomTree);
+```
+
+**Parameters:**
+- `AOwner` - Owner component for the dialog
+- `ATree` - Tree to export
+
+## Export Formats Summary
+
+| Format | Class | Extension | Use Case |
+|--------|-------|-----------|----------|
+| Text | TTreeDataText | .txt, .csv | Simple hierarchical data |
+| XML | TTreeDataXML | .xml | Structured data exchange |
+| HTML | TTreeDataHTML | .html | Web display |
+| Excel | TTreeDataXLS | .xls | Spreadsheet analysis |
+| JSON | TTreeDataJSON | .json | Web APIs, JavaScript |
+
+## Features
+
+### Text Export
+- Configurable delimiters (tab, comma, pipe, etc.)
+- Optional text quotes
+- Hierarchical indentation
+- Multi-line node text support
+
+### XML Export
+- Standard XML 1.0 format
+- UTF-8 encoding support
+- Compact or formatted output
+- Preserves node hierarchy and metadata
+
+### HTML Export
+- Table-based layout
+- Automatic indentation via empty cells
+- Browser-ready output
+- Customizable via CSS
+
+### Excel Export
+- BIFF5 format (Excel 97-2003)
+- Hierarchical column structure
+- Preserves tree levels
+- Direct Excel import
+
+### JSON Export
+- Standard JSON syntax
+- Nested object structure
+- Array-based children
+- JavaScript-ready
+
+## Related Components
+
+- [TTreeEditor](/api/tree-editor) - Visual tree editor
+- [TCustomTree](/api/ttree) - Tree component
+
+## See Also
+
+- [Import/Export Guide](/guides/import-export)
+- [Saving Trees](/guides/import-export)

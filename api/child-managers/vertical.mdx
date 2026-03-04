@@ -1,0 +1,212 @@
+---
+title: 'Vertical Layout'
+description: 'Top-to-bottom vertical tree layout with horizontally centered children'
+---
+
+## Overview
+
+The `TTreeTopBottomAlignChild` class arranges child nodes vertically below their parent, with siblings distributed horizontally and centered under the parent node.
+
+## Class Reference
+
+### TTreeTopBottomAlignChild
+
+Positions children vertically below parent nodes, with horizontal centering.
+
+<Note>
+This class is defined in the `TreeChildManagers` unit.
+</Note>
+
+#### Properties
+
+<ParamField path="HorizMargin" type="Integer" default="8">
+  Horizontal spacing between sibling nodes in pixels.
+</ParamField>
+
+<ParamField path="VertMargin" type="Integer" default="32">
+  Vertical spacing between parent and child nodes in pixels.
+</ParamField>
+
+<ParamField path="CrossMargin" type="Integer" default="8">
+  Vertical margin for the cross-box (expand/collapse control) in pixels.
+</ParamField>
+
+<ParamField path="ToShapeOffset" type="Integer" default="-4">
+  Connection offset from the target shape in pixels.
+</ParamField>
+
+## Layout Behavior
+
+The vertical layout algorithm:
+
+1. **Y Position** - Children are positioned `VertMargin` pixels below parent's bottom edge
+2. **X Position** - Siblings are centered horizontally under parent's X center
+3. **Spacing** - Siblings separated by `HorizMargin` pixels
+4. **Connections** - Vertical connector with horizontal distribution to children
+
+### Visual Description
+
+```
+       Root
+        │
+    ┌───┴───┐
+    │       │
+ Child 1  Child 2
+    │
+ ┌──┴──┐
+ │     │
+GC1   GC2
+```
+
+With full tree:
+
+```
+           CEO
+            │
+    ┌───────┼───────┐
+    │       │       │
+   CTO     CFO     COO
+    │               │
+ ┌──┴──┐         ┌──┴──┐
+ │     │         │     │
+Dev  QA        Ops  Sales
+```
+
+## Usage
+
+### Setting Vertical Layout
+
+```pascal
+uses TreeChildManagers;
+
+// Replace default child manager
+Tree1.GlobalFormat.ChildManager.Free;
+Tree1.GlobalFormat.ChildManager := TTreeTopBottomAlignChild.Create;
+```
+
+### Customizing Spacing
+
+```pascal
+var
+  Manager: TTreeTopBottomAlignChild;
+begin
+  Manager := TTreeTopBottomAlignChild.Create;
+  Manager.VertMargin := 50;    // More vertical space
+  Manager.HorizMargin := 20;   // Wider horizontal spacing
+  Manager.CrossMargin := 10;
+  
+  Tree1.GlobalFormat.ChildManager := Manager;
+end;
+```
+
+### Creating an Organization Chart
+
+```pascal
+var
+  CEO, CTO, CFO: TTreeNodeShape;
+begin
+  // Set vertical layout
+  Tree1.GlobalFormat.ChildManager.Free;
+  Tree1.GlobalFormat.ChildManager := TTreeTopBottomAlignChild.Create;
+  
+  // Create top-level node
+  CEO := Tree1.AddRoot('Chief Executive Officer');
+  CEO.Expanded := True;
+  CEO.X0 := 300;
+  CEO.Y0 := 50;
+  
+  // Children will be centered below
+  CTO := CEO.AddChild('Chief Technology Officer');
+  CFO := CEO.AddChild('Chief Financial Officer');
+  
+  CTO.Expanded := True;
+  
+  // Next level
+  CTO.AddChild('Engineering Manager');
+  CTO.AddChild('QA Manager');
+end;
+```
+
+## Connection Style
+
+The vertical layout draws connections with:
+
+- **Main line** - Vertical from parent's bottom edge
+- **Branch point** - Midpoint between parent and children
+- **Horizontal distribution** - Lines extend horizontally to each child
+- **Entry point** - Connects to top edge of child nodes
+
+### Connection Points
+
+The layout automatically creates connection points:
+
+1. Start at parent's bottom edge, horizontally centered
+2. Extend vertically by `VertMargin / 2`
+3. Branch horizontally to each child's X center
+4. Extend to child's top edge with `ToShapeOffset`
+
+## Common Use Cases
+
+<CardGroup cols={2}>
+  <Card title="Organization Charts" icon="building">
+    Classic top-down company and team hierarchies.
+  </Card>
+  <Card title="Family Trees" icon="users">
+    Genealogical charts with parent-child relationships.
+  </Card>
+  <Card title="Tournament Brackets" icon="trophy">
+    Sports tournaments and competition structures.
+  </Card>
+  <Card title="Classification Trees" icon="diagram-subtask">
+    Taxonomies and categorization hierarchies.
+  </Card>
+</CardGroup>
+
+## Centering Algorithm
+
+The vertical layout calculates child positions to center them under the parent:
+
+```pascal
+// Simplified algorithm
+1. Calculate total width needed for all children:
+   TotalWidth := Sum(Child.Width) + (Count-1) * HorizMargin
+
+2. Find starting X position:
+   StartX := Parent.XCenter - (TotalWidth / 2)
+
+3. Position each child:
+   For each child:
+     Child.X := StartX + offset
+     offset += Child.Width + HorizMargin
+```
+
+## Tips
+
+<Tip>
+For wide trees with many siblings, increase `HorizMargin` or reduce node widths to prevent horizontal overlap.
+</Tip>
+
+<Tip>
+Set root node position high on the canvas (small Y0 value) to allow room for vertical expansion.
+</Tip>
+
+<Warning>
+Very wide trees may extend beyond the visible canvas. Consider using `Tree1.Zoom` property to fit entire tree in view.
+</Warning>
+
+## Comparison with Other Layouts
+
+| Feature | Vertical | Horizontal | Explorer |
+|---------|----------|------------|----------|
+| **Expansion Direction** | Downward | Rightward | Rightward |
+| **Child Alignment** | Centered | Centered | Sequential |
+| **Default VertMargin** | 32 | 8 | 1 |
+| **Default HorizMargin** | 8 | 32 | 19 |
+| **Best For** | Org charts | Flows | File trees |
+
+## Related Classes
+
+- [Explorer Layout](/api/child-managers/explorer) - Traditional hierarchical layout
+- [Horizontal Layout](/api/child-managers/horizontal) - Left-to-right expansion
+- [Circular Layout](/api/child-managers/circular) - Radial arrangement
+- [Custom Layout](/api/child-managers/custom) - Create your own layout algorithm

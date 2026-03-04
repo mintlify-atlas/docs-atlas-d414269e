@@ -1,0 +1,306 @@
+---
+title: 'Basic Shapes'
+description: 'Fundamental shape classes in TeeTree for creating simple geometric nodes'
+---
+
+## Overview
+
+Basic shapes provide the foundation for creating tree diagrams with simple geometric forms. These shapes inherit from `TCustomTreeShape` and `TTreeNodeShape` base classes.
+
+## Inheritance Hierarchy
+
+```
+TTreeNodeShape (base class)
+  └── TCustomTreeShape
+        ├── Geometric shapes (Rectangle, Circle, Diamond, etc.)
+        └── Specialized shapes (Triangle variants, Line shapes, etc.)
+```
+
+## Common Base Classes
+
+### TTreeNodeShape
+
+The fundamental base class for all node shapes in TeeTree.
+
+**Key Properties:**
+- `Style`: Determines the shape appearance (rectangle, circle, diamond, etc.)
+- `Text`: Text content displayed in the shape
+- `Font`: Font properties for text display
+- `Border`: Pen properties for shape border
+- `Brush`: Fill properties for shape interior
+- `Shadow`: Optional shadow effect
+- `Gradient`: Gradient fill options
+- `AutoSize`: Automatically adjust size to fit content
+- `Transparent`: Make shape background transparent
+
+**Common Methods:**
+- `Draw()`: Renders the shape
+- `Clicked(x, y)`: Checks if coordinates are within shape bounds
+- `AddChild(text)`: Adds a child node
+- `AddConnection(shape)`: Creates connection to another shape
+
+### TCustomTreeShape
+
+Base class for custom geometric shapes, derived from `TTreeNodeShape`.
+
+```pascal
+TCustomTreeShape = class(TTreeNodeShape);
+```
+
+## Rectangle Shapes
+
+### Standard Rectangle
+
+<Card title="TTreeNodeShape with tssRectangle" icon="square">
+  The most basic rectangular shape.
+</Card>
+
+**Usage:**
+```pascal
+var
+  Shape: TTreeNodeShape;
+begin
+  Shape := TTreeNodeShape.Create(Tree);
+  Shape.Style := tssRectangle;
+  Shape.Text.Add('Rectangle');
+  Shape.X0 := 100;
+  Shape.Y0 := 100;
+  Shape.X1 := 200;
+  Shape.Y1 := 150;
+end;
+```
+
+### Round Rectangle
+
+<Card title="Round Rectangle" icon="square-rounded">
+  Rectangle with rounded corners.
+</Card>
+
+**Properties:**
+- `RoundSize`: Controls the radius of corner rounding (default: 3)
+
+**Usage:**
+```pascal
+Shape.Style := tssRoundRectangle;
+Shape.RoundSize := 10;
+```
+
+### Chamfered Rectangle
+
+<Card title="Chamfer" icon="hexagon">
+  Rectangle with beveled corners.
+</Card>
+
+**Usage:**
+```pascal
+Shape.Style := tssChamfer;
+```
+
+## Circle and Ellipse
+
+<Card title="Circle" icon="circle">
+  Circular or elliptical shape.
+</Card>
+
+**Usage:**
+```pascal
+Shape.Style := tssCircle;
+Shape.Width := 100;  // Same as Height for perfect circle
+Shape.Height := 100;
+```
+
+## Diamond Shape
+
+<Card title="Diamond" icon="diamond">
+  Diamond/rhombus shape, commonly used for decision points.
+</Card>
+
+**Usage:**
+```pascal
+Shape.Style := tssDiamond;
+```
+
+## Triangle Shapes
+
+<CardGroup cols={2}>
+  <Card title="Triangle Top" icon="caret-up">
+    Triangle pointing upward
+  </Card>
+  <Card title="Triangle Bottom" icon="caret-down">
+    Triangle pointing downward
+  </Card>
+  <Card title="Triangle Left" icon="caret-left">
+    Triangle pointing left
+  </Card>
+  <Card title="Triangle Right" icon="caret-right">
+    Triangle pointing right
+  </Card>
+</CardGroup>
+
+**Usage:**
+```pascal
+// Upward triangle
+Shape.Style := tssTriangleTop;
+
+// Downward triangle
+Shape.Style := tssTriangleBottom;
+
+// Left triangle
+Shape.Style := tssTriangleLeft;
+
+// Right triangle
+Shape.Style := tssTriangleRight;
+```
+
+## Line Shapes
+
+### Vertical Line
+
+<Card title="Vertical Line" icon="grip-lines-vertical">
+  Simple vertical line shape.
+</Card>
+
+**Usage:**
+```pascal
+Shape.Style := tssVertLine;
+```
+
+### Horizontal Line
+
+<Card title="Horizontal Line" icon="grip-lines">
+  Simple horizontal line shape.
+</Card>
+
+**Usage:**
+```pascal
+Shape.Style := tssHorizLine;
+```
+
+### Diagonal Lines
+
+<CardGroup cols={2}>
+  <Card title="Line" icon="slash">
+    Diagonal line from top-left to bottom-right
+  </Card>
+  <Card title="Inverted Line" icon="backslash">
+    Diagonal line from top-right to bottom-left
+  </Card>
+</CardGroup>
+
+**Usage:**
+```pascal
+// Forward diagonal
+Shape.Style := tssLine;
+
+// Backward diagonal
+Shape.Style := tssInvertLine;
+```
+
+## Custom Shapes
+
+<Card title="Custom Shape" icon="pen-ruler">
+  Use custom drawing for complete control over shape appearance.
+</Card>
+
+**Usage:**
+```pascal
+Shape.Style := tssCustom;
+// Override DrawShapeCanvas method in descendant class
+```
+
+## Complete Example
+
+Here's a comprehensive example creating a tree with various basic shapes:
+
+```pascal
+uses
+  TeeTree;
+
+procedure CreateBasicShapesDemo(Tree: TTree);
+var
+  RectShape, CircleShape, DiamondShape: TTreeNodeShape;
+begin
+  // Rectangle
+  RectShape := TTreeNodeShape.Create(Tree);
+  with RectShape do
+  begin
+    Style := tssRectangle;
+    Text.Add('Rectangle');
+    X0 := 50;
+    Y0 := 50;
+    X1 := 150;
+    Y1 := 100;
+    Brush.Color := clWhite;
+    Border.Color := clBlack;
+  end;
+
+  // Circle
+  CircleShape := TTreeNodeShape.Create(Tree);
+  with CircleShape do
+  begin
+    Style := tssCircle;
+    Text.Add('Circle');
+    X0 := 200;
+    Y0 := 50;
+    Width := 80;
+    Height := 80;
+    Brush.Color := clYellow;
+  end;
+
+  // Diamond
+  DiamondShape := TTreeNodeShape.Create(Tree);
+  with DiamondShape do
+  begin
+    Style := tssDiamond;
+    Text.Add('Decision');
+    X0 := 350;
+    Y0 := 50;
+    Width := 100;
+    Height := 80;
+    Brush.Color := clRed;
+    Font.Color := clWhite;
+  end;
+
+  // Connect shapes
+  RectShape.AddConnection(CircleShape);
+  CircleShape.AddConnection(DiamondShape);
+end;
+```
+
+## Style Constants
+
+All available `TTreeShapeStyle` values:
+
+| Constant | Description |
+|----------|-------------|
+| `tssRectangle` | Standard rectangle |
+| `tssCircle` | Circle or ellipse |
+| `tssVertLine` | Vertical line |
+| `tssHorizLine` | Horizontal line |
+| `tssLine` | Diagonal line (top-left to bottom-right) |
+| `tssInvertLine` | Inverted diagonal line |
+| `tssDiamond` | Diamond/rhombus |
+| `tssTriangleTop` | Upward-pointing triangle |
+| `tssTriangleBottom` | Downward-pointing triangle |
+| `tssTriangleLeft` | Left-pointing triangle |
+| `tssTriangleRight` | Right-pointing triangle |
+| `tssRoundRectangle` | Rectangle with rounded corners |
+| `tssChamfer` | Rectangle with beveled corners |
+| `tssCustom` | Custom shape (override drawing) |
+
+## See Also
+
+<CardGroup cols={2}>
+  <Card title="Flowchart Shapes" icon="diagram-project" href="/api/shapes/flowchart-shapes">
+    Specialized shapes for flowcharts and process diagrams
+  </Card>
+  <Card title="UML Shapes" icon="sitemap" href="/api/shapes/uml-shapes">
+    Shapes for UML diagrams
+  </Card>
+  <Card title="Electric Shapes" icon="bolt" href="/api/shapes/electric-shapes">
+    Shapes for circuit and electronic diagrams
+  </Card>
+  <Card title="Custom Shapes" icon="wand-magic-sparkles" href="/api/shapes/custom-shapes">
+    Create your own custom shapes
+  </Card>
+</CardGroup>

@@ -1,0 +1,777 @@
+---
+title: TTreeNodeShape
+description: Individual node component in a tree hierarchy with visual properties, text, and events
+---
+
+## Overview
+
+`TTreeNodeShape` is the main class representing individual nodes in a TeeTree. Each node is a full component with its own properties, methods, and events. Nodes can have parent-child relationships, visual formatting, text, images, and connections to other nodes.
+
+## Class Hierarchy
+
+```
+TComponent
+  └─ TCustomTreeElement
+      └─ TTreeNodeShape
+```
+
+## Key Features
+
+- Parent-child hierarchy support
+- Multiple visual styles (rectangle, circle, diamond, etc.)
+- Text with multi-line support and alignment
+- Image support
+- Gradient fills and shadows
+- Border and brush customization
+- Automatic sizing and positioning
+- Connection management
+- Expand/collapse functionality
+
+## Properties
+
+### Position and Size
+
+<ResponseField name="X0" type="Integer" >
+Left coordinate of the node.
+</ResponseField>
+
+<ResponseField name="Y0" type="Integer" >
+Top coordinate of the node.
+</ResponseField>
+
+<ResponseField name="X1" type="Integer" >
+Right coordinate of the node.
+</ResponseField>
+
+<ResponseField name="Y1" type="Integer" >
+Bottom coordinate of the node.
+</ResponseField>
+
+<ResponseField name="Left" type="Integer" >
+Alias for X0. Left coordinate of the node.
+</ResponseField>
+
+<ResponseField name="Top" type="Integer" >
+Alias for Y0. Top coordinate of the node.
+</ResponseField>
+
+<ResponseField name="Width" type="Integer" >
+Width of the node in pixels.
+</ResponseField>
+
+<ResponseField name="Height" type="Integer" >
+Height of the node in pixels.
+</ResponseField>
+
+<ResponseField name="AutoSize" type="Boolean" default="True">
+When True, node size is determined by text size.
+</ResponseField>
+
+<ResponseField name="AutoPosition" type="TTreeShapeAutoPosition" >
+Determines which coordinates are automatically calculated. Has `Left` and `Top` boolean properties.
+</ResponseField>
+
+### Visual Appearance
+
+<ResponseField name="Style" type="TTreeShapeStyle" default="tssRectangle">
+Visual style of the node:
+- `tssRectangle` - Rectangle shape
+- `tssCircle` - Circle/ellipse
+- `tssRoundRectangle` - Rounded rectangle
+- `tssDiamond` - Diamond shape
+- `tssTriangleTop` - Triangle pointing up
+- `tssTriangleBottom` - Triangle pointing down
+- `tssTriangleLeft` - Triangle pointing left
+- `tssTriangleRight` - Triangle pointing right
+- `tssVertLine` - Vertical line
+- `tssHorizLine` - Horizontal line
+- `tssLine` - Diagonal line
+- `tssInvertLine` - Inverted diagonal line
+- `tssChamfer` - Chamfered rectangle
+- `tssCustom` - Custom shape
+</ResponseField>
+
+<ResponseField name="Color" type="TColor" default="clWhite">
+Background color of the node.
+</ResponseField>
+
+<ResponseField name="BackColor" type="TColor" default="clNone">
+Alternative background color.
+</ResponseField>
+
+<ResponseField name="Border" type="TTreePen" >
+Pen used to draw the node border.
+</ResponseField>
+
+<ResponseField name="Brush" type="TTreeShapeBrush" >
+Brush used to fill the node interior.
+</ResponseField>
+
+<ResponseField name="Transparent" type="Boolean" default="False">
+When True, node interior is not filled.
+</ResponseField>
+
+<ResponseField name="Transparency" type="TTeeTransparency" default="0">
+Transparency level from 0 to 100%.
+</ResponseField>
+
+<ResponseField name="RoundSize" type="Integer" default="3">
+Radius for rounded corners when Style is tssRoundRectangle or tssChamfer.
+</ResponseField>
+
+### Gradient and Shadow
+
+<ResponseField name="Gradient" type="TShapeGradient" >
+Gradient fill settings.
+</ResponseField>
+
+<ResponseField name="GradientClip" type="Boolean" default="True">
+When False, draws gradient in shape rectangle bounds instead of clipping to shape.
+</ResponseField>
+
+<ResponseField name="Shadow" type="TTeeShadow" >
+Shadow settings for the node.
+</ResponseField>
+
+### Text
+
+<ResponseField name="Text" type="TTreeStrings" >
+Multi-line text displayed in the node. Supports:
+- `Angle` - Text rotation (0-360 degrees)
+- `HorizAlign` - Horizontal alignment (Center, Left, Right)
+- `VertAlign` - Vertical alignment (Center, Top, Bottom)
+- `HorizOffset` - Horizontal pixel offset
+- `VertOffset` - Vertical pixel offset
+- `ClipText` - Clips text outside node bounds
+- `Transparency` - Text transparency
+- `Visible` - Show or hide text
+</ResponseField>
+
+<ResponseField name="SimpleText" type="String" >
+Simple string property to get/set the first line of text.
+</ResponseField>
+
+<ResponseField name="Font" type="TTeeFont" >
+Font used for text display.
+</ResponseField>
+
+<ResponseField name="HorizTextAlign" type="THorizTextAlign" >
+Horizontal text alignment: `htaCenter`, `htaLeft`, or `htaRight`.
+</ResponseField>
+
+<ResponseField name="VertTextAlign" type="TVertTextAlign" >
+Vertical text alignment.
+</ResponseField>
+
+### Images
+
+<ResponseField name="Image" type="TTreePicture" >
+Custom picture to display with the node.
+</ResponseField>
+
+<ResponseField name="ImageIndex" type="TTreeNodeImageIndex" >
+Index of default stock image:
+- `tiNone` - No image
+- `tiFolderClose` - Closed folder
+- `tiFolderOpen` - Open folder
+- `tiFolderOpenClose` - Auto open/close folder
+- `tiDesktop`, `tiMyPC`, `tiNetworkNei`, etc.
+- `tiChecked`, `tiUnChecked` - Checkboxes
+- `tiRadioChecked`, `tiRadioUnChecked` - Radio buttons
+</ResponseField>
+
+<ResponseField name="ImageListIndex" type="Integer" default="-1">
+Index in the Tree's ImageList.
+</ResponseField>
+
+<ResponseField name="ImageAlignment" type="TTreeImageAlignment" default="iaAutomatic">
+Position of image:
+- `iaAutomatic` - Auto-positioned
+- `iaLeftTop`, `iaRightBottom`, `iaLeftBottom`, `iaRightTop`
+- `iaLeft`, `iaTop`, `iaRight`, `iaBottom`
+- `iaCenter` - Centered
+</ResponseField>
+
+<ResponseField name="ImageWidth" type="Integer" default="0">
+Width of image. 0 = automatic.
+</ResponseField>
+
+<ResponseField name="ImageHeight" type="Integer" default="0">
+Height of image. 0 = automatic.
+</ResponseField>
+
+<ResponseField name="ImageRect" type="TRect" >
+Read-only rectangle returning image position.
+</ResponseField>
+
+### Hierarchy
+
+<ResponseField name="Parent" type="TTreeNodeShape" >
+Parent node. When assigned, this node becomes a child.
+</ResponseField>
+
+<ResponseField name="Children" type="TTreeChildrenList" >
+List of child nodes.
+</ResponseField>
+
+<ResponseField name="Childs" type="TTreeChildrenList" >
+Obsolete. Use Children instead.
+</ResponseField>
+
+<ResponseField name="Parents" type="TNodeShapeList" >
+List of additional parent nodes (for multi-parent scenarios).
+</ResponseField>
+
+<ResponseField name="Root" type="TTreeNodeShape" >
+Read-only. Returns the root node of this hierarchy.
+</ResponseField>
+
+<ResponseField name="BrotherIndex" type="Integer" >
+Index among sibling nodes. -1 when node has no parent.
+</ResponseField>
+
+<ResponseField name="PreviousBrother" type="TTreeNodeShape" >
+Read-only. Returns the previous sibling node.
+</ResponseField>
+
+### Expand/Collapse
+
+<ResponseField name="Expanded" type="Boolean" default="False">
+When True, child nodes are visible.
+</ResponseField>
+
+<ResponseField name="ShowCross" type="TTreeNodeShapeShowCross" default="scAuto">
+Cross-box display style:
+- `scAuto` - Displayed only when node has children
+- `scAlways` - Always displayed
+- `scNever` - Never displayed
+</ResponseField>
+
+### Connections
+
+<ResponseField name="Connections" type="TNodeConnectionList" >
+List of connections from this node to other nodes.
+</ResponseField>
+
+### State
+
+<ResponseField name="Visible" type="Boolean" default="True">
+When True, node is visible (parent must also be expanded).
+</ResponseField>
+
+<ResponseField name="Selected" type="Boolean" default="False">
+When True, node is selected.
+</ResponseField>
+
+<ResponseField name="Checked" type="Boolean" default="False">
+When True, checkbox/radio image is checked.
+</ResponseField>
+
+### Other
+
+<ResponseField name="Cursor" type="TCursor" default="crDefault">
+Mouse cursor when hovering over node.
+</ResponseField>
+
+<ResponseField name="Data" type="Pointer" >
+User-defined data pointer.
+</ResponseField>
+
+<ResponseField name="TagObject" type="TObject" >
+User-defined object reference.
+</ResponseField>
+
+<ResponseField name="Tree" type="TCustomTree" >
+Reference to the parent Tree component.
+</ResponseField>
+
+<ResponseField name="AdjustedRectangle" type="TRect" >
+Read-only. Total bounds including image.
+</ResponseField>
+
+## Methods
+
+### Adding Children
+
+<ParamField path="AddChild" type="function" >
+Adds a new child node.
+
+```pascal
+function AddChild(const AText: String): TTreeNodeShape;
+```
+
+**Parameters:**
+- `AText` - Text for the new child
+
+**Returns:** The newly created child node
+</ParamField>
+
+<ParamField path="Add" type="function" >
+Alias for AddChild.
+
+```pascal
+function Add(const AText: String): TTreeNodeShape;
+```
+</ParamField>
+
+<ParamField path="AddChildFirst" type="function" >
+Adds a child at the first position.
+
+```pascal
+function AddChildFirst(const AText: String): TTreeNodeShape;
+```
+</ParamField>
+
+<ParamField path="AddBrother" type="function" >
+Adds a sibling node.
+
+```pascal
+function AddBrother(const AText: String): TTreeNodeShape;
+```
+</ParamField>
+
+<ParamField path="AddChildObject" type="function" >
+Adds a child with associated data.
+
+```pascal
+function AddChildObject(const AText: String; const Data: Pointer): TTreeNodeShape;
+```
+</ParamField>
+
+<ParamField path="Insert" type="function" >
+Inserts a child at specific index.
+
+```pascal
+function Insert(Index: Integer; const AText: String): TTreeNodeShape;
+```
+</ParamField>
+
+### Connections
+
+<ParamField path="AddConnection" type="function" >
+Creates a connection to another node.
+
+```pascal
+function AddConnection(const AToShape: TTreeNodeShape): TTreeConnection;
+```
+
+**Returns:** The newly created connection
+</ParamField>
+
+<ParamField path="AddConnectionObject" type="function" >
+Creates a connection with associated data.
+
+```pascal
+function AddConnectionObject(const AToShape: TTreeNodeShape; const Data: Pointer): TTreeConnection;
+```
+</ParamField>
+
+### Expand/Collapse
+
+<ParamField path="Toggle" type="procedure" >
+Toggles expand/collapse state.
+
+```pascal
+procedure Toggle;
+```
+</ParamField>
+
+<ParamField path="Collapse" type="procedure" >
+Collapses node and optionally all descendants.
+
+```pascal
+procedure Collapse(Recursive: Boolean);
+```
+</ParamField>
+
+<ParamField path="ToggleCheck" type="procedure" >
+Toggles checkbox state.
+
+```pascal
+procedure ToggleCheck;
+```
+</ParamField>
+
+### Visibility
+
+<ParamField path="Show" type="procedure" >
+Makes node visible.
+
+```pascal
+procedure Show;
+```
+</ParamField>
+
+<ParamField path="Hide" type="procedure" >
+Hides node.
+
+```pascal
+procedure Hide;
+```
+</ParamField>
+
+### Drawing
+
+<ParamField path="Draw" type="procedure" >
+Draws the node.
+
+```pascal
+procedure Draw; virtual;
+```
+</ParamField>
+
+<ParamField path="DrawHandles" type="procedure" >
+Draws resize handles when selected.
+
+```pascal
+procedure DrawHandles; override;
+```
+</ParamField>
+
+<ParamField path="Repaint" type="procedure" >
+Repaints the node.
+
+```pascal
+procedure Repaint;
+```
+</ParamField>
+
+### Geometry
+
+<ParamField path="Bounds" type="function" >
+Returns the node's bounding rectangle.
+
+```pascal
+function Bounds: TRect;
+```
+</ParamField>
+
+<ParamField path="XCenter" type="function" >
+Returns X coordinate of center.
+
+```pascal
+function XCenter: TCoordinate;
+```
+</ParamField>
+
+<ParamField path="YCenter" type="function" >
+Returns Y coordinate of center.
+
+```pascal
+function YCenter: TCoordinate;
+```
+</ParamField>
+
+<ParamField path="Clicked" type="function" >
+Tests if coordinates are inside node.
+
+```pascal
+function Clicked(const x, y: Integer): Boolean; overload;
+function Clicked(const x, y: Single): Boolean; overload;
+```
+
+**Returns:** True if point is inside node
+</ParamField>
+
+<ParamField path="ClickedImage" type="function" >
+Tests if coordinates are inside node's image.
+
+```pascal
+function ClickedImage(x, y: Integer): Boolean;
+```
+</ParamField>
+
+<ParamField path="CrossBoxClicked" type="function" >
+Tests if coordinates are inside cross-box.
+
+```pascal
+function CrossBoxClicked(x, y: Integer): Boolean;
+```
+</ParamField>
+
+### Movement and Resizing
+
+<ParamField path="MoveRelative" type="procedure" >
+Moves node by offset.
+
+```pascal
+procedure MoveRelative(OfsX, OfsY: Integer; MoveChilds: Boolean); dynamic;
+```
+</ParamField>
+
+<ParamField path="Resize" type="procedure" >
+Resizes node from a corner.
+
+```pascal
+procedure Resize(ACorner: TTreeShapeHandle; DeltaX, DeltaY: Integer); dynamic;
+```
+</ParamField>
+
+<ParamField path="RecalcSize" type="procedure" >
+Recalculates node size based on text.
+
+```pascal
+procedure RecalcSize(const ACanvas: TCanvas3D); virtual;
+```
+</ParamField>
+
+### Hierarchy Operations
+
+<ParamField path="Level" type="function" >
+Returns the depth level in hierarchy (0 for root).
+
+```pascal
+function Level: Integer;
+```
+</ParamField>
+
+<ParamField path="Count" type="function" >
+Returns the number of child nodes.
+
+```pascal
+function Count: Integer;
+```
+</ParamField>
+
+<ParamField path="HasChildren" type="function" >
+Returns True if node has children.
+
+```pascal
+function HasChildren: Boolean;
+```
+</ParamField>
+
+<ParamField path="SelectChilds" type="procedure" >
+Selects all child nodes.
+
+```pascal
+procedure SelectChilds;
+```
+</ParamField>
+
+<ParamField path="SortChildsText" type="procedure" >
+Sorts children alphabetically.
+
+```pascal
+procedure SortChildsText(AscendingOrder, IgnoreCase: Boolean);
+```
+</ParamField>
+
+### Z-Order
+
+<ParamField path="BringToFront" type="procedure" >
+Moves node to front of drawing order.
+
+```pascal
+procedure BringToFront;
+```
+</ParamField>
+
+<ParamField path="SendToBack" type="procedure" >
+Moves node to back of drawing order.
+
+```pascal
+procedure SendToBack;
+```
+</ParamField>
+
+### Other
+
+<ParamField path="Clear" type="procedure" >
+Removes all child nodes.
+
+```pascal
+procedure Clear;
+```
+</ParamField>
+
+<ParamField path="Assign" type="procedure" >
+Copies properties from another node.
+
+```pascal
+procedure Assign(Source: TPersistent); override;
+```
+</ParamField>
+
+<ParamField path="AssignFormat" type="procedure" >
+Copies only visual format from another node.
+
+```pascal
+procedure AssignFormat(const ANode: TTreeNodeShape);
+```
+</ParamField>
+
+<ParamField path="SaveToTextFile" type="procedure" >
+Saves node and children to text file.
+
+```pascal
+procedure SaveToTextFile(const FileName: String);
+```
+</ParamField>
+
+## Events
+
+<ResponseField name="OnClick" type="TClickShapeEvent" >
+Fired when node is clicked.
+
+```pascal
+property OnClick: TClickShapeEvent;
+// procedure(Sender: TTreeNodeShape; Button: TMouseButton; Shift: TShiftState; X, Y: Integer)
+```
+</ResponseField>
+
+<ResponseField name="OnDblClick" type="TClickShapeEvent" >
+Fired when node is double-clicked.
+</ResponseField>
+
+<ResponseField name="OnMouseEnter" type="TMouseShapeEvent" >
+Fired when mouse enters node.
+
+```pascal
+property OnMouseEnter: TMouseShapeEvent;
+// procedure(Sender: TTreeNodeShape; Shift: TShiftState; X, Y: Integer)
+```
+</ResponseField>
+
+<ResponseField name="OnMouseLeave" type="TMouseShapeEvent" >
+Fired when mouse leaves node.
+</ResponseField>
+
+<ResponseField name="OnMouseMove" type="TMouseShapeEvent" >
+Fired when mouse moves over node.
+</ResponseField>
+
+## Usage Examples
+
+### Creating a Node Hierarchy
+
+```pascal
+var
+  Root, Child1, Child2, GrandChild: TTreeNodeShape;
+begin
+  Root := Tree1.AddRoot('Root');
+  
+  Child1 := Root.AddChild('Child 1');
+  Child2 := Root.AddChild('Child 2');
+  
+  GrandChild := Child1.AddChild('GrandChild');
+  
+  Root.Expanded := True;
+  Child1.Expanded := True;
+end;
+```
+
+### Customizing Node Appearance
+
+```pascal
+var
+  Node: TTreeNodeShape;
+begin
+  Node := Tree1.AddRoot('Custom');
+  
+  // Shape
+  Node.Style := tssRoundRectangle;
+  Node.RoundSize := 10;
+  
+  // Colors
+  Node.Color := clSkyBlue;
+  Node.Border.Color := clNavy;
+  Node.Border.Width := 2;
+  
+  // Text
+  Node.Font.Size := 12;
+  Node.Font.Style := [fsBold];
+  Node.Text.HorizAlign := htaLeft;
+  
+  // Shadow
+  Node.Shadow.Visible := True;
+  Node.Shadow.Size := 5;
+  
+  // Gradient
+  Node.Gradient.Visible := True;
+  Node.Gradient.StartColor := clWhite;
+  Node.Gradient.EndColor := clSkyBlue;
+end;
+```
+
+### Adding Images
+
+```pascal
+var
+  Node: TTreeNodeShape;
+begin
+  // Using stock images
+  Node := Tree1.AddRoot('Folder');
+  Node.ImageIndex := tiFolderClose;
+  
+  // Using ImageList
+  Node := Tree1.AddRoot('Custom Icon');
+  Node.ImageListIndex := 0;
+  
+  // Custom picture
+  Node := Tree1.AddRoot('Picture');
+  Node.Image.LoadFromFile('icon.png');
+  Node.ImageAlignment := iaLeft;
+end;
+```
+
+### Working with Connections
+
+```pascal
+var
+  Node1, Node2: TTreeNodeShape;
+  Conn: TTreeConnection;
+begin
+  Node1 := Tree1.Add(100, 100, 'Start', nil);
+  Node2 := Tree1.Add(300, 100, 'End', nil);
+  
+  Conn := Node1.AddConnection(Node2);
+  Conn.Border.Color := clRed;
+  Conn.Border.Width := 2;
+end;
+```
+
+### Handling Node Events
+
+```pascal
+procedure TForm1.NodeClick(Sender: TTreeNodeShape; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  if Button = mbLeft then
+    Sender.Selected := True
+  else if Button = mbRight then
+    Sender.Toggle;
+end;
+
+begin
+  Node := Tree1.AddRoot('Interactive');
+  Node.OnClick := NodeClick;
+end;
+```
+
+### Dynamic Node Creation
+
+```pascal
+var
+  i: Integer;
+  Node: TTreeNodeShape;
+begin
+  Tree1.BeginUpdate;
+  try
+    Node := Tree1.AddRoot('Dynamic Root');
+    for i := 1 to 10 do
+    begin
+      Node.AddChild('Child ' + IntToStr(i));
+    end;
+    Node.Expanded := True;
+  finally
+    Tree1.EndUpdate;
+  end;
+end;
+```
+
+## See Also
+
+- [TTree](/api/ttree) - Main tree component
+- [TTreeConnection](/api/ttreeconnection) - Connection between nodes
+- [TDBTree](/api/tdbtree) - Database-aware tree

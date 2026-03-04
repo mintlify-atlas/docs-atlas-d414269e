@@ -1,80 +1,602 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quick Start Guide
+description: Create your first TeeTree diagram in minutes with step-by-step examples
 ---
 
-## Get started in three steps
+## Your First Tree Diagram
 
-Get your documentation site running locally and make your first customization.
+Let's create a simple organizational chart to learn TeeTree basics.
 
-### Step 1: Set up your local environment
+<Steps>
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
+<Step title="Create the Tree Component">
+  
+  <CodeGroup>
+  
+  ```delphi VCL - Design Time
+  // Drop a TTree component on your form from the Component Palette
+  // Set properties:
+  Tree1.Align := alClient;
+  ```
+  
+  ```delphi VCL - Runtime
+  uses
+    TeeTree;
+  
+  var
+    Tree1: TTree;
+  begin
+    Tree1 := TTree.Create(Self);
+    Tree1.Parent := Self;
+    Tree1.Align := alClient;
+  end;
+  ```
+  
+  ```delphi FireMonkey
+  uses
+    FMXTee.Tree, FMXTee.Procs;
+  
+  var
+    Tree1: TTree;
+  begin
+    Tree1 := TTree.Create(Self);
+    Tree1.Parent := Self;
+    Tree1.BoundsRect := RectF(0, 0, 400, 600);
+  end;
+  ```
+  
+  </CodeGroup>
+  
+</Step>
+
+<Step title="Add Your First Nodes">
+  
+  ```delphi
+  procedure TForm1.CreateOrgChart;
+  var
+    CEO, VP1, VP2: TTreeNodeShape;
+  begin
+    // Add root node (CEO)
+    CEO := Tree1.AddRoot('CEO');
     
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
+    // Add child nodes (VPs)
+    VP1 := CEO.AddChild('VP Sales');
+    VP2 := CEO.AddChild('VP Engineering');
     
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
+    // Add more children
+    VP1.AddChild('Sales Manager');
+    VP1.AddChild('Marketing Manager');
     
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+    VP2.AddChild('Dev Team Lead');
+    VP2.AddChild('QA Team Lead');
+    
+    // Expand to show all nodes
+    CEO.Expanded := True;
+    VP1.Expanded := True;
+    VP2.Expanded := True;
+  end;
+  ```
+  
+</Step>
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+<Step title="Run and View">
+  Press F9 to run your application. You should see a hierarchical tree diagram with automatic layout!
+</Step>
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+</Steps>
 
-### Step 3: Go live
+## Adding Connections
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+Create visual connections between non-hierarchical nodes:
 
-## Next steps
+```delphi
+procedure TForm1.CreateConnectionExample;
+var
+  NodeA, NodeB, NodeC: TTreeNodeShape;
+  Connection: TTreeConnection;
+begin
+  // Create nodes
+  NodeA := Tree1.AddRoot('Process A');
+  NodeB := Tree1.AddRoot('Process B');
+  NodeC := Tree1.AddRoot('Process C');
+  
+  // Position nodes
+  NodeA.X0 := 50;
+  NodeA.Y0 := 50;
+  NodeB.X0 := 200;
+  NodeB.Y0 := 50;
+  NodeC.X0 := 125;
+  NodeC.Y0 := 150;
+  
+  // Create connections
+  Connection := NodeA.AddConnection(NodeC);
+  Connection.Style := csLine;
+  Connection.Border.Color := clBlue;
+  
+  Connection := NodeB.AddConnection(NodeC);
+  Connection.Style := csLine;
+  Connection.Border.Color := clRed;
+end;
+```
 
-Now that you have your docs running, explore these key features:
+## Formatting Nodes
+
+Customize the appearance of individual nodes:
+
+<CodeGroup>
+
+```delphi Colors and Borders
+var
+  Node: TTreeNodeShape;
+begin
+  Node := Tree1.AddRoot('Formatted Node');
+  
+  // Set colors
+  Node.Brush.Color := clYellow;
+  Node.Font.Color := clBlue;
+  
+  // Configure border
+  Node.Border.Visible := True;
+  Node.Border.Color := clRed;
+  Node.Border.Width := 2;
+end;
+```
+
+```delphi Gradients and Effects
+var
+  Node: TTreeNodeShape;
+begin
+  Node := Tree1.AddRoot('Gradient Node');
+  
+  // Enable gradient
+  Node.Gradient.Visible := True;
+  Node.Gradient.StartColor := clWhite;
+  Node.Gradient.EndColor := clSkyBlue;
+  Node.Gradient.Direction := gdTopBottom;
+  
+  // Add shadow
+  Node.Shadow.Visible := True;
+  Node.Shadow.Size := 5;
+end;
+```
+
+```delphi Shapes and Images
+var
+  Node: TTreeNodeShape;
+begin
+  Node := Tree1.AddRoot('Custom Shape');
+  
+  // Set shape style
+  Node.Shape.Style := tsRoundRectangle;
+  
+  // Add icon
+  Node.ImageIndex := tiFolderOpenClose;
+  
+  // Adjust size
+  Node.Width := 120;
+  Node.Height := 60;
+end;
+```
+
+</CodeGroup>
+
+## Global Formatting
+
+Apply formatting to all new nodes using `GlobalFormat`:
+
+```delphi
+procedure TForm1.SetupGlobalFormat;
+begin
+  // Set defaults BEFORE adding nodes
+  with Tree1.GlobalFormat do
+  begin
+    // Hide borders
+    Border.Hide;
+    
+    // Transparent background
+    Transparent := True;
+    
+    // Font settings
+    Font.Size := 10;
+    Font.Style := [fsBold];
+    
+    // Connection style
+    Connection.ArrowTo.Style := casNone;
+  end;
+  
+  // Now add nodes - they will inherit these settings
+  Tree1.AddRoot('Node 1');
+  Tree1.AddRoot('Node 2');
+end;
+```
+
+<Warning>
+  Set `GlobalFormat` properties **before** adding nodes. Existing nodes are not affected by changes to GlobalFormat.
+</Warning>
+
+## Working with Text
+
+Nodes support multi-line text:
+
+<CodeGroup>
+
+```delphi Simple Text
+var
+  Node: TTreeNodeShape;
+begin
+  // Single line - use SimpleText
+  Node := Tree1.AddRoot('Hello World');
+  Node.SimpleText := 'Updated Text';
+end;
+```
+
+```delphi Multi-line Text
+var
+  Node: TTreeNodeShape;
+begin
+  Node := Tree1.AddRoot('');
+  
+  // Add multiple lines
+  Node.Text.Clear;
+  Node.Text.Add('Line 1');
+  Node.Text.Add('Line 2');
+  Node.Text.Add('Line 3');
+  
+  // Text alignment
+  Node.Text.HorizAlign := htaLeft;
+  Node.Text.VertAlign := vtaTop;
+end;
+```
+
+```delphi Text from Memo
+var
+  Node: TTreeNodeShape;
+begin
+  Node := Tree1.AddRoot('');
+  
+  // Copy from TMemo
+  Node.Text.Assign(Memo1.Lines);
+  
+  // Text angle (rotation)
+  Node.Text.Angle := 45; // degrees
+end;
+```
+
+</CodeGroup>
+
+## Interactive Features
+
+### Enable Editing
+
+```delphi
+procedure TForm1.EnableNodeEditing;
+begin
+  // Allow users to edit node text
+  Tree1.AllowEdit := True;
+  
+  // Or start editing programmatically
+  Tree1.StartEditing(Tree1.Roots[0]);
+end;
+
+procedure TForm1.Tree1StartEditing(Shape: TTreeNodeShape; 
+  var AllowEditing: Boolean);
+begin
+  // Control which nodes can be edited
+  AllowEditing := Shape.Level > 0; // Only children, not roots
+end;
+```
+
+### Handle Selection
+
+```delphi
+procedure TForm1.Tree1SelectShape(Sender: TTreeNodeShape);
+begin
+  // Respond to node selection
+  ShowMessage('Selected: ' + Sender.SimpleText);
+  
+  // Access selected nodes
+  if Tree1.Selected.Count > 0 then
+  begin
+    // Get first selected node
+    var Node := Tree1.Selected.First;
+    Panel1.Caption := Node.SimpleText;
+  end;
+end;
+```
+
+### Mouse Connections
+
+```delphi
+procedure TForm1.ButtonConnectClick(Sender: TObject);
+var
+  Connection: TTreeConnection;
+begin
+  // Change cursor
+  Tree1.Cursor := crCross;
+  Tree1.OriginalCursor := crCross;
+  
+  // Let user connect two nodes with mouse
+  Connection := Tree1.StartConnecting;
+  
+  // Customize the connection if created
+  if Assigned(Connection) then
+  begin
+    Connection.Style := csLine;
+    Connection.Border.Color := clRed;
+  end;
+  
+  // Restore cursor
+  Tree1.Cursor := crDefault;
+  Tree1.OriginalCursor := crDefault;
+end;
+```
+
+## Performance with Many Nodes
+
+When adding many nodes, use `BeginUpdate` and `EndUpdate`:
+
+```delphi
+procedure TForm1.CreateLargeTree;
+var
+  i, j: Integer;
+  Root, Child: TTreeNodeShape;
+begin
+  Tree1.BeginUpdate;
+  try
+    // Add 500 root nodes
+    for i := 0 to 499 do
+    begin
+      Root := Tree1.AddRoot('Node ' + IntToStr(i));
+      
+      // Add 10 children to each
+      for j := 0 to 9 do
+      begin
+        Child := Root.Add('Child ' + IntToStr(j));
+      end;
+    end;
+  finally
+    Tree1.EndUpdate; // Refresh once at the end
+  end;
+  
+  ShowMessage('Added ' + IntToStr(Tree1.Items.Count) + ' nodes');
+end;
+```
+
+<Info>
+  This approach can add 20,000+ nodes in under 100 milliseconds.
+</Info>
+
+## Common Patterns
+
+### Iterate Through All Nodes
+
+```delphi
+procedure TForm1.ProcessAllNodes;
+var
+  i: Integer;
+  Node: TTreeNodeShape;
+begin
+  for i := 0 to Tree1.Items.Count - 1 do
+  begin
+    Node := Tree1.Items[i];
+    // Process node
+    Node.Font.Color := clBlue;
+  end;
+end;
+```
+
+### Find a Node
+
+```delphi
+var
+  Node: TTreeNodeShape;
+begin
+  // Find by text
+  Node := Tree1.Items.Find('Search Term');
+  if Assigned(Node) then
+    Node.Selected := True;
+    
+  // Find by partial text
+  Node := Tree1.Items.Find('Partial', True);
+end;
+```
+
+### Access Node Hierarchy
+
+```delphi
+procedure TForm1.ExploreHierarchy(Node: TTreeNodeShape);
+var
+  i: Integer;
+begin
+  // Parent
+  if Assigned(Node.Parent) then
+    ShowMessage('Parent: ' + Node.Parent.SimpleText);
+  
+  // Children
+  for i := 0 to Node.Count - 1 do
+  begin
+    ShowMessage('Child: ' + Node.Children[i].SimpleText);
+  end;
+  
+  // Root nodes
+  for i := 0 to Tree1.Roots.Count - 1 do
+  begin
+    ShowMessage('Root: ' + Tree1.Roots[i].SimpleText);
+  end;
+end;
+```
+
+### Delete Nodes
+
+```delphi
+procedure TForm1.DeleteSelectedNodes;
+begin
+  // Delete all selected nodes
+  Tree1.Selected.Clear; // Or delete individually
+  
+  // Delete specific node (and all children)
+  if Assigned(Tree1.Roots[0]) then
+    Tree1.Roots[0].Free;
+end;
+```
+
+## Layout Customization
+
+Change the child layout algorithm:
+
+```delphi
+procedure TForm1.SetupLayout;
+var
+  Manager: TTreeExplorerAlignChild;
+begin
+  // Access the child manager
+  Manager := Tree1.GlobalFormat.ChildManager as TTreeExplorerAlignChild;
+  
+  // Adjust spacing
+  Manager.HorizMargin := 30;
+  Manager.VertMargin := 10;
+  
+  // Refresh layout
+  Tree1.Invalidate;
+end;
+```
+
+## Zoom and Scroll
+
+```delphi
+procedure TForm1.ConfigureZoom;
+begin
+  // Enable zoom
+  Tree1.Zoom.Allow := True;
+  Tree1.Zoom.Pen.Color := clRed;
+  
+  // Zoom programmatically
+  Tree1.Zoom.ZoomPercent := 150; // 150%
+  
+  // Scroll to node
+  Tree1.ScrollToShape(Tree1.Roots[0]);
+end;
+```
+
+## Save and Load
+
+<CodeGroup>
+
+```delphi Save to File
+procedure TForm1.SaveTree;
+begin
+  if SaveDialog1.Execute then
+    Tree1.SaveToFile(SaveDialog1.FileName);
+end;
+```
+
+```delphi Load from File
+procedure TForm1.LoadTree;
+begin
+  if OpenDialog1.Execute then
+  begin
+    Tree1.Clear; // Remove existing nodes
+    Tree1.LoadFromFile(OpenDialog1.FileName);
+  end;
+end;
+```
+
+</CodeGroup>
+
+## Next Steps
 
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="API Reference" icon="book" href="/api-reference">
+    Explore all TTree, TTreeNodeShape, and TTreeConnection properties and methods
+  </Card>
+  
+  <Card title="Advanced Features" icon="rocket" href="/advanced">
+    Learn about virtual nodes, custom shapes, animations, and more
+  </Card>
+  
+  <Card title="Database Integration" icon="database" href="/database">
+    Use DBTree to automatically generate hierarchies from datasets
+  </Card>
+  
+  <Card title="Examples" icon="code" href="/examples">
+    Browse complete example projects and code snippets
+  </Card>
 </CardGroup>
 
+## Complete Example
+
+Here's a complete, runnable example:
+
+```delphi
+unit Unit1;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes,
+  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls,
+  TeeTree, TeeProcs;
+
+type
+  TForm1 = class(TForm)
+    Button1: TButton;
+    procedure Button1Click(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+  private
+    Tree1: TTree;
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+{$R *.dfm}
+
+procedure TForm1.FormCreate(Sender: TObject);
+begin
+  // Create tree at runtime
+  Tree1 := TTree.Create(Self);
+  Tree1.Parent := Self;
+  Tree1.Align := alClient;
+  
+  // Configure appearance
+  Tree1.Gradient.Visible := True;
+  Tree1.Gradient.StartColor := clWhite;
+  Tree1.Gradient.EndColor := clSkyBlue;
+end;
+
+procedure TForm1.Button1Click(Sender: TObject);
+var
+  CEO, VP1, VP2: TTreeNodeShape;
+begin
+  Tree1.BeginUpdate;
+  try
+    // Create organizational chart
+    CEO := Tree1.AddRoot('Chief Executive Officer');
+    CEO.Brush.Color := clYellow;
+    CEO.Font.Style := [fsBold];
+    
+    VP1 := CEO.AddChild('VP of Sales');
+    VP1.AddChild('Sales Manager');
+    VP1.AddChild('Marketing Manager');
+    
+    VP2 := CEO.AddChild('VP of Engineering');
+    VP2.AddChild('Dev Team Lead');
+    VP2.AddChild('QA Team Lead');
+    
+    // Expand all
+    CEO.Expanded := True;
+    VP1.Expanded := True;
+    VP2.Expanded := True;
+  finally
+    Tree1.EndUpdate;
+  end;
+end;
+
+end.
+```
+
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  This example creates a fully functional organizational chart with formatted nodes and automatic hierarchical layout.
 </Note>

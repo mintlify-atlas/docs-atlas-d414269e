@@ -1,0 +1,419 @@
+---
+title: 'TTreeNavigator'
+description: 'Page navigation component for multi-page tree diagrams with print support'
+---
+
+## Overview
+
+The `TTreePageNavigator` component provides navigation controls for multi-page tree diagrams. It includes buttons for moving between pages and support for printing page ranges.
+
+## Components
+
+### TTreePageNavigator
+
+Navigation control for tree pages.
+
+```pascal
+type
+  TTreePageNavigator = class(TCustomTeeNavigator)
+  published
+    property Tree:TCustomTree;
+    property OnButtonClicked;
+    
+    procedure EnableButtons; override;
+    procedure Print; override;
+    procedure PrintPages(FromPage, ToPage: Integer);
+  end;
+```
+
+**Properties:**
+- `Tree` - The tree component to navigate
+- `OnButtonClicked` - Event fired when a button is clicked
+
+## Navigation Buttons
+
+The navigator includes the following buttons:
+
+- `nbFirst` - Go to first page
+- `nbPrior` - Go to previous page
+- `nbNext` - Go to next page
+- `nbLast` - Go to last page
+
+## Usage Examples
+
+### Basic Setup
+
+```pascal
+var
+  Navigator: TTreePageNavigator;
+begin
+  Navigator := TTreePageNavigator.Create(Self);
+  Navigator.Parent := Panel1;
+  Navigator.Tree := Tree1;
+  Navigator.Align := alBottom;
+end;
+```
+
+### Design-Time Setup
+
+```pascal
+// Drop TTreePageNavigator on form
+// Set properties:
+TreePageNavigator1.Tree := Tree1;
+TreePageNavigator1.Align := alBottom;
+```
+
+### Enable/Disable Buttons
+
+```pascal
+procedure TForm1.UpdateNavigator;
+begin
+  TreePageNavigator1.EnableButtons;
+  
+  // Buttons are automatically enabled/disabled based on:
+  // - First/Prior disabled when on first page
+  // - Next/Last disabled when on last page
+  // - All disabled when Tree.Page.Count = 0
+end;
+```
+
+### Print Current Page
+
+```pascal
+procedure TForm1.PrintCurrentPage;
+begin
+  Tree1.Print;
+end;
+```
+
+### Print All Pages
+
+```pascal
+procedure TForm1.PrintAllPages;
+begin
+  TreePageNavigator1.Print;  // Shows print dialog
+end;
+```
+
+### Print Page Range
+
+```pascal
+procedure TForm1.PrintRange;
+begin
+  // Print pages 1 through 5
+  TreePageNavigator1.PrintPages(1, 5);
+end;
+```
+
+### Print Dialog
+
+```pascal
+uses TreeNavigator;
+
+procedure TForm1.ShowPrintDialog;
+var
+  PrintDlg: TPrintDialog;
+begin
+  PrintDlg := TreePrintDialog(Tree1);
+  try
+    if PrintDlg.Execute then
+    begin
+      TreePageNavigator1.PrintPages(
+        PrintDlg.FromPage, 
+        PrintDlg.ToPage
+      );
+    end;
+  finally
+    PrintDlg.Free;
+  end;
+end;
+```
+
+### Handle Button Click Events
+
+```pascal
+procedure TForm1.TreePageNavigator1ButtonClicked(
+  Sender: TObject; 
+  Button: TTeeNavigateBtn
+);
+begin
+  case Button of
+    nbFirst: ShowMessage('First page');
+    nbPrior: ShowMessage('Previous page');
+    nbNext:  ShowMessage('Next page');
+    nbLast:  ShowMessage('Last page');
+  end;
+end;
+```
+
+### Manual Page Navigation
+
+```pascal
+procedure TForm1.GoToPage(PageNum: Integer);
+begin
+  if (PageNum >= 1) and (PageNum <= Tree1.Page.Count) then
+  begin
+    Tree1.Page.Page := PageNum;
+    TreePageNavigator1.EnableButtons;
+  end;
+end;
+```
+
+### Get Current Page
+
+```pascal
+function TForm1.GetCurrentPage: Integer;
+begin
+  Result := Tree1.Page.Page;
+end;
+```
+
+### Get Total Pages
+
+```pascal
+function TForm1.GetTotalPages: Integer;
+begin
+  Result := Tree1.Page.Count;
+end;
+```
+
+### Check if First/Last Page
+
+```pascal
+function TForm1.IsFirstPage: Boolean;
+begin
+  Result := Tree1.Page.Page = 1;
+end;
+
+function TForm1.IsLastPage: Boolean;
+begin
+  Result := Tree1.Page.Page = Tree1.Page.Count;
+end;
+```
+
+### Navigate Programmatically
+
+```pascal
+procedure TForm1.NavigateFirst;
+begin
+  if Tree1.Page.Page > 1 then
+  begin
+    Tree1.Page.Page := 1;
+    TreePageNavigator1.EnableButtons;
+  end;
+end;
+
+procedure TForm1.NavigatePrior;
+begin
+  if Tree1.Page.Page > 1 then
+  begin
+    Tree1.Page.Page := Tree1.Page.Page - 1;
+    TreePageNavigator1.EnableButtons;
+  end;
+end;
+
+procedure TForm1.NavigateNext;
+begin
+  if Tree1.Page.Page < Tree1.Page.Count then
+  begin
+    Tree1.Page.Page := Tree1.Page.Page + 1;
+    TreePageNavigator1.EnableButtons;
+  end;
+end;
+
+procedure TForm1.NavigateLast;
+begin
+  if Tree1.Page.Page < Tree1.Page.Count then
+  begin
+    Tree1.Page.Page := Tree1.Page.Count;
+    TreePageNavigator1.EnableButtons;
+  end;
+end;
+```
+
+### Custom Print Title
+
+```pascal
+procedure TForm1.PrintWithTitle;
+begin
+  TreePageNavigator1.Name := 'Organization Chart';
+  TreePageNavigator1.Print;
+  // Printer.Title will be set to 'Organization Chart'
+end;
+```
+
+### Print Multiple Copies
+
+```pascal
+uses TreeNavigator;
+
+procedure TForm1.PrintMultipleCopies;
+var
+  PrintDlg: TPrintDialog;
+  i: Integer;
+begin
+  PrintDlg := TreePrintDialog(Tree1);
+  try
+    if PrintDlg.Execute then
+    begin
+      for i := 1 to PrintDlg.Copies do
+        TreePageNavigator1.PrintPages(
+          PrintDlg.FromPage, 
+          PrintDlg.ToPage
+        );
+    end;
+  finally
+    PrintDlg.Free;
+  end;
+end;
+```
+
+### Update After Page Change
+
+```pascal
+procedure TForm1.Tree1AfterDraw(Sender: TObject);
+begin
+  // Update navigator buttons after drawing
+  TreePageNavigator1.EnableButtons;
+  
+  // Update status bar
+  StatusBar1.SimpleText := Format('Page %d of %d', 
+    [Tree1.Page.Page, Tree1.Page.Count]);
+end;
+```
+
+### Combined with Page Controls
+
+```pascal
+procedure TForm1.SetupPageNavigation;
+begin
+  // Set up tree pages
+  Tree1.Page.Count := 5;
+  Tree1.Page.Page := 1;
+  
+  // Setup navigator
+  TreePageNavigator1.Tree := Tree1;
+  TreePageNavigator1.EnableButtons;
+  
+  // Update display
+  Label1.Caption := Format('Page %d of %d', 
+    [Tree1.Page.Page, Tree1.Page.Count]);
+end;
+```
+
+### Keyboard Navigation
+
+```pascal
+procedure TForm1.FormKeyDown(Sender: TObject; var Key: Word; 
+  Shift: TShiftState);
+begin
+  case Key of
+    VK_HOME:  NavigateFirst;
+    VK_PRIOR: NavigatePrior;
+    VK_NEXT:  NavigateNext;
+    VK_END:   NavigateLast;
+  end;
+end;
+```
+
+## Helper Functions
+
+### TreePrintDialog
+
+Creates a print dialog configured for tree page printing.
+
+```pascal
+Function TreePrintDialog(const Tree:TCustomTree):TPrintDialog;
+```
+
+**Features:**
+- Automatically configured for page range printing
+- MinPage set to 1
+- MaxPage set to Tree.Page.Count
+- Options include page number selection
+- PrintRange set to prPageNums
+
+**Usage:**
+```pascal
+var
+  PrintDlg: TPrintDialog;
+begin
+  PrintDlg := TreePrintDialog(Tree1);
+  try
+    if PrintDlg.Execute then
+    begin
+      // User selected print settings
+      // PrintDlg.FromPage and PrintDlg.ToPage contain range
+      // PrintDlg.Copies contains number of copies
+    end;
+  finally
+    PrintDlg.Free;
+  end;
+end;
+```
+
+## Print Features
+
+### Standard Print
+- Prints all pages by default
+- Shows print dialog for user selection
+- Supports multiple copies
+- Respects page range selection
+
+### PrintPages Method
+- Direct printing without dialog
+- Specify exact page range
+- FromPage: Starting page (1-based)
+- ToPage: Ending page (0 = all pages)
+
+### Print Properties
+- Printer title from Navigator.Name
+- Automatic page breaks
+- Uses Tree.ChartPrintRect for layout
+- Maintains page state after printing
+
+## Events
+
+### OnButtonClicked
+
+Fired when any navigator button is clicked.
+
+```pascal
+property OnButtonClicked: TTeeNavigatorButtonClickEvent;
+
+procedure TForm1.TreePageNavigator1ButtonClicked(
+  Sender: TObject;
+  Button: TTeeNavigateBtn
+);
+begin
+  // Handle button click
+end;
+```
+
+## Button States
+
+Buttons are automatically enabled/disabled:
+
+- **First/Prior buttons:**
+  - Enabled when `Tree.Page.Page > 1`
+  - Disabled on first page
+
+- **Next/Last buttons:**
+  - Enabled when `Tree.Page.Page < Tree.Page.Count`
+  - Disabled on last page
+
+- **All buttons:**
+  - Disabled when `Tree.Page.Count = 0`
+  - Disabled when Tree is nil
+
+## Related Components
+
+- [TCustomTree](/api/ttree) - Tree component
+- [TTreeEditor](/api/tree-editor) - Visual editor
+- [Page Settings](/guides/printing) - Page configuration
+
+## See Also
+
+- [Multi-Page Diagrams](/guides/printing)
+- [Printing](/guides/printing)
+- [Page Setup](/guides/printing)

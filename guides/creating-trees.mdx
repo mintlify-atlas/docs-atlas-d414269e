@@ -1,0 +1,248 @@
+---
+title: Creating Trees
+description: Learn how to create and populate TeeTree components with nodes
+---
+
+TeeTree provides multiple flexible methods to create tree structures and add nodes. This guide covers the essential techniques for building your tree hierarchies.
+
+## Understanding Tree Structure
+
+A TeeTree component maintains a network-hierarchy of nodes, where:
+- **Root nodes** have no parent
+- **Child nodes** belong to a parent node
+- **Brother nodes** share the same parent
+- Each node is a full component with properties, methods, and events
+
+## Adding Root Nodes
+
+Root nodes are the top-level nodes in your tree without any parent.
+
+<CodeGroup>
+```pascal Simple Add
+// Add a root node with text
+MyRoot := Tree1.Add('This is a Root node');
+```
+
+```pascal Add Root Method
+// Explicit root node creation
+Tree1.AddRoot('Root num: ' + IntToStr(Tree1.Roots.Count + 1));
+```
+
+```pascal With Position
+// Add root at specific X,Y coordinates
+Tree1.Add(200, 100, 'At 200,100', nil);
+```
+</CodeGroup>
+
+<Note>
+The `Add` method without a parent parameter automatically creates a root node.
+</Note>
+
+## Adding Child Nodes
+
+Child nodes are attached to a parent node and form the tree hierarchy.
+
+<Steps>
+  <Step title="Using Parent Node">
+    The most direct way is to call `AddChild` on the parent node:
+    
+    ```pascal
+    MyRoot := Tree1.Add('Parent Node');
+    MyRoot.AddChild('This is a child node');
+    ```
+  </Step>
+  
+  <Step title="Using Tree Component">
+    Pass the parent as the second parameter:
+    
+    ```pascal
+    Tree1.Add('Child node text', MyRoot);
+    ```
+  </Step>
+  
+  <Step title="Using Shapes Collection">
+    Use the Shapes collection's AddChild method:
+    
+    ```pascal
+    Tree1.Shapes.AddChild(MyRoot, 'Child text');
+    ```
+  </Step>
+</Steps>
+
+### Child Node Variations
+
+<CodeGroup>
+```pascal AddChild
+// Standard child addition
+ChildNode := ParentNode.AddChild('Child text');
+```
+
+```pascal AddChildFirst
+// Add child at the beginning of children list
+FirstChild := ParentNode.AddChildFirst('First child');
+```
+
+```pascal AddChildObject
+// Add child with associated data pointer
+ChildNode := ParentNode.AddChildObject('Child', DataPointer);
+```
+
+```pascal Recursive
+// Chain multiple child additions
+MyRoot.AddChild('Child').AddChild('Grandchild').AddChild('Great-grandchild');
+```
+</CodeGroup>
+
+## Adding Brother Nodes
+
+Brother nodes (siblings) share the same parent as an existing node.
+
+```pascal
+var Node: TTreeNodeShape;
+begin
+  // Add a brother to the selected node
+  with Tree1.Selected.First do
+    if Assigned(Parent) then
+      Node := AddBrother('Brother num: ' + IntToStr(Parent.Count + 1))
+    else
+      Node := Tree1.AddRoot('Root num: ' + IntToStr(Tree1.Roots.Count + 1));
+end;
+```
+
+<Warning>
+Before calling `AddBrother`, check if the node has a parent. Root nodes have no parent, so you should create a new root instead.
+</Warning>
+
+## 10 Methods to Add Nodes
+
+Here's a comprehensive example from the TeeTree demo showing different addition techniques:
+
+```pascal
+procedure TAddMethodsForm.FormCreate(Sender: TObject);
+var 
+  MyNode: TTreeNodeShape;
+  AnotherNode: TTreeNodeShape;
+begin
+  // 1. Simple way to add a root node
+  Tree1.Add('1.Simple');
+
+  // 2. Preserve the resulting node
+  MyNode := Tree1.Add('2.MyNode');
+
+  // 3. Add a child node to MyNode
+  Tree1.Add('3.Child', MyNode);
+
+  // 4. Specify X and Y positions with no parent
+  Tree1.Add(200, 100, '4.At 100,100', nil);
+
+  // 5. Using MyNode's Add method
+  MyNode.Add('5.Child');
+
+  // 6. Adding a brother
+  MyNode.AddBrother('6.Brother');
+
+  // 7. Using Shapes.AddChild
+  Tree1.Shapes.AddChild(MyNode, '7.AddChild');
+
+  // 8. Using default index property
+  AnotherNode := Tree1[0].Add('8.Add Child');
+
+  // 9. Using the node Parent property
+  AnotherNode.Parent.Add('9.Another Brother');
+
+  // 10. Chain nodes in one line
+  Tree1.Add('10.Root').Add('Child').Add('Sub-Child');
+end;
+```
+
+## Expanding Nodes
+
+After creating child nodes, expand the parent to make them visible:
+
+```pascal
+MyRoot.Expanded := True;
+
+// Or toggle expansion
+MyRoot.Toggle;
+```
+
+## Interactive Node Addition
+
+Example of adding nodes interactively based on user selection:
+
+```pascal
+procedure ButtonAddChildClick(Sender: TObject);
+var Node: TTreeNodeShape;
+begin
+  // Add child to selected node
+  with Tree1.Selected.First do
+  begin
+    Node := AddChild('Child num: ' + IntToStr(Count + 1));
+    Expanded := True;  // Show the new child
+  end;
+  
+  // Select the new node
+  Tree1.Selected.Clear;
+  Node.Selected := True;
+end;
+```
+
+## Inserting Nodes at Specific Positions
+
+```pascal
+// Insert at specific index in children list
+NewNode := ParentNode.Insert(2, 'Inserted at position 2');
+```
+
+## Best Practices
+
+<Accordion title="Performance Tips">
+  When adding many nodes, set capacity for better performance:
+  
+  ```pascal
+  // Set before adding nodes (in unit initialization)
+  TreeListCapacity := 1000;
+  TreeShapeListCapacity := 100;
+  ```
+</Accordion>
+
+<Accordion title="Memory Management">
+  - Nodes are automatically freed when their parent is destroyed
+  - Root nodes are freed when the Tree component is destroyed
+  - Use `Clear` to remove all nodes: `Tree1.Shapes.Clear`
+</Accordion>
+
+<Accordion title="Organization">
+  - Group related nodes under common parents
+  - Use meaningful text for node identification
+  - Consider using `Data` or `TagObject` properties to associate custom data
+</Accordion>
+
+## Common Patterns
+
+### Building from Data
+
+```pascal
+// Build tree from array
+for i := 0 to High(MyArray) do
+  Tree1.Add(MyArray[i].Name);
+```
+
+### Building Hierarchical Structure
+
+```pascal
+var Category, Item: TTreeNodeShape;
+begin
+  Category := Tree1.Add('Electronics');
+  Category.AddChild('Computers');
+  Category.AddChild('Phones');
+  Category.AddChild('Tablets');
+  Category.Expanded := True;
+end;
+```
+
+## Next Steps
+
+- Learn about [Working with Nodes](/guides/working-with-nodes) to manipulate existing nodes
+- Explore [Node Formatting](/guides/node-formatting) to customize appearance
+- See [Connections](/guides/connections) to link nodes together

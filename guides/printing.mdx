@@ -1,0 +1,573 @@
+---
+title: "Printing"
+description: "Print trees with page support, preview, and printer configuration"
+---
+
+## Overview
+
+TeeTree includes comprehensive printing support with multi-page capability, print preview, page borders, and full printer integration. The `TTreePage` class manages page layout and dimensions.
+
+<Note>
+  Printing features are built into the core TeeTree.pas unit. The TreeEd.pas editor provides a complete print preview implementation.
+</Note>
+
+## Quick Start
+
+### Simple Printing
+
+Print the tree directly to the default printer:
+
+```pascal
+begin
+  // Print to default printer
+  Tree1.Print;
+end;
+```
+
+### Print Preview
+
+Show preview dialog before printing:
+
+```pascal
+uses
+  TreeEd;  // For TreePreview function
+
+begin
+  // Show print preview dialog
+  TreePreview(Self, Tree1);
+  
+  // Or include panel background
+  TreePreview(Self, Tree1, True);  // PrintPanel = True
+end;
+```
+
+From TreeEd.pas (lines 1057-1087):
+
+```pascal
+procedure TreePreview(AOwner: TComponent; 
+                      Tree: TCustomTree; 
+                      PrintPanel: Boolean = False);
+var
+  OldPrintTeePanel: Boolean;
+  OldChange: Boolean;
+  OldPage: Integer;
+begin
+  OldPrintTeePanel := PrintTeePanel;
+  PrintTeePanel := PrintPanel;
+  OldChange := TeeChangePaperOrientation;
+  OldPage := Tree.Page.Page;
+  
+  TeeChangePaperOrientation := False;
+  try
+    with TChartPreview.Create(AOwner) do
+    try
+      PageNavigatorClass := TTreePageNavigator;
+      TeePreviewPanel1.Panel := Tree;
+      Tree.Page.Refresh;
+      ShowModal;
+    finally
+      Free;
+      Tree.Page.Page := OldPage;
+      Tree.Invalidate;
+    end;
+  finally
+    TeeChangePaperOrientation := OldChange;
+    PrintTeePanel := OldPrintTeePanel;
+  end;
+end;
+```
+
+## Page Configuration
+
+<Tabs>
+  <Tab title="Page Size">
+    Configure page dimensions:
+
+    ```pascal
+    with Tree1.Page do
+    begin
+      // Use printer page size (default)
+      UsePrinter := True;
+      
+      // Or set custom page size (in pixels)
+      UsePrinter := False;
+      Width := 800;   // Custom width
+      Height := 1000; // Custom height
+      
+      // Access calculated page count
+      ShowMessage(Format('Total pages: %d', [Count]));
+    end;
+    ```
+
+    From TeeTree.pas, the `TTreePage` class:
+
+    ```pascal
+    TTreePage = class(TPersistent)
+    private
+      FBorder: TTreePageBorder;
+      FPage: Integer;
+      FUsePrinter: Boolean;
+    published
+      property Page: Integer read FPage write SetPage default 1;
+      property Border: TTreePageBorder read FBorder write SetBorder;
+      property UsePrinter: Boolean read FUsePrinter 
+                                   write SetUsePrinter default True;
+    end;
+    ```
+  </Tab>
+
+  <Tab title="Page Borders">
+    Show/hide page boundaries:
+
+    ```pascal
+    with Tree1.Page.Border do
+    begin
+      // Show page borders on screen
+      Visible := True;
+      
+      // Also print the borders
+      Print := True;
+      
+      // Customize border appearance
+      Color := clGray;
+      Style := psDot;
+      Width := 1;
+    end;
+    ```
+
+    From TeeTree.pas:
+
+    ```pascal
+    TTreePageBorder = class(TTreePen)
+    private
+      FPrint: Boolean;
+    published
+      property Print: Boolean read FPrint 
+                              write FPrint default False;
+    end;
+    ```
+  </Tab>
+
+  <Tab title="Current Page">
+    Navigate between pages:
+
+    ```pascal
+    with Tree1.Page do
+    begin
+      // Go to specific page
+      Page := 1;  // First page
+      
+      // Navigate pages
+      if Page < Count then
+        Page := Page + 1;  // Next page
+      
+      if Page > 1 then
+        Page := Page - 1;  // Previous page
+      
+      // Refresh page layout
+      Refresh;
+    end;
+    ```
+  </Tab>
+</Tabs>
+
+## Multi-Page Trees
+
+<Steps>
+  <Step title="Enable Page Support">
+    Configure tree for multi-page layout:
+
+    ```pascal
+    with Tree1 do
+    begin
+      // Use printer page size
+      Page.UsePrinter := True;
+      
+      // Show page borders during design
+      Page.Border.Visible := True;
+      Page.Border.Print := False;  // Don't print borders
+      
+      // Tree will automatically calculate page count
+      // based on node positions and page size
+    end;
+    ```
+  </Step>
+
+  <Step title="Calculate Page Bounds">
+    The tree automatically calculates pages:
+
+    ```pascal
+    procedure CalculatePageBounds;  // From TeeTree.pas
+    var
+      tmpBounds: TRect;
+      PageWidth, PageHeight: Integer;
+    begin
+      tmpBounds := GetNodesRect;  // Get bounds of all nodes
+      
+      if Page.UsePrinter then
+      begin
+        PageWidth := Printer.PageWidth;
+        PageHeight := Printer.PageHeight;
+      end
+      else
+      begin
+        PageWidth := Page.Width;
+        PageHeight := Page.Height;
+      end;
+      
+      // Calculate number of pages needed
+      Page.FCount := CalculatePageCount(tmpBounds, 
+                                        PageWidth, 
+                                        PageHeight);
+    end;
+    ```
+  </Step>
+
+  <Step title="Print All Pages">
+    Print entire multi-page tree:
+
+    ```pascal
+    procedure PrintAllPages;
+    var
+      i: Integer;
+    begin
+      for i := 1 to Tree1.Page.Count do
+      begin
+        Tree1.Page.Page := i;
+        Tree1.Print;  // Print current page
+      end;
+      
+      // Reset to first page
+      Tree1.Page.Page := 1;
+    end;
+    ```
+  </Step>
+</Steps>
+
+## Printer Settings
+
+### Accessing Printer Properties
+
+```pascal
+uses
+  Printers;
+
+procedure ConfigurePrinter;
+begin
+  with Printer do
+  begin
+    // Set orientation
+    Orientation := poLandscape;  // or poPortrait
+    
+    // Get page dimensions (in device units)
+    ShowMessage(Format(
+      'Page size: %d x %d pixels',
+      [PageWidth, PageHeight]
+    ));
+    
+    // Select printer
+    if PrintDialog1.Execute then
+    begin
+      PrinterIndex := PrintDialog1.PrinterIndex;
+    end;
+  end;
+end;
+```
+
+### Print with Custom Settings
+
+```pascal
+procedure PrintWithSettings;
+var
+  OldOrientation: TPrinterOrientation;
+begin
+  OldOrientation := Printer.Orientation;
+  try
+    // Temporarily change orientation
+    Printer.Orientation := poLandscape;
+    
+    // Print
+    Tree1.Print;
+  finally
+    // Restore original orientation
+    Printer.Orientation := OldOrientation;
+  end;
+end;
+```
+
+## Page Navigator
+
+The editor includes a page navigation control:
+
+From TreeEd.pas (line 1071):
+
+```pascal
+PageNavigatorClass := TTreePageNavigator;
+```
+
+You can use the navigator in your own preview:
+
+```pascal
+var
+  Navigator: TTreePageNavigator;
+begin
+  Navigator := TTreePageNavigator.Create(Self);
+  Navigator.Parent := Panel1;
+  Navigator.Tree := Tree1;
+  
+  // User can now navigate pages with navigator buttons
+end;
+```
+
+## Custom Page Size
+
+### Setting Exact Dimensions
+
+<CodeGroup>
+
+```pascal A4 Portrait
+with Tree1.Page do
+begin
+  UsePrinter := False;
+  
+  // A4 at 96 DPI: 794 x 1123 pixels
+  Width := 794;
+  Height := 1123;
+end;
+```
+
+```pascal US Letter Landscape  
+with Tree1.Page do
+begin
+  UsePrinter := False;
+  
+  // Letter at 96 DPI: 1056 x 816 pixels
+  Width := 1056;
+  Height := 816;
+end;
+```
+
+```pascal Custom Size
+with Tree1.Page do
+begin
+  UsePrinter := False;
+  
+  // Custom dimensions
+  Width := 1000;
+  Height := 1500;
+  
+  // Show borders for visualization
+  Border.Visible := True;
+end;
+```
+
+</CodeGroup>
+
+## Print Quality Settings
+
+From TreeEd.pas TabSheet1 (Print settings):
+
+```pascal
+with Tree1 do
+begin
+  // Print panel background
+  CBPrintPanel.Checked := PrintPanel;
+  
+  // Print page borders
+  Page.Border.Print := CBPrintPageBorder.Checked;
+  
+  // Use printer defaults
+  Page.UsePrinter := CBPrinterDefault.Checked;
+  
+  // Custom page dimensions (when not using printer)
+  if not Page.UsePrinter then
+  begin
+    Page.Width := StrToInt(EPageWidth.Text);
+    Page.Height := StrToInt(EPageHeight.Text);
+  end;
+end;
+```
+
+## Scrollbars and Page Size
+
+From TeeTree.pas, scrollbars use page size:
+
+```pascal
+procedure TTeeScrollBar.SetPageSize(Value: Integer);
+begin
+  if FPageSize <> Value then
+  begin
+    FPageSize := Value;
+    // Update scrollbar page size for smoother scrolling
+    ScrollInfo.nPage := Value;
+  end;
+end;
+```
+
+## Events During Printing
+
+### Detecting Print Mode
+
+Check if tree is currently printing:
+
+```pascal
+procedure TForm1.Tree1AfterDraw(Sender: TObject);
+begin
+  if Tree1.Printing then
+  begin
+    // Skip drawing interactive elements when printing
+    Exit;
+  end;
+  
+  // Draw selection handles, etc. (screen only)
+  DrawSelectionHandles;
+end;
+```
+
+From TeeTree.pas (line 10608):
+
+```pascal
+if Selected and (not Tree.Printing) then
+begin
+  // Don't draw selection handles when printing
+end;
+```
+
+## Print Dialog Integration
+
+<Tabs>
+  <Tab title="Standard Print Dialog">
+    ```pascal
+    procedure TForm1.ButtonPrintClick(Sender: TObject);
+    begin
+      if PrintDialog1.Execute then
+      begin
+        // User confirmed print settings
+        Tree1.Print;
+      end;
+    end;
+    ```
+  </Tab>
+
+  <Tab title="Page Setup Dialog">
+    ```pascal
+    procedure TForm1.ButtonPageSetupClick(Sender: TObject);
+    begin
+      if PageSetupDialog1.Execute then
+      begin
+        // User changed margins, orientation, etc.
+        Tree1.Page.Refresh;
+        Tree1.Invalidate;
+      end;
+    end;
+    ```
+  </Tab>
+
+  <Tab title="Print with Progress">
+    ```pascal
+    procedure TForm1.PrintWithProgress;
+    var
+      i: Integer;
+    begin
+      ProgressBar1.Max := Tree1.Page.Count;
+      ProgressBar1.Position := 0;
+      
+      Printer.BeginDoc;
+      try
+        for i := 1 to Tree1.Page.Count do
+        begin
+          Tree1.Page.Page := i;
+          Tree1.Print;  // Print current page
+          
+          ProgressBar1.Position := i;
+          Application.ProcessMessages;
+          
+          if i < Tree1.Page.Count then
+            Printer.NewPage;
+        end;
+      finally
+        Printer.EndDoc;
+        Tree1.Page.Page := 1;
+      end;
+    end;
+    ```
+  </Tab>
+</Tabs>
+
+## Advanced: Custom Print Rendering
+
+Override the default print behavior:
+
+```pascal
+type
+  TMyTree = class(TTree)
+  protected
+    procedure Print; override;
+  end;
+
+procedure TMyTree.Print;
+begin
+  // Add custom header/footer
+  with Printer.Canvas do
+  begin
+    Font.Size := 10;
+    TextOut(50, 50, 'Company Name - Tree Diagram');
+    TextOut(50, Printer.PageHeight - 100, 
+            Format('Page %d of %d', [Page.Page, Page.Count]));
+  end;
+  
+  // Call default printing
+  inherited Print;
+end;
+```
+
+## Printing Best Practices
+
+<CardGroup cols={2}>
+
+<Card title="Test Print Preview" icon="eye">
+  Always use print preview before printing to avoid wasted paper.
+</Card>
+
+<Card title="Page Borders" icon="border-all">
+  Show page borders during design to visualize print layout.
+</Card>
+
+<Card title="Landscape for Wide Trees" icon="rotate">
+  Use landscape orientation for horizontally-oriented trees.
+</Card>
+
+<Card title="UsePrinter = True" icon="print">
+  Let the printer define page size for best results.
+</Card>
+
+</CardGroup>
+
+## Export as Alternative
+
+For sharing without printing, consider export formats:
+
+```pascal
+uses
+  TreeExport;
+
+begin
+  // Show export dialog (see Import/Export guide)
+  ShowTreeExport(Self, Tree1);
+end;
+```
+
+<Note>
+  See the [Import/Export guide](/guides/import-export) for saving trees to PDF, images, and other formats.
+</Note>
+
+## Print Settings in Editor
+
+From TreeEd.pas TabSheet1 settings:
+
+- **Printer Default** - Use printer page size (UsePrinter)
+- **Page Width/Height** - Custom page dimensions in pixels
+- **Print Page Border** - Include page borders in printout
+- **Print Panel** - Include panel background color
+
+These settings are accessible via the editor's "Print" tab.

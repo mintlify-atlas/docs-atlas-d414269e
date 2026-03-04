@@ -1,0 +1,515 @@
+---
+title: TTreeConnection
+description: Visual connection component that draws lines between tree nodes with arrows and styling
+---
+
+## Overview
+
+`TTreeConnection` is a component that draws single or multi-line segments between nodes in a tree. Each connection is a full component with properties, methods, and events for customizing the appearance and behavior of lines connecting nodes.
+
+## Class Hierarchy
+
+```
+TComponent
+  └─ TCustomTreeElement
+      └─ TTreeConnection
+```
+
+## Key Features
+
+- Multiple connection styles (auto, line, sides, curve)
+- Customizable arrows at start and end points
+- Multi-point connections
+- Text labels on connections
+- Border styling and colors
+- Interactive selection and editing
+- Automatic and manual positioning
+
+## Properties
+
+### Connected Nodes
+
+<ResponseField name="FromShape" type="TTreeNodeShape" >
+The source node of the connection.
+</ResponseField>
+
+<ResponseField name="ToShape" type="TTreeNodeShape" >
+The destination node of the connection.
+</ResponseField>
+
+### Connection Style
+
+<ResponseField name="Style" type="TTreeConnectionStyle" default="csAuto">
+Defines how the connection is drawn:
+- `csAuto` - Automatic style determined by ChildManager
+- `csLine` - Direct straight line
+- `csSides` - Line with right angles (sides)
+- `csCurve` - Bezier curve
+- `csInvertedSides` - Inverted sides style
+</ResponseField>
+
+### Visual Appearance
+
+<ResponseField name="Border" type="TTreeConnectionPen" >
+Pen used to draw the connection line. Default is gray with small dots.
+
+**TTreeConnectionPen defaults:**
+- Color: `clGray`
+- SmallDots: `True`
+- Style: `psDot`
+</ResponseField>
+
+<ResponseField name="Format" type="TConnectionFormat" >
+Additional formatting options for the connection background.
+</ResponseField>
+
+### Arrows
+
+<ResponseField name="ArrowFrom" type="TConnectionArrowFrom" >
+Arrow displayed at the start (From) point of the connection.
+
+**Properties:**
+- `Style` - Arrow style (default: `casNone`)
+- `Size` - Arrow size in pixels
+- `Border` - Arrow border pen
+- `Brush` - Arrow fill brush
+- `BackColor` - Arrow background color
+
+**Arrow Styles:**
+- `casNone` - No arrow
+- `casSolid` - Filled solid arrow
+- `casLines` - Line arrow
+- `casSquare` - Square arrow
+- `casCircle` - Circle arrow
+- `casDiamond` - Diamond arrow
+</ResponseField>
+
+<ResponseField name="ArrowTo" type="TConnectionArrowTo" >
+Arrow displayed at the end (To) point of the connection. Default style is `casSolid`.
+</ResponseField>
+
+### Connection Points
+
+<ResponseField name="Points" type="TConnectionPoints" >
+Collection of connection points that define the path of the connection.
+
+**Point Styles:**
+- `cpsAutoFrom` - Automatic position on From node
+- `cpsAutoTo` - Automatic position on To node
+- `cpsFromPercent` - Percentage offset from From node
+- `cpsToPercent` - Percentage offset from To node
+- `cpsFromRel` - Relative pixels from From node
+- `cpsToRel` - Relative pixels from To node
+- `cpsPrevious` - Relative to previous point
+- `cpsNext` - Relative to next point
+- `cpsFixed` - Fixed XY position
+</ResponseField>
+
+### Text
+
+<ResponseField name="Text" type="TTreeStrings" >
+Text to display along the connection line.
+</ResponseField>
+
+<ResponseField name="Font" type="TTeeFont" >
+Font for connection text.
+</ResponseField>
+
+### Other
+
+<ResponseField name="Cursor" type="TCursor" >
+Mouse cursor when hovering over the connection.
+</ResponseField>
+
+<ResponseField name="Tree" type="TCustomTree" >
+Reference to the parent Tree component.
+</ResponseField>
+
+## Methods
+
+### Drawing
+
+<ParamField path="Draw" type="function" >
+Draws the connection.
+
+```pascal
+function Draw: Boolean;
+```
+
+**Returns:** True if connection was drawn
+</ParamField>
+
+<ParamField path="DrawHandles" type="procedure" >
+Draws edit handles when connection is selected.
+
+```pascal
+procedure DrawHandles; override;
+```
+</ParamField>
+
+<ParamField path="DrawText" type="procedure" >
+Draws text on the connection.
+
+```pascal
+procedure DrawText(Angle: Integer);
+```
+</ParamField>
+
+### Hit Testing
+
+<ParamField path="Clicked" type="function" >
+Tests if coordinates are on the connection line.
+
+```pascal
+function Clicked(x, y: Integer): Boolean;
+```
+
+**Parameters:**
+- `x`, `y` - Coordinates to test
+
+**Returns:** True if point is on the connection
+</ParamField>
+
+<ParamField path="ClickedSegment" type="function" >
+Returns which line segment was clicked.
+
+```pascal
+function ClickedSegment(x, y: Integer): Integer;
+```
+
+**Returns:** Index of clicked segment, or -1 if none
+</ParamField>
+
+### Geometry
+
+<ParamField path="GetBounds" type="function" >
+Returns the bounding rectangle of the connection.
+
+```pascal
+function GetBounds: TRect;
+```
+</ParamField>
+
+<ParamField path="Visible" type="function" >
+Returns True if connection is visible.
+
+```pascal
+function Visible: Boolean;
+```
+</ParamField>
+
+### Other
+
+<ParamField path="Assign" type="procedure" >
+Copies properties from another connection.
+
+```pascal
+procedure Assign(Source: TPersistent); override;
+```
+</ParamField>
+
+## Connection Points API
+
+The `Points` property provides methods to manipulate connection points:
+
+### Adding Points
+
+<ParamField path="Points.Add" type="function" >
+Adds a new point to the connection.
+
+```pascal
+// Add point from TPoint
+function Add(const P: TPoint): Integer; overload;
+
+// Add point from coordinates
+function Add(Ax, Ay: Integer): Integer; overload;
+
+// Add point with style
+function Add(AXStyle: TConnectionPointStyle; Ax: Integer;
+             AYStyle: TConnectionPointStyle; Ay: Integer): Integer; overload;
+```
+</ParamField>
+
+<ParamField path="Points.AddFromPrevious" type="function" >
+Adds a point relative to the previous point.
+
+```pascal
+function AddFromPrevious(XOffset, YOffset: Integer): Integer;
+```
+</ParamField>
+
+### Modifying Points
+
+<ParamField path="Points.Move" type="procedure" >
+Moves a point by offset.
+
+```pascal
+procedure Move(Index: Integer; DeltaX, DeltaY: Integer);
+```
+</ParamField>
+
+<ParamField path="Points.Insert" type="procedure" >
+Inserts a point at specific index.
+
+```pascal
+procedure Insert(Index: Integer; x, y: Integer);
+```
+</ParamField>
+
+<ParamField path="Points.Delete" type="procedure" >
+Removes a point.
+
+```pascal
+procedure Delete(Index: Integer);
+```
+</ParamField>
+
+<ParamField path="Points.Clear" type="procedure" >
+Removes all points.
+
+```pascal
+procedure Clear;
+```
+</ParamField>
+
+### Point Information
+
+<ParamField path="Points.Count" type="function" >
+Returns the number of points.
+
+```pascal
+function Count: Integer;
+```
+</ParamField>
+
+<ParamField path="Points.Clicked" type="function" >
+Finds which point was clicked.
+
+```pascal
+function Clicked(x, y: Integer): Integer;
+```
+
+**Returns:** Index of clicked point, or -1
+</ParamField>
+
+<ParamField path="Points.ChangeXStyle" type="procedure" >
+Changes the X coordinate style of a point.
+
+```pascal
+procedure ChangeXStyle(Index: Integer; AStyle: TConnectionPointStyle);
+```
+</ParamField>
+
+<ParamField path="Points.ChangeYStyle" type="procedure" >
+Changes the Y coordinate style of a point.
+
+```pascal
+procedure ChangeYStyle(Index: Integer; AStyle: TConnectionPointStyle);
+```
+</ParamField>
+
+## Usage Examples
+
+### Creating a Simple Connection
+
+```pascal
+var
+  Node1, Node2: TTreeNodeShape;
+  Conn: TTreeConnection;
+begin
+  Node1 := Tree1.Add(100, 100, 'Start', nil);
+  Node2 := Tree1.Add(300, 200, 'End', nil);
+  
+  // Create connection
+  Conn := Node1.AddConnection(Node2);
+end;
+```
+
+### Customizing Connection Appearance
+
+```pascal
+var
+  Conn: TTreeConnection;
+begin
+  Conn := Node1.AddConnection(Node2);
+  
+  // Line style
+  Conn.Style := csLine;
+  Conn.Border.Color := clBlue;
+  Conn.Border.Width := 2;
+  Conn.Border.Style := psSolid;
+  
+  // Arrows
+  Conn.ArrowFrom.Style := casSolid;
+  Conn.ArrowFrom.Size := 8;
+  Conn.ArrowFrom.Brush.Color := clBlue;
+  
+  Conn.ArrowTo.Style := casDiamond;
+  Conn.ArrowTo.Size := 10;
+  Conn.ArrowTo.Border.Color := clRed;
+end;
+```
+
+### Adding Text to Connection
+
+```pascal
+var
+  Conn: TTreeConnection;
+begin
+  Conn := Node1.AddConnection(Node2);
+  
+  Conn.Text.Add('Connection Label');
+  Conn.Font.Size := 10;
+  Conn.Font.Style := [fsBold];
+  Conn.Font.Color := clNavy;
+end;
+```
+
+### Creating Multi-Point Connection
+
+```pascal
+var
+  Conn: TTreeConnection;
+begin
+  Conn := Node1.AddConnection(Node2);
+  
+  // Set manual style
+  Conn.Style := csLine;
+  
+  // Add intermediate points
+  Conn.Points.Clear;
+  Conn.Points.Add(cpsAutoFrom, 0, cpsAutoFrom, 0);  // Start
+  Conn.Points.Add(cpsFixed, 200, cpsFixed, 100);     // Middle point
+  Conn.Points.Add(cpsAutoTo, 0, cpsAutoTo, 0);       // End
+end;
+```
+
+### Curved Connection
+
+```pascal
+var
+  Conn: TTreeConnection;
+begin
+  Conn := Node1.AddConnection(Node2);
+  
+  Conn.Style := csCurve;
+  Conn.Border.Color := clGreen;
+  Conn.Border.Width := 3;
+  Conn.Border.SmallDots := False;
+end;
+```
+
+### Connection with Sides Style
+
+```pascal
+var
+  Conn: TTreeConnection;
+begin
+  Conn := Node1.AddConnection(Node2);
+  
+  Conn.Style := csSides;
+  Conn.Border.Color := clMaroon;
+  Conn.ArrowTo.Style := casSolid;
+end;
+```
+
+### Handling Connection Click
+
+```pascal
+procedure TForm1.Tree1ClickConnection(Sender: TTreeConnection;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  if Button = mbLeft then
+  begin
+    Tree1.SelectConnection(Sender);
+    ShowMessage('Connection from ' + Sender.FromShape.SimpleText +
+                ' to ' + Sender.ToShape.SimpleText);
+  end;
+end;
+```
+
+### Programmatic Point Manipulation
+
+```pascal
+var
+  Conn: TTreeConnection;
+  i: Integer;
+begin
+  Conn := Node1.AddConnection(Node2);
+  Conn.Style := csLine;
+  
+  // Clear auto points
+  Conn.Points.Clear;
+  
+  // Add custom path
+  Conn.Points.Add(cpsAutoFrom, 0, cpsAutoFrom, 0);
+  
+  // Add intermediate points
+  for i := 1 to 5 do
+  begin
+    Conn.Points.AddFromPrevious(50, 20 * i);
+  end;
+  
+  Conn.Points.Add(cpsAutoTo, 0, cpsAutoTo, 0);
+end;
+```
+
+### Conditional Arrow Display
+
+```pascal
+var
+  Conn: TTreeConnection;
+begin
+  Conn := Node1.AddConnection(Node2);
+  
+  // Show arrows based on node type
+  if Node1.Tag = 1 then  // Start node
+  begin
+    Conn.ArrowFrom.Style := casNone;
+    Conn.ArrowTo.Style := casSolid;
+  end
+  else if Node1.Tag = 2 then  // Bidirectional
+  begin
+    Conn.ArrowFrom.Style := casSolid;
+    Conn.ArrowTo.Style := casSolid;
+  end;
+end;
+```
+
+### Dynamic Connection Styling
+
+```pascal
+var
+  Conn: TTreeConnection;
+  Distance: Double;
+begin
+  Conn := Node1.AddConnection(Node2);
+  
+  // Calculate distance
+  Distance := Sqrt(Sqr(Node2.Left - Node1.Left) + 
+                   Sqr(Node2.Top - Node1.Top));
+  
+  // Style based on distance
+  if Distance < 100 then
+  begin
+    Conn.Border.Color := clGreen;
+    Conn.Style := csLine;
+  end
+  else if Distance < 200 then
+  begin
+    Conn.Border.Color := clYellow;
+    Conn.Style := csSides;
+  end
+  else
+  begin
+    Conn.Border.Color := clRed;
+    Conn.Style := csCurve;
+  end;
+end;
+```
+
+## See Also
+
+- [TTree](/api/ttree) - Main tree component
+- [TTreeNodeShape](/api/ttreenodeshape) - Tree nodes
+- [TDBTree](/api/tdbtree) - Database-aware tree

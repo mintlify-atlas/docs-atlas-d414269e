@@ -1,0 +1,356 @@
+---
+title: "Zooming and Scrolling"
+description: "Learn how to implement zooming and scrolling in TeeTree"
+---
+
+## Overview
+
+TeeTree provides built-in support for zooming and scrolling, allowing users to navigate large tree structures efficiently. You can control zoom levels programmatically and configure scrolling behavior.
+
+## Zooming
+
+### Set Zoom Level
+
+Control the zoom level using the `View3DOptions.Zoom` property:
+
+```delphi
+// Set zoom to 150% (1.5x magnification)
+Tree1.View3DOptions.Zoom := 150;
+
+// Set zoom to 50% (0.5x reduction)
+Tree1.View3DOptions.Zoom := 50;
+
+// Reset to 100% (normal size)
+Tree1.View3DOptions.Zoom := 100;
+```
+
+### Zoom with TrackBar
+
+Create an interactive zoom control:
+
+```delphi
+procedure TForm1.TrackBarZoomChange(Sender: TObject);
+begin
+  // Change zoom based on trackbar position
+  Tree1.View3DOptions.Zoom := TrackBarZoom.Position;
+  
+  // Display current zoom percentage
+  LabelZoom.Caption := IntToStr(Tree1.View3DOptions.Zoom) + '%';
+  
+  // Enable/disable reset button
+  ButtonReset.Enabled := TrackBarZoom.Position <> 100;
+end;
+```
+
+### Reset Zoom and View
+
+```delphi
+procedure TForm1.ButtonResetClick(Sender: TObject);
+begin
+  // Reset to default view
+  TrackBarZoom.Position := 100;
+  Tree1.View3DOptions.Zoom := 100;
+  Tree1.View3DOptions.HorizOffset := 0;
+  Tree1.View3DOptions.VertOffset := 0;
+end;
+```
+
+### OnZoom Event
+
+Respond to zoom changes:
+
+```delphi
+procedure TForm1.Tree1Zoom(Sender: TObject);
+begin
+  // Update UI to reflect zoom change
+  LabelZoom.Caption := IntToStr(Tree1.View3DOptions.Zoom) + '%';
+  TrackBarZoom.Position := Tree1.View3DOptions.Zoom;
+  ButtonReset.Enabled := Tree1.View3DOptions.Zoom <> 100;
+end;
+```
+
+### Centered Zooming
+
+Control whether zooming is centered on the current view:
+
+```delphi
+// Enable centered zooming (zoom in/out from center)
+Tree1.ZoomCentered := True;
+
+// Disable centered zooming (zoom from top-left)
+Tree1.ZoomCentered := False;
+```
+
+### Allow/Disallow Zooming
+
+```delphi
+// Enable zoom functionality
+Tree1.Zoom.Allow := True;
+
+// Disable zoom functionality
+Tree1.Zoom.Allow := False;
+```
+
+## Scrolling (Panning)
+
+### Enable Scrolling
+
+Configure scrolling direction:
+
+```delphi
+// Enable horizontal scrolling only
+Tree1.AllowPanning := pmHorizontal;
+
+// Enable vertical scrolling only
+Tree1.AllowPanning := pmVertical;
+
+// Enable both horizontal and vertical scrolling
+Tree1.AllowPanning := pmBoth;
+
+// Disable scrolling
+Tree1.AllowPanning := pmNone;
+```
+
+### Set Scroll Mouse Button
+
+Specify which mouse button activates scrolling:
+
+```delphi
+// Use left mouse button for scrolling
+Tree1.ScrollMouseButton := mbLeft;
+
+// Use middle mouse button for scrolling
+Tree1.ScrollMouseButton := mbMiddle;
+
+// Use right mouse button for scrolling
+Tree1.ScrollMouseButton := mbRight;
+```
+
+### OnScroll Event
+
+Respond to scrolling changes:
+
+```delphi
+procedure TForm1.Tree1Scroll(Sender: TObject);
+begin
+  // Display current scroll position
+  LabelScroll.Caption := Format(
+    'Scroll: H=%d, V=%d',
+    [Tree1.View3DOptions.HorizOffset, Tree1.View3DOptions.VertOffset]
+  );
+end;
+```
+
+### Programmatic Scrolling
+
+Set scroll position directly:
+
+```delphi
+// Scroll horizontally
+Tree1.View3DOptions.HorizOffset := 100;
+
+// Scroll vertically
+Tree1.View3DOptions.VertOffset := 50;
+
+// Reset scroll position
+Tree1.View3DOptions.HorizOffset := 0;
+Tree1.View3DOptions.VertOffset := 0;
+```
+
+## Complete Zooming Example
+
+Here's a complete example with zoom controls:
+
+```delphi
+type
+  TZoomingForm = class(TForm)
+    Tree1: TTree;
+    TrackBarZoom: TTrackBar;
+    ButtonReset: TButton;
+    LabelZoom: TLabel;
+    CheckBoxCentered: TCheckBox;
+    procedure FormCreate(Sender: TObject);
+    procedure TrackBarZoomChange(Sender: TObject);
+    procedure ButtonResetClick(Sender: TObject);
+    procedure Tree1Zoom(Sender: TObject);
+    procedure CheckBoxCenteredClick(Sender: TObject);
+  private
+    ChangingZoom: Boolean;
+  end;
+
+procedure TZoomingForm.FormCreate(Sender: TObject);
+begin
+  // Create sample tree structure
+  with Tree1.Add('Root') do
+  begin
+    AddChild('Child 1');
+    AddChild('Child 2').AddChild('Grandchild');
+    AddChild('Child 3');
+    Expanded := True;
+  end;
+
+  // Initialize zoom controls
+  TrackBarZoom.Min := 10;   // 10% minimum
+  TrackBarZoom.Max := 300;  // 300% maximum
+  TrackBarZoom.Position := 100;
+  
+  LabelZoom.Caption := '100%';
+  ButtonReset.Enabled := False;
+end;
+
+procedure TZoomingForm.TrackBarZoomChange(Sender: TObject);
+begin
+  ChangingZoom := True;
+
+  // Change zoom
+  Tree1.View3DOptions.Zoom := TrackBarZoom.Position;
+  LabelZoom.Caption := IntToStr(Tree1.View3DOptions.Zoom) + '%';
+
+  // Enable or disable reset button
+  ButtonReset.Enabled := TrackBarZoom.Position <> 100;
+
+  ChangingZoom := False;
+end;
+
+procedure TZoomingForm.ButtonResetClick(Sender: TObject);
+begin
+  // Reset default view
+  TrackBarZoom.Position := 100;
+  Tree1.View3DOptions.Zoom := 100;
+  Tree1.View3DOptions.HorizOffset := 0;
+  Tree1.View3DOptions.VertOffset := 0;
+
+  Tree1Zoom(Sender);  // Trigger OnZoom event
+end;
+
+procedure TZoomingForm.Tree1Zoom(Sender: TObject);
+begin
+  if not ChangingZoom then
+  begin
+    // Update UI when zoom changes externally
+    LabelZoom.Caption := IntToStr(Tree1.View3DOptions.Zoom) + '%';
+    TrackBarZoom.Position := Tree1.View3DOptions.Zoom;
+    ButtonReset.Enabled := TrackBarZoom.Position <> 100;
+  end;
+end;
+
+procedure TZoomingForm.CheckBoxCenteredClick(Sender: TObject);
+begin
+  Tree1.ZoomCentered := CheckBoxCentered.Checked;
+end;
+```
+
+## Complete Scrolling Example
+
+Here's a complete example with scroll controls:
+
+```delphi
+type
+  TScrollingForm = class(TForm)
+    Tree1: TTree;
+    CheckBoxScrolling: TCheckBox;
+    ComboBoxDirection: TComboBox;
+    ComboBoxButton: TComboBox;
+    LabelStatus: TLabel;
+    procedure FormCreate(Sender: TObject);
+    procedure Tree1Scroll(Sender: TObject);
+    procedure CheckBoxScrollingClick(Sender: TObject);
+    procedure ComboBoxDirectionChange(Sender: TObject);
+    procedure ComboBoxButtonChange(Sender: TObject);
+  end;
+
+procedure TScrollingForm.FormCreate(Sender: TObject);
+begin
+  // Create sample nodes
+  Tree1.Add('Node 1');
+  Tree1.Add('Node 2');
+  Tree1.Add('Node 3');
+  Tree1.Add('Node 4');
+  Tree1.Add('Node 5');
+
+  // Disable zoom to focus on scrolling
+  Tree1.Zoom.Allow := False;
+
+  // Setup direction combo
+  ComboBoxDirection.Items.Add('Horizontal');
+  ComboBoxDirection.Items.Add('Vertical');
+  ComboBoxDirection.Items.Add('Both');
+  ComboBoxDirection.ItemIndex := 2;
+
+  // Setup mouse button combo
+  ComboBoxButton.Items.Add('Left');
+  ComboBoxButton.Items.Add('Middle');
+  ComboBoxButton.Items.Add('Right');
+  ComboBoxButton.ItemIndex := 2;  // Right button
+
+  // Enable scrolling
+  Tree1.AllowPanning := pmBoth;
+  Tree1.ScrollMouseButton := mbRight;
+end;
+
+procedure TScrollingForm.Tree1Scroll(Sender: TObject);
+begin
+  // Event called when tree is scrolled
+  LabelStatus.Caption := Format(
+    'Horizontal: %d, Vertical: %d',
+    [Tree1.View3DOptions.HorizOffset, Tree1.View3DOptions.VertOffset]
+  );
+end;
+
+procedure TScrollingForm.CheckBoxScrollingClick(Sender: TObject);
+begin
+  ComboBoxDirection.Enabled := CheckBoxScrolling.Checked;
+
+  if CheckBoxScrolling.Checked then
+  begin
+    case ComboBoxDirection.ItemIndex of
+      0: Tree1.AllowPanning := pmHorizontal;
+      1: Tree1.AllowPanning := pmVertical;
+      2: Tree1.AllowPanning := pmBoth;
+    end;
+  end
+  else
+    Tree1.AllowPanning := pmNone;  // Disable scrolling
+end;
+
+procedure TScrollingForm.ComboBoxDirectionChange(Sender: TObject);
+begin
+  // Change scrolling direction
+  case ComboBoxDirection.ItemIndex of
+    0: Tree1.AllowPanning := pmHorizontal;
+    1: Tree1.AllowPanning := pmVertical;
+    2: Tree1.AllowPanning := pmBoth;
+  end;
+end;
+
+procedure TScrollingForm.ComboBoxButtonChange(Sender: TObject);
+begin
+  // Change scrolling mouse button
+  case ComboBoxButton.ItemIndex of
+    0: Tree1.ScrollMouseButton := mbLeft;
+    1: Tree1.ScrollMouseButton := mbMiddle;
+    2: Tree1.ScrollMouseButton := mbRight;
+  end;
+end;
+```
+
+## Mouse Wheel Support
+
+TeeTree automatically supports mouse wheel scrolling. Configure it with:
+
+```delphi
+// Enable mouse wheel for vertical scrolling
+Tree1.MouseWheelScrolling := True;
+```
+
+## Key Points
+
+- Use `View3DOptions.Zoom` to control zoom level (percentage)
+- Use `ZoomCentered` to control zoom behavior
+- Use `AllowPanning` to enable/disable scrolling
+- Use `ScrollMouseButton` to specify which button activates scrolling
+- Use `OnZoom` and `OnScroll` events to update UI
+- Use `View3DOptions.HorizOffset` and `VertOffset` for programmatic scrolling
+- Disable `Zoom.Allow` to prevent users from zooming
+- Mouse wheel scrolling is supported automatically
+- Reset view by setting zoom to 100 and offsets to 0

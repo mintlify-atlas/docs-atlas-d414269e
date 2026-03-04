@@ -1,0 +1,219 @@
+---
+title: "Drag and Drop"
+description: "Learn how to enable and configure drag and drop functionality in TeeTree"
+---
+
+## Overview
+
+TeeTree provides built-in drag and drop functionality that allows users to reorganize nodes by dragging them to new positions within the same tree or between different trees.
+
+## Basic Drag and Drop
+
+### Enable Automatic Drag and Drop
+
+The simplest way to enable drag and drop:
+
+```delphi
+procedure TForm1.FormCreate(Sender: TObject);
+begin
+  // Add some sample nodes
+  Tree1.Add('abc').Add('123');
+  Tree1.Add('Hello').Add('World');
+  Tree1.Add('2002').Add('January').Add('14th');
+
+  // Enable drag and drop of nodes
+  Tree1.DragAndDrop.Automatic := True;
+end;
+```
+
+### Toggle Drag and Drop
+
+```delphi
+procedure TForm1.CheckBoxDragDropClick(Sender: TObject);
+begin
+  Tree1.DragAndDrop.Automatic := CheckBoxDragDrop.Checked;
+end;
+```
+
+## Drag and Drop Between Trees
+
+TeeTree supports dragging nodes between different tree controls:
+
+```delphi
+procedure TForm1.FormCreate(Sender: TObject);
+begin
+  // Enable drag and drop for both trees
+  Tree1.DragAndDrop.Automatic := True;
+  Tree2.DragAndDrop.Automatic := True;
+
+  // Allow dragging TO other trees
+  Tree1.DragAndDrop.ToOtherTree := True;
+  Tree2.DragAndDrop.ToOtherTree := True;
+
+  // Allow dragging FROM other trees
+  Tree1.DragAndDrop.FromOtherTree := True;
+  Tree2.DragAndDrop.FromOtherTree := True;
+end;
+```
+
+## Drag and Drop Properties
+
+### ToOtherTree
+
+Allows dragging nodes from this tree to another tree:
+
+```delphi
+// Enable dragging nodes out of this tree
+Tree1.DragAndDrop.ToOtherTree := True;
+```
+
+### FromOtherTree
+
+Allows accepting nodes dragged from another tree:
+
+```delphi
+// Enable accepting nodes from other trees
+Tree1.DragAndDrop.FromOtherTree := True;
+```
+
+### DragRoots
+
+Allows dragging root nodes (nodes without parents):
+
+```delphi
+// Enable dragging root nodes
+Tree1.DragAndDrop.DragRoots := True;
+```
+
+### DragToRoot
+
+Allows dropping nodes at the root level:
+
+```delphi
+// Enable dropping nodes as root nodes
+Tree1.DragAndDrop.DragToRoot := True;
+```
+
+## Complete Multi-Tree Example
+
+Here's a complete example with two trees and checkboxes to control drag and drop options:
+
+```delphi
+type
+  TDragDropMultiForm = class(TForm)
+    Tree1: TTree;
+    Tree2: TTree;
+    CheckBoxToOther: TCheckBox;
+    CheckBoxFromOther: TCheckBox;
+    CheckBoxDragRoots: TCheckBox;
+    CheckBoxDragToRoot: TCheckBox;
+    procedure FormCreate(Sender: TObject);
+    procedure CheckBoxToOtherClick(Sender: TObject);
+    procedure CheckBoxFromOtherClick(Sender: TObject);
+    procedure CheckBoxDragRootsClick(Sender: TObject);
+    procedure CheckBoxDragToRootClick(Sender: TObject);
+  end;
+
+procedure TDragDropMultiForm.FormCreate(Sender: TObject);
+begin
+  // Create sample hierarchy in Tree1
+  with Tree1.Add('Project') do
+  begin
+    AddChild('Documentation');
+    AddChild('Source Code').AddChild('Main.pas');
+    AddChild('Tests');
+  end;
+
+  // Create sample hierarchy in Tree2
+  with Tree2.Add('Archive') do
+  begin
+    AddChild('2023');
+    AddChild('2024');
+  end;
+
+  // Enable basic drag and drop
+  Tree1.DragAndDrop.Automatic := True;
+  Tree2.DragAndDrop.Automatic := True;
+
+  // Enable all drag and drop options
+  Tree1.DragAndDrop.ToOtherTree := True;
+  Tree1.DragAndDrop.FromOtherTree := True;
+  Tree1.DragAndDrop.DragRoots := True;
+  Tree1.DragAndDrop.DragToRoot := True;
+
+  Tree2.DragAndDrop.ToOtherTree := True;
+  Tree2.DragAndDrop.FromOtherTree := True;
+  Tree2.DragAndDrop.DragRoots := True;
+  Tree2.DragAndDrop.DragToRoot := True;
+  
+  // Set checkbox states
+  CheckBoxToOther.Checked := True;
+  CheckBoxFromOther.Checked := True;
+  CheckBoxDragRoots.Checked := True;
+  CheckBoxDragToRoot.Checked := True;
+end;
+
+procedure TDragDropMultiForm.CheckBoxToOtherClick(Sender: TObject);
+begin
+  Tree1.DragAndDrop.ToOtherTree := CheckBoxToOther.Checked;
+  Tree2.DragAndDrop.ToOtherTree := CheckBoxToOther.Checked;
+end;
+
+procedure TDragDropMultiForm.CheckBoxFromOtherClick(Sender: TObject);
+begin
+  Tree1.DragAndDrop.FromOtherTree := CheckBoxFromOther.Checked;
+  Tree2.DragAndDrop.FromOtherTree := CheckBoxFromOther.Checked;
+end;
+
+procedure TDragDropMultiForm.CheckBoxDragRootsClick(Sender: TObject);
+begin
+  Tree1.DragAndDrop.DragRoots := CheckBoxDragRoots.Checked;
+  Tree2.DragAndDrop.DragRoots := CheckBoxDragRoots.Checked;
+end;
+
+procedure TDragDropMultiForm.CheckBoxDragToRootClick(Sender: TObject);
+begin
+  Tree1.DragAndDrop.DragToRoot := CheckBoxDragToRoot.Checked;
+  Tree2.DragAndDrop.DragToRoot := CheckBoxDragToRoot.Checked;
+end;
+```
+
+## User Experience
+
+When drag and drop is enabled, users can:
+
+1. **Click and hold** on a node to start dragging
+2. **Move the mouse** to see a preview of where the node will be dropped
+3. **Release the mouse** to drop the node at the new location
+4. **Drop on a node** to make it a child of that node
+5. **Drop between nodes** to reorder siblings
+6. **Drop on empty space** to create a root node (if `DragToRoot` is enabled)
+
+## Visual Feedback
+
+TeeTree provides visual feedback during drag and drop:
+
+- The dragged node is highlighted
+- The target drop location is indicated
+- Invalid drop locations are shown differently
+- A preview of the node follows the cursor
+
+## Restrictions
+
+By default, drag and drop has these restrictions:
+
+- Root nodes cannot be dragged (unless `DragRoots` is enabled)
+- Nodes cannot be dropped as root nodes (unless `DragToRoot` is enabled)
+- Nodes cannot be dragged to other trees (unless `ToOtherTree` is enabled)
+- Nodes cannot be received from other trees (unless `FromOtherTree` is enabled)
+- A node cannot be dragged onto itself or its descendants
+
+## Key Points
+
+- Set `DragAndDrop.Automatic := True` to enable basic drag and drop
+- Use `ToOtherTree` and `FromOtherTree` for multi-tree scenarios
+- Use `DragRoots` to allow dragging root nodes
+- Use `DragToRoot` to allow creating new root nodes via drag and drop
+- TeeTree automatically prevents invalid operations (like dropping a node onto itself)
+- Visual feedback guides users during drag and drop operations
+- All drag and drop properties can be changed at runtime

@@ -1,0 +1,539 @@
+---
+title: 'Custom Shapes'
+description: 'Create your own custom shape classes by extending TeeTree base shapes'
+---
+
+## Overview
+
+TeeTree allows you to create completely custom shapes by inheriting from base shape classes and overriding specific methods. This gives you full control over shape appearance, behavior, and interaction.
+
+## Inheritance Hierarchy
+
+```
+TTreeNodeShape
+  └── TCustomTreeShape
+        └── Your Custom Shape Classes
+              ├── Custom geometric shapes
+              ├── Custom polygon shapes
+              └── Custom drawn shapes
+```
+
+## Creating Custom Shapes
+
+### Method 1: Override GetShapePoints
+
+For polygon-based shapes, override the `GetShapePoints` method to define your custom points.
+
+```pascal
+type
+  TMyCustomShape = class(TCustomTreeShape)
+  protected
+    function GetShapePoints(const R: TRect; var P: TShapePoints): Integer; override;
+  end;
+
+implementation
+
+function TMyCustomShape.GetShapePoints(const R: TRect; var P: TShapePoints): Integer;
+begin
+  // Return number of points
+  result := 5;
+  
+  // Define your custom polygon points
+  P[0] := TeePoint(R.Left, R.Top);
+  P[1] := TeePoint(R.Right, R.Top);
+  P[2] := TeePoint(R.Right, R.Bottom);
+  P[3] := TeePoint((R.Left + R.Right) div 2, R.Bottom + 20);
+  P[4] := TeePoint(R.Left, R.Bottom);
+end;
+```
+
+### Method 2: Override DrawShapeCanvas
+
+For complete drawing control, override the `DrawShapeCanvas` method.
+
+```pascal
+type
+  TMyDrawnShape = class(TTreeNodeShape)
+  protected
+    procedure DrawShapeCanvas(const ACanvas: TCanvas3D; const R: TRect); override;
+  end;
+
+implementation
+
+procedure TMyDrawnShape.DrawShapeCanvas(const ACanvas: TCanvas3D; const R: TRect);
+begin
+  inherited; // Call base to draw background/border
+  
+  // Your custom drawing code
+  with ACanvas do
+  begin
+    // Draw custom elements
+    MoveTo3D(R.Left, R.Top, TeeTreeZ);
+    LineTo3D(R.Right, R.Bottom, TeeTreeZ);
+    // ... more drawing
+  end;
+end;
+```
+
+## Complete Custom Shape Examples
+
+### Example 1: Custom Pentagon
+
+```pascal
+type
+  TMyPentagonShape = class(TCustomTreeShape)
+  protected
+    function GetShapePoints(const R: TRect; var P: TShapePoints): Integer; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+  end;
+
+implementation
+
+constructor TMyPentagonShape.Create(AOwner: TComponent);
+begin
+  inherited;
+  // Set default properties
+  Brush.Color := clYellow;
+  Border.Color := clBlack;
+  Border.Width := 2;
+end;
+
+function TMyPentagonShape.GetShapePoints(const R: TRect; var P: TShapePoints): Integer;
+var
+  CenterX, CenterY, Radius: Integer;
+  Angle: Double;
+  i: Integer;
+begin
+  result := 5; // Pentagon has 5 points
+  
+  CenterX := (R.Left + R.Right) div 2;
+  CenterY := (R.Top + R.Bottom) div 2;
+  Radius := Min(R.Right - R.Left, R.Bottom - R.Top) div 2;
+  
+  for i := 0 to 4 do
+  begin
+    Angle := (i * 72 - 90) * Pi / 180; // 72 degrees per point, start at top
+    P[i].X := CenterX + Round(Radius * Cos(Angle));
+    P[i].Y := CenterY + Round(Radius * Sin(Angle));
+  end;
+end;
+```
+
+### Example 2: Custom Gear Shape
+
+```pascal
+type
+  TGearShape = class(TCustomTreeShape)
+  private
+    FTeeth: Integer;
+    procedure SetTeeth(const Value: Integer);
+  protected
+    function GetShapePoints(const R: TRect; var P: TShapePoints): Integer; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+  published
+    property Teeth: Integer read FTeeth write SetTeeth default 8;
+  end;
+
+implementation
+
+constructor TGearShape.Create(AOwner: TComponent);
+begin
+  inherited;
+  FTeeth := 8;
+  Brush.Color := clSilver;
+end;
+
+procedure TGearShape.SetTeeth(const Value: Integer);
+begin
+  if (Value >= 4) and (Value <= 20) then
+  begin
+    SetIntegerProperty(FTeeth, Value);
+  end;
+end;
+
+function TGearShape.GetShapePoints(const R: TRect; var P: TShapePoints): Integer;
+var
+  CenterX, CenterY, OuterRadius, InnerRadius: Integer;
+  Angle: Double;
+  i: Integer;
+begin
+  result := FTeeth * 2; // Two points per tooth
+  
+  CenterX := (R.Left + R.Right) div 2;
+  CenterY := (R.Top + R.Bottom) div 2;
+  OuterRadius := Min(R.Right - R.Left, R.Bottom - R.Top) div 2;
+  InnerRadius := Round(OuterRadius * 0.8);
+  
+  for i := 0 to FTeeth - 1 do
+  begin
+    // Outer point (tooth tip)
+    Angle := (i * 360 / FTeeth) * Pi / 180;
+    P[i * 2].X := CenterX + Round(OuterRadius * Cos(Angle));
+    P[i * 2].Y := CenterY + Round(OuterRadius * Sin(Angle));
+    
+    // Inner point (between teeth)
+    Angle := ((i + 0.5) * 360 / FTeeth) * Pi / 180;
+    P[i * 2 + 1].X := CenterX + Round(InnerRadius * Cos(Angle));
+    P[i * 2 + 1].Y := CenterY + Round(InnerRadius * Sin(Angle));
+  end;
+end;
+```
+
+### Example 3: Custom Badge Shape
+
+```pascal
+type
+  TBadgeShape = class(TTreeNodeShape)
+  private
+    FBadgeText: string;
+    procedure SetBadgeText(const Value: string);
+  protected
+    procedure DrawShapeCanvas(const ACanvas: TCanvas3D; const R: TRect); override;
+  public
+    constructor Create(AOwner: TComponent); override;
+  published
+    property BadgeText: string read FBadgeText write SetBadgeText;
+  end;
+
+implementation
+
+constructor TBadgeShape.Create(AOwner: TComponent);
+begin
+  inherited;
+  Style := tssRoundRectangle;
+  RoundSize := 10;
+  Brush.Color := clRed;
+  Font.Color := clWhite;
+  Font.Style := [fsBold];
+  FBadgeText := 'NEW';
+end;
+
+procedure TBadgeShape.SetBadgeText(const Value: string);
+begin
+  if FBadgeText <> Value then
+  begin
+    FBadgeText := Value;
+    Repaint;
+  end;
+end;
+
+procedure TBadgeShape.DrawShapeCanvas(const ACanvas: TCanvas3D; const R: TRect);
+var
+  BadgeRect: TRect;
+  TextWidth, TextHeight: Integer;
+begin
+  inherited; // Draw base shape
+  
+  if FBadgeText <> '' then
+  begin
+    // Calculate badge position (top-right corner)
+    TextWidth := ACanvas.TextWidth(FBadgeText);
+    TextHeight := ACanvas.TextHeight(FBadgeText);
+    
+    BadgeRect.Left := R.Right - TextWidth - 10;
+    BadgeRect.Top := R.Top - TextHeight div 2;
+    BadgeRect.Right := R.Right + 5;
+    BadgeRect.Bottom := R.Top + TextHeight div 2;
+    
+    // Draw badge background
+    ACanvas.Brush.Color := clRed;
+    ACanvas.RoundRect(BadgeRect.Left, BadgeRect.Top, 
+                     BadgeRect.Right, BadgeRect.Bottom, 5, 5);
+    
+    // Draw badge text
+    ACanvas.Font.Color := clWhite;
+    ACanvas.TextOut(BadgeRect.Left + 5, BadgeRect.Top + 2, FBadgeText);
+  end;
+end;
+```
+
+## Advanced Custom Shape Features
+
+### Adding Custom Handles
+
+Override handle methods to add custom resize handles:
+
+```pascal
+type
+  TCustomHandleShape = class(TCustomTreeShape)
+  private
+    FCustomSize: Integer;
+  protected
+    procedure DrawHandles; override;
+    function GetResizingHandle(x, y: Integer): TTreeShapeHandle; override;
+    procedure Resize(ACorner: TTreeShapeHandle; DeltaX, DeltaY: Integer); override;
+  published
+    property CustomSize: Integer read FCustomSize write FCustomSize;
+  end;
+
+procedure TCustomHandleShape.DrawHandles;
+begin
+  inherited; // Draw standard handles
+  
+  // Draw custom handle
+  TTreeAccess(Tree).DrawHandle(Self, rcCustom, XCenter, Y0);
+end;
+
+function TCustomHandleShape.GetResizingHandle(x, y: Integer): TTreeShapeHandle;
+begin
+  result := inherited GetResizingHandle(x, y);
+  
+  // Check if clicking custom handle
+  if (result = rcNone) and (Abs(x - XCenter) <= 3) and (Abs(y - Y0) <= 3) then
+    result := rcCustom;
+end;
+
+procedure TCustomHandleShape.Resize(ACorner: TTreeShapeHandle; DeltaX, DeltaY: Integer);
+begin
+  if ACorner = rcCustom then
+  begin
+    // Handle custom resize
+    FCustomSize := FCustomSize + DeltaY;
+    Repaint;
+  end
+  else
+    inherited;
+end;
+```
+
+### Custom Properties with Change Notification
+
+```pascal
+type
+  TMyShapeWithProps = class(TCustomTreeShape)
+  private
+    FRadius: Integer;
+    FCorners: Integer;
+    procedure SetRadius(const Value: Integer);
+    procedure SetCorners(const Value: Integer);
+  protected
+    function GetShapePoints(const R: TRect; var P: TShapePoints): Integer; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+  published
+    property Radius: Integer read FRadius write SetRadius default 50;
+    property Corners: Integer read FCorners write SetCorners default 6;
+  end;
+
+constructor TMyShapeWithProps.Create(AOwner: TComponent);
+begin
+  inherited;
+  FRadius := 50;
+  FCorners := 6;
+end;
+
+procedure TMyShapeWithProps.SetRadius(const Value: Integer);
+begin
+  if FRadius <> Value then
+  begin
+    SetIntegerProperty(FRadius, Value); // Handles repaint
+  end;
+end;
+
+procedure TMyShapeWithProps.SetCorners(const Value: Integer);
+begin
+  if (Value >= 3) and (Value <= 20) and (FCorners <> Value) then
+  begin
+    SetIntegerProperty(FCorners, Value);
+  end;
+end;
+```
+
+### Using TTreeCustomPolygonShape
+
+For regular polygons, inherit from `TTreeCustomPolygonShape`:
+
+```pascal
+type
+  TMyPolygonShape = class(TTreeCustomPolygonShape)
+  protected
+    function GetShapePoints(const R: TRect; var P: TShapePoints): Integer; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+  end;
+
+constructor TMyPolygonShape.Create(AOwner: TComponent);
+begin
+  inherited;
+  AngleOffset := 0; // Start angle
+end;
+
+function TMyPolygonShape.GetShapePoints(const R: TRect; var P: TShapePoints): Integer;
+begin
+  // Use helper method for regular polygons
+  result := GetPolygonPoints(7, R, P); // 7-sided polygon
+end;
+```
+
+## Registering Custom Shapes
+
+Register your shapes to appear in the component palette:
+
+```pascal
+initialization
+  RegisterCustomTreeShape(TeeTree_tabOther, 'My Pentagon', TMyPentagonShape);
+  RegisterCustomTreeShape(TeeTree_tabOther, 'Gear', TGearShape);
+  RegisterCustomTreeShape(TeeTree_tabOther, 'Badge', TBadgeShape);
+  
+finalization
+  UnRegisterCustomTreeShapes([TMyPentagonShape, TGearShape, TBadgeShape]);
+end.
+```
+
+## Custom Shape Best Practices
+
+<AccordionGroup>
+  <Accordion title="Performance Optimization">
+    - Minimize point count in `GetShapePoints`
+    - Cache calculated values when possible
+    - Use `SetIntegerProperty` and similar helpers for property changes
+    - Call `inherited` in `DrawShapeCanvas` to leverage base functionality
+  </Accordion>
+
+  <Accordion title="Design Guidelines">
+    - Set sensible default colors and sizes in constructor
+    - Validate property ranges
+    - Provide clear property names and tooltips
+    - Test with various sizes and aspect ratios
+  </Accordion>
+
+  <Accordion title="User Experience">
+    - Implement custom handles for shape-specific adjustments
+    - Provide visual feedback during resize
+    - Support AutoSize when appropriate
+    - Handle mouse cursors correctly
+  </Accordion>
+
+  <Accordion title="Code Organization">
+    - Keep shape logic in separate unit
+    - Document special properties and behaviors
+    - Register/unregister shapes properly
+    - Follow TeeTree naming conventions
+  </Accordion>
+</AccordionGroup>
+
+## Complete Custom Shape Unit Template
+
+```pascal
+unit MyCustomShapes;
+
+{$I TeeDefs.inc}
+interface
+
+uses
+  Classes, Graphics, Controls, Types,
+  TeeTree, TeeProcs, TeCanvas;
+
+type
+  TMyCustomShape = class(TCustomTreeShape)
+  private
+    FMyProperty: Integer;
+    procedure SetMyProperty(const Value: Integer);
+  protected
+    function GetShapePoints(const R: TRect; var P: TShapePoints): Integer; override;
+    // Or: procedure DrawShapeCanvas(const ACanvas: TCanvas3D; const R: TRect); override;
+  public
+    constructor Create(AOwner: TComponent); override;
+  published
+    property MyProperty: Integer read FMyProperty write SetMyProperty default 10;
+  end;
+
+implementation
+
+uses
+  SysUtils, Math;
+
+{ TMyCustomShape }
+
+constructor TMyCustomShape.Create(AOwner: TComponent);
+begin
+  inherited;
+  FMyProperty := 10;
+  // Set default appearance
+  Brush.Color := clWhite;
+  Border.Color := clBlack;
+end;
+
+procedure TMyCustomShape.SetMyProperty(const Value: Integer);
+begin
+  SetIntegerProperty(FMyProperty, Value);
+end;
+
+function TMyCustomShape.GetShapePoints(const R: TRect; var P: TShapePoints): Integer;
+begin
+  // Implement your custom shape
+  result := 4;
+  P[0] := R.TopLeft;
+  P[1] := TeePoint(R.Right, R.Top);
+  P[2] := R.BottomRight;
+  P[3] := TeePoint(R.Left, R.Bottom);
+end;
+
+initialization
+  RegisterCustomTreeShape(TeeTree_tabOther, 'My Shape', TMyCustomShape);
+  
+finalization
+  UnRegisterCustomTreeShapes([TMyCustomShape]);
+  
+end.
+```
+
+## Drawing Helper Reference
+
+### Canvas3D Drawing Methods
+
+```pascal
+// Lines
+ACanvas.MoveTo3D(x, y, TeeTreeZ);
+ACanvas.LineTo3D(x, y, TeeTreeZ);
+ACanvas.HorizLine3D(x1, x2, y, TeeTreeZ);
+ACanvas.VertLine3D(x, y1, y2, TeeTreeZ);
+
+// Shapes
+ACanvas.Rectangle(R);
+ACanvas.RoundRect(x1, y1, x2, y2, rx, ry);
+ACanvas.Ellipse(R);
+ACanvas.Polygon(Points);
+
+// Text
+ACanvas.TextOut(x, y, Text);
+TextWidth := ACanvas.TextWidth(Text);
+TextHeight := ACanvas.TextHeight(Text);
+```
+
+### Geometry Helpers
+
+```pascal
+// Point creation
+P := TeePoint(x, y);
+
+// Rectangle helpers
+CenterX := (R.Left + R.Right) div 2;
+CenterY := (R.Top + R.Bottom) div 2;
+Width := R.Right - R.Left;
+Height := R.Bottom - R.Top;
+
+// Angle calculations
+Angle := Degrees * Pi / 180; // Convert to radians
+x := CenterX + Round(Radius * Cos(Angle));
+y := CenterY + Round(Radius * Sin(Angle));
+```
+
+## See Also
+
+<CardGroup cols={2}>
+  <Card title="Basic Shapes" icon="shapes" href="/api/shapes/basic-shapes">
+    Learn from built-in basic shapes
+  </Card>
+  <Card title="Flowchart Shapes" icon="diagram-project" href="/api/shapes/flowchart-shapes">
+    Study flowchart shape implementations
+  </Card>
+  <Card title="UML Shapes" icon="sitemap" href="/api/shapes/uml-shapes">
+    Review UML shape patterns
+  </Card>
+  <Card title="Electric Shapes" icon="bolt" href="/api/shapes/electric-shapes">
+    Examine circuit shape techniques
+  </Card>
+</CardGroup>

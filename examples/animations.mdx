@@ -1,0 +1,345 @@
+---
+title: Animations
+description: Create dynamic, animated tree diagrams with TeeTree's animation system
+---
+
+TeeTree includes a powerful animation framework through the `TreeAnimate` component, allowing you to create smooth, professional animations for tree diagrams.
+
+## Basic Animation Setup
+
+Add the `TreeAnimate` component to enable animations:
+
+```delphi
+uses TreeAnimate, TreeAnimateEditor;
+
+type
+  TAnimationsForm = class(TForm)
+    Tree1: TTree;
+    TreeAnimate1: TTreeAnimate;
+    // Animation components
+    TFontSizeAnimation1: TFontSizeAnimation;
+    TTransparencyAnimation2: TTransparencyAnimation;
+    TVisibleAnimation3: TVisibleAnimation;
+    TMovementAnimation4: TMovementAnimation;
+  end;
+```
+
+## Playing Animations
+
+Control animation playback:
+
+```delphi
+procedure TAnimationsForm.SBPlayClick(Sender: TObject);
+begin
+  TreeAnimate1.Play;
+end;
+
+procedure TAnimationsForm.SBStopClick(Sender: TObject);
+begin
+  TreeAnimate1.Stop;
+end;
+
+// Handle animation events
+procedure TAnimationsForm.TreeAnimate1Play(Sender: TObject);
+begin
+  SBStop.Enabled := True;
+  SBPlay.Enabled := False;
+end;
+
+procedure TAnimationsForm.TreeAnimate1Stop(Sender: TObject);
+begin
+  SBStop.Enabled := False;
+  SBPlay.Enabled := True;
+  SBPlay.Down := False;
+end;
+```
+
+## Animation Properties
+
+### Loop Animation
+
+Make animations repeat continuously:
+
+```delphi
+procedure TAnimationsForm.CheckBox1Click(Sender: TObject);
+begin
+  TreeAnimate1.Loop := CheckBox1.Checked;
+end;
+```
+
+### Animation Speed
+
+Control playback speed:
+
+```delphi
+procedure TAnimationsForm.TrackBar1Change(Sender: TObject);
+begin
+  TreeAnimate1.Speed := TrackBar1.Position;
+end;
+```
+
+## Animation Types
+
+TeeTree provides various animation types:
+
+### Font Size Animation
+
+Animate text size changes:
+
+```delphi
+TFontSizeAnimation1.FromSize := 8;
+TFontSizeAnimation1.ToSize := 24;
+TFontSizeAnimation1.Duration := 1000; // milliseconds
+TFontSizeAnimation1.Shape := TreeNodeShape1;
+```
+
+### Transparency Animation
+
+Fade nodes in or out:
+
+```delphi
+TTransparencyAnimation2.FromTransparency := 0;
+TTransparencyAnimation2.ToTransparency := 100;
+TTransparencyAnimation2.Duration := 500;
+TTransparencyAnimation2.Shape := TreeNodeShape2;
+```
+
+### Visibility Animation
+
+Show or hide nodes:
+
+```delphi
+TVisibleAnimation3.Visible := True; // or False
+TVisibleAnimation3.Duration := 300;
+TVisibleAnimation3.Shape := TreeNodeShape3;
+```
+
+### Movement Animation
+
+Move nodes to new positions:
+
+```delphi
+TMovementAnimation4.ToX := 200;
+TMovementAnimation4.ToY := 100;
+TMovementAnimation4.Duration := 1000;
+TMovementAnimation4.Shape := TreeNodeShape4;
+```
+
+### Color Animation
+
+Animate color changes:
+
+```delphi
+// Node color animation
+TNodeColorAnimation8.FromColor := clBlue;
+TNodeColorAnimation8.ToColor := clRed;
+TNodeColorAnimation8.Duration := 800;
+TNodeColorAnimation8.Shape := TreeNodeShape1;
+
+// Tree background color animation
+TTreeColorAnimation7.FromColor := clWhite;
+TTreeColorAnimation7.ToColor := clSilver;
+TTreeColorAnimation7.Duration := 1000;
+```
+
+### Text Animation
+
+Animate text changes:
+
+```delphi
+// Add text gradually
+TAddTextAnimation14.Text := 'Hello World';
+TAddTextAnimation14.Duration := 2000;
+TAddTextAnimation14.Shape := TreeNodeShape5;
+
+// Move text position
+MoveTextAnimation20.ToX := 50;
+MoveTextAnimation20.ToY := 30;
+MoveTextAnimation20.Duration := 800;
+```
+
+### Text Angle Animation
+
+Rotate text:
+
+```delphi
+TTextAngleAnimation19.FromAngle := 0;
+TTextAngleAnimation19.ToAngle := 360;
+TTextAngleAnimation19.Duration := 2000;
+TTextAngleAnimation19.Shape := ArrowRightShape1;
+```
+
+### Zoom Animation
+
+Scale nodes up or down:
+
+```delphi
+NodeZoomAnimation21.FromZoom := 100; // percentage
+NodeZoomAnimation21.ToZoom := 200;
+NodeZoomAnimation21.Duration := 1000;
+NodeZoomAnimation21.Shape := TreeNodeShape1;
+```
+
+### Pause Animation
+
+Add delays between animations:
+
+```delphi
+TPauseAnimation10.Duration := 500; // wait 500ms
+```
+
+## Animation Editor
+
+Use the visual animation editor to create complex sequences:
+
+```delphi
+procedure TAnimationsForm.Button2Click(Sender: TObject);
+begin
+  TTreeAnimateEditor.ModalShow(Self, TreeAnimate1);
+end;
+```
+
+## Creating Animation Sequences
+
+Combine multiple animations for complex effects:
+
+```delphi
+procedure CreateAnimationSequence;
+begin
+  with TreeAnimate1 do
+  begin
+    // Step 1: Fade in
+    TTransparencyAnimation.Create(TreeAnimate1);
+    
+    // Step 2: Move to position
+    TMovementAnimation.Create(TreeAnimate1);
+    
+    // Step 3: Change color
+    TNodeColorAnimation.Create(TreeAnimate1);
+    
+    // Step 4: Pause
+    TPauseAnimation.Create(TreeAnimate1);
+    
+    // Step 5: Zoom
+    NodeZoomAnimation.Create(TreeAnimate1);
+  end;
+end;
+```
+
+## Animated GIF Support
+
+Display animated GIFs in nodes:
+
+```delphi
+uses GIFImage; // or GIFImg for newer Delphi versions
+
+procedure TAnimatedGIFForm.CheckBox1Click(Sender: TObject);
+begin
+  if ImageShape1.Image.Graphic is TGIFImage then
+  with TGIFImage(ImageShape1.Image.Graphic) do
+  begin
+    {$IFDEF D105}
+    Animate := CheckBox1.Checked;
+    {$ELSE}
+    if CheckBox1.Checked then
+      DrawOptions := DrawOptions + [goAnimate]
+    else
+      DrawOptions := DrawOptions - [goAnimate];
+    {$ENDIF}
+  end;
+end;
+
+procedure TAnimatedGIFForm.TrackBar1Change(Sender: TObject);
+begin
+  if ImageShape1.Image.Graphic is TGIFImage then
+  with TGIFImage(ImageShape1.Image.Graphic) do
+    AnimationSpeed := TrackBar1.Position;
+end;
+```
+
+## Performance Tips
+
+<AccordionGroup>
+  <Accordion title="Optimize Animation Count">
+    - Limit simultaneous animations for better performance
+    - Use pause animations to stagger effects
+    - Consider frame rate impact on complex trees
+  </Accordion>
+
+  <Accordion title="Duration Guidelines">
+    - Short animations (200-500ms): UI feedback
+    - Medium animations (500-1000ms): Transitions
+    - Long animations (1000-3000ms): Presentations
+  </Accordion>
+
+  <Accordion title="Buffered Display">
+    - Enable `BufferedDisplay` for smoother animations
+    - Use hardware acceleration when available
+  </Accordion>
+</AccordionGroup>
+
+## Common Animation Patterns
+
+### Attention-Grabbing Effect
+
+```delphi
+procedure HighlightNode(Node: TTreeNodeShape);
+begin
+  // Pulse effect: grow and shrink
+  with NodeZoomAnimation.Create(TreeAnimate1) do
+  begin
+    Shape := Node;
+    FromZoom := 100;
+    ToZoom := 150;
+    Duration := 300;
+  end;
+  
+  with NodeZoomAnimation.Create(TreeAnimate1) do
+  begin
+    Shape := Node;
+    FromZoom := 150;
+    ToZoom := 100;
+    Duration := 300;
+  end;
+end;
+```
+
+### Reveal Effect
+
+```delphi
+procedure RevealNode(Node: TTreeNodeShape);
+begin
+  // Start invisible
+  Node.Transparent := True;
+  
+  // Fade in
+  with TTransparencyAnimation.Create(TreeAnimate1) do
+  begin
+    Shape := Node;
+    FromTransparency := 100;
+    ToTransparency := 0;
+    Duration := 500;
+  end;
+end;
+```
+
+### Smooth Transition
+
+```delphi
+procedure TransitionNode(Node: TTreeNodeShape; NewX, NewY: Integer);
+begin
+  with TMovementAnimation.Create(TreeAnimate1) do
+  begin
+    Shape := Node;
+    ToX := NewX;
+    ToY := NewY;
+    Duration := 800;
+  end;
+end;
+```
+
+## Related Topics
+
+- [Events](/guides/events) - Animation event handling
+- [Node Properties](/api/ttreenodeshape) - Animatable properties
+- [Styling](/guides/node-formatting) - Visual effects

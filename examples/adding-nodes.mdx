@@ -1,0 +1,176 @@
+---
+title: "Adding Nodes"
+description: "Learn how to add nodes to your TeeTree hierarchies using various methods"
+---
+
+## Overview
+
+TeeTree provides multiple ways to add nodes to your tree structure. You can add root nodes, child nodes, and sibling (brother) nodes using simple method calls.
+
+## Adding Root Nodes
+
+The simplest way to add a node is using the `Add` method without a parent:
+
+```delphi
+// Add a root node (without parent)
+MyRoot := Tree1.Add('This is a Root node');
+```
+
+You can also use the `AddRoot` method explicitly:
+
+```delphi
+// Add one root node
+Tree1.AddRoot('Root num: ' + IntToStr(Tree1.Roots.Count + 1));
+```
+
+## Adding Child Nodes
+
+There are several ways to add child nodes to an existing parent:
+
+### Method 1: Using AddChild
+
+```delphi
+// Add a child node to a parent
+MyRoot.AddChild('This is a child node.');
+```
+
+### Method 2: Using Add with Parent Parameter
+
+```delphi
+// Another way to add a child node
+Tree1.Add('Another child node', MyRoot);
+```
+
+### Method 3: Using Shapes.AddChild
+
+```delphi
+// Adding a child using the Shapes collection
+Tree1.Shapes.AddChild(MyNode, '7.AddChild');
+```
+
+## Adding Sibling Nodes
+
+To add a node at the same level as an existing node:
+
+```delphi
+// Add a brother (sibling) node
+MyNode.AddBrother('Brother node');
+```
+
+## Chaining Node Creation
+
+You can create multiple levels of nodes in a single statement:
+
+```delphi
+// Recursive way - create child and grandchild in one line
+MyRoot.AddChild('Third child.').AddChild('Hello');
+
+// Adding nodes and children in the same line
+Tree1.Add('10.Another Root').Add('Child').Add('Sub-Child');
+```
+
+## Adding Nodes at Specific Positions
+
+You can specify X and Y coordinates when adding nodes:
+
+```delphi
+// Add a node at specific coordinates (X=200, Y=100)
+Tree1.Add(200, 100, 'At 100,100', nil);
+```
+
+## Complete Example
+
+Here's a complete example showing various ways to add nodes:
+
+```delphi
+procedure TAddMethodsForm.FormCreate(Sender: TObject);
+var
+  MyNode: TTreeNodeShape;
+  AnotherNode: TTreeNodeShape;
+  MyRoot: TTreeNodeShape;
+begin
+  // Add a root node
+  MyRoot := Tree1.Add('This is a Root node');
+
+  // Add children nodes
+  MyRoot.AddChild('This is a child node.');
+  Tree1.Add('Another child node', MyRoot);
+
+  // Recursive way
+  MyRoot.AddChild('Third child.').AddChild('Hello');
+
+  // Expand root to show children
+  MyRoot.Expanded := True;
+
+  // Add multiple nodes
+  MyNode := Tree1.Add('MyNode');
+  MyNode.Add('Children');
+  MyNode.AddBrother('Brother');
+
+  // Chain multiple levels
+  Tree1.Add('Another Root').Add('Child').Add('Sub-Child');
+end;
+```
+
+## Interactive Example: Add Buttons
+
+Create an interactive form that allows users to add nodes dynamically:
+
+```delphi
+procedure TAddChildrenForm.ButtonAddChildClick(Sender: TObject);
+var
+  Node: TTreeNodeShape;
+begin
+  // Add one child node and select it
+  with Tree1.Selected.First do
+  begin
+    Node := AddChild('Child num: ' + IntToStr(Count + 1));
+    Expanded := True;  // Expand to show the new child
+  end;
+
+  // Select the newly created node
+  Tree1.Selected.Clear;
+  Node.Selected := True;
+end;
+
+procedure TAddChildrenForm.ButtonAddBrotherClick(Sender: TObject);
+var
+  Node: TTreeNodeShape;
+begin
+  // Add one brother node and select it
+  with Tree1.Selected.First do
+  begin
+    if Assigned(Parent) then
+    begin
+      Node := AddBrother('Child num: ' + IntToStr(Parent.Count + 1));
+      Expanded := True;
+    end
+    else  // node has no parent, add as root
+      Node := Tree1.AddRoot('Root num: ' + IntToStr(Tree1.Roots.Count + 1));
+  end;
+
+  Tree1.Selected.Clear;
+  Node.Selected := True;
+end;
+```
+
+## Key Points
+
+- Use `Add` or `AddRoot` for root nodes without parents
+- Use `AddChild` to add child nodes to a parent
+- Use `AddBrother` to add sibling nodes at the same level
+- Chain method calls to create multiple levels efficiently
+- Set `Expanded := True` to show newly added children
+- Preserve node references when you need to manipulate them later
+
+## Removing Nodes
+
+To remove nodes from the tree:
+
+```delphi
+// Destroy node completely
+Tree1.Selected.First.Free;
+
+// Remove from parent (make it a root node)
+Tree1.Selected.First.Parent := nil;
+```

@@ -1,0 +1,448 @@
+---
+title: "Custom Shapes"
+description: "Use flowchart and specialized shapes from the TreeFlow unit"
+---
+
+## Overview
+
+TeeTree includes a comprehensive library of custom shapes beyond the standard rectangle, circle, and diamond. The `TreeFlow.pas` unit provides flowchart shapes, geometric shapes, and specialized symbols perfect for diagrams, organizational charts, and process flows.
+
+<Note>
+  All custom shapes are located in the `TreeFlow` unit. Add it to your uses clause:
+  ```pascal
+  uses TreeFlow;
+  ```
+</Note>
+
+## Flowchart Shapes
+
+Professional flowchart symbols for process diagrams:
+
+### Process Shapes
+
+<Tabs>
+  <Tab title="Process">
+    Standard process/operation box:
+    ```pascal
+    var
+      Node: TProcessShape;
+    begin
+      Node := TProcessShape.Create(Self);
+      Node.Parent := Tree1;
+      Node.Text.Add('Process Step');
+      Node.Style := tssRectangle;  // Rectangle by default
+    end;
+    ```
+  </Tab>
+
+  <Tab title="Decision">
+    Decision diamond shape:
+    ```pascal
+    var
+      Node: TDecisionShape;
+    begin
+      Node := TDecisionShape.Create(Self);
+      Node.Parent := Tree1;
+      Node.Text.Add('Condition?');
+      Node.Style := tssDiamond;  // Diamond by default
+      Node.Brush.Color := clRed;
+      Node.Font.Color := clWhite;
+    end;
+    ```
+  </Tab>
+
+  <Tab title="Terminal">
+    Start/End terminal shape (rounded rectangle):
+    ```pascal
+    var
+      Node: TTerminalShape;
+    begin
+      Node := TTerminalShape.Create(Self);
+      Node.Parent := Tree1;
+      Node.Text.Add('Start');
+      // Uses custom GetShapePoints for rounded ends
+    end;
+    ```
+  </Tab>
+</Tabs>
+
+### Input/Output Shapes
+
+<CodeGroup>
+
+```pascal InputOutputShape
+// Parallelogram shape for input/output
+var
+  Node: TInputOutputShape;
+begin
+  Node := TInputOutputShape.Create(Self);
+  Node.Parent := Tree1;
+  Node.Text.Add('Read Data');
+  Node.Slant := 12.5;  // Adjust slant angle (percentage)
+  Node.Brush.Color := clYellow;
+end;
+```
+
+```pascal ManualInputShape
+// Trapezoid for manual input
+var
+  Node: TManualInputShape;
+begin
+  Node := TManualInputShape.Create(Self);
+  Node.Parent := Tree1;
+  Node.Text.Add('User Input');
+  Node.Brush.Color := $BEE1FC;
+end;
+```
+
+```pascal ManualOperationShape
+// Manual operation shape
+var
+  Node: TManualOperationShape;
+begin
+  Node := TManualOperationShape.Create(Self);
+  Node.Parent := Tree1;
+  Node.Text.Add('Manual Step');
+  Node.Brush.Color := clAqua;
+end;
+```
+
+</CodeGroup>
+
+### Storage Shapes
+
+<Steps>
+  <Step title="Document">
+    Document shape with wavy bottom:
+    ```pascal
+    var
+      Doc: TDocumentShape;
+    begin
+      Doc := TDocumentShape.Create(Self);
+      Doc.Parent := Tree1;
+      Doc.Text.Add('Report');
+      Doc.Brush.Color := $00FF80FF;
+    end;
+    ```
+  </Step>
+
+  <Step title="Online Storage">
+    Data storage shape:
+    ```pascal
+    var
+      Storage: TOnlineStorageShape;
+    begin
+      Storage := TOnlineStorageShape.Create(Self);
+      Storage.Parent := Tree1;
+      Storage.Text.Add('Database');
+    end;
+    ```
+  </Step>
+
+  <Step title="Magnetic Tape">
+    Tape storage symbol:
+    ```pascal
+    var
+      Tape: TMagneticTapeShape;
+    begin
+      Tape := TMagneticTapeShape.Create(Self);
+      Tape.Parent := Tree1;
+      Tape.Text.Add('Backup');
+    end;
+    ```
+  </Step>
+</Steps>
+
+## Complete Flowchart Shape List
+
+From TreeFlow.pas (lines 1946-1962), these shapes are registered:
+
+| Shape Class | Description | Default Style | Default Color |
+|-------------|-------------|---------------|---------------|
+| `TDecisionShape` | Decision diamond | `tssDiamond` | Red |
+| `TProcessShape` | Process rectangle | `tssRectangle` | Default |
+| `TPredefinedProcessShape` | Predefined process with side bars | `tssRectangle` | Default |
+| `TTerminalShape` | Start/End rounded rectangle | Custom | Default |
+| `TConnectorShape` | Connector circle | `tssCircle` | Default |
+| `TInputOutputShape` | Input/Output parallelogram | Custom | Yellow |
+| `TManualOperationShape` | Manual operation trapezoid | Custom | Aqua |
+| `TSelectShape` | Selection hexagon | Custom | Lime |
+| `TDocumentShape` | Document with wave | Custom | Pink |
+| `TPunchCardShape` | Punch card | Custom | Orange |
+| `TPunchTapeShape` | Punch tape | Custom | Gray |
+| `TDelayShape` | Delay symbol | Custom | Light green |
+| `TManualInputShape` | Manual input | Custom | Light blue |
+| `TAndShape` | Logic AND gate | `tssCircle` | Default |
+| `TOrShape` | Logic OR gate | `tssCircle` | Default |
+| `TOnlineStorageShape` | Online storage | Custom | Default |
+| `TMagneticTapeShape` | Magnetic tape | `tssCircle` | Default |
+
+## Geometric Shapes
+
+Polygons and geometric figures:
+
+<Tabs>
+  <Tab title="Polygons">
+    ```pascal
+    // Pentagon (5 sides)
+    var Pentagon: TPentagonShape;
+    Pentagon := TPentagonShape.Create(Self);
+    Pentagon.Parent := Tree1;
+    Pentagon.AngleOffset := 18;  // Rotation offset
+    
+    // Hexagon (6 sides)
+    var Hexagon: THexagonShape;
+    Hexagon := THexagonShape.Create(Self);
+    Hexagon.Parent := Tree1;
+    
+    // Octagon (8 sides)
+    var Octagon: TOctagonShape;
+    Octagon := TOctagonShape.Create(Self);
+    Octagon.Parent := Tree1;
+    Octagon.AngleOffset := 22.5;
+    ```
+  </Tab>
+
+  <Tab title="Arrows">
+    ```pascal
+    // Arrow pointing up
+    var Arrow: TArrowUpShape;
+    Arrow := TArrowUpShape.Create(Self);
+    Arrow.Parent := Tree1;
+    Arrow.PercentHoriz := 25;  // Arrow width
+    Arrow.PercentVert := 33;   // Arrow head size
+    
+    // Also available:
+    // TArrowDownShape
+    // TArrowLeftShape  
+    // TArrowRightShape
+    ```
+  </Tab>
+
+  <Tab title="Star & Cross">
+    ```pascal
+    // Star shape
+    var Star: TStarShape;
+    Star := TStarShape.Create(Self);
+    Star.Parent := Tree1;
+    Star.Text.Add('Important');
+    
+    // Cross/Plus shape
+    var Cross: TCrossShape;
+    Cross := TCrossShape.Create(Self);
+    Cross.Parent := Tree1;
+    Cross.PercentHoriz := 25;  // Cross arm width
+    Cross.PercentVert := 25;   // Cross arm height
+    ```
+  </Tab>
+</Tabs>
+
+## Special Shapes
+
+### Customizable Shapes with Handles
+
+Some shapes have special handles for interactive customization:
+
+<Warning>
+  These shapes provide custom resize handles beyond the standard corner handles.
+</Warning>
+
+```pascal InputOutputShape with Slant Handle
+var
+  IO: TInputOutputShape;
+begin
+  IO := TInputOutputShape.Create(Self);
+  IO.Parent := Tree1;
+  IO.Slant := 15.0;  // Percentage of slant (0-100)
+  
+  // User can drag the slant handle at design time
+  // to adjust the parallelogram angle
+end;
+```
+
+```pascal HouseShape with WallSize
+var
+  House: THouseShape;
+begin
+  House := THouseShape.Create(Self);
+  House.Parent := Tree1;
+  House.WallSize := 50;  // Percentage (0-100)
+  
+  // User can drag to adjust roof/wall ratio
+end;
+```
+
+```pascal CallOutShape with Pointer
+var
+  CallOut: TCallOutShape;
+begin
+  CallOut := TCallOutShape.Create(Self);
+  CallOut.Parent := Tree1;
+  CallOut.Text.Add('Note');
+  
+  // User can drag the callout pointer position
+end;
+```
+
+### Grid Shape
+
+Create tables and grids:
+
+```pascal
+var
+  Grid: TGridShape;
+  Row, Col: Integer;
+begin
+  Grid := TGridShape.Create(Self);
+  Grid.Parent := Tree1;
+  Grid.Rows := 3;
+  Grid.Columns := 4;
+  Grid.Width := 200;
+  Grid.Height := 150;
+  Grid.Transparent := True;
+  
+  // Access individual cells
+  for Row := 0 to Grid.Rows - 1 do
+    for Col := 0 to Grid.Columns - 1 do
+      Grid.Cells[Row, Col].Text.Add(
+        Format('R%dC%d', [Row, Col])
+      );
+  
+  // Customize grid lines
+  Grid.GridLines.Color := clGray;
+  Grid.GridLines.SmallDots := True;
+end;
+```
+
+## Shape Registration
+
+From TreeFlow.pas initialization section (lines 1935-1982):
+
+```pascal
+initialization
+  // Flowchart shapes registered under 'Flow' tab
+  RegisterCustomTreeShape(TeeTree_tabFlow, 'Decision', TDecisionShape);
+  RegisterCustomTreeShape(TeeTree_tabFlow, 'Process', TProcessShape);
+  RegisterCustomTreeShape(TeeTree_tabFlow, 'Terminal', TTerminalShape);
+  // ... etc
+  
+  // Other shapes registered under 'Other' tab
+  RegisterCustomTreeShape(TeeTree_tabOther, 'Pentagon', TPentagonShape);
+  RegisterCustomTreeShape(TeeTree_tabOther, 'Hexagon', THexagonShape);
+  RegisterCustomTreeShape(TeeTree_tabOther, 'Star', TStarShape);
+  // ... etc
+finalization
+  UnRegisterCustomTreeShapes([...]);
+end.
+```
+
+## Creating Custom GetShapePoints
+
+Define your own shape by overriding `GetShapePoints`:
+
+```pascal
+type
+  TMyCustomShape = class(TCustomTreeShape)
+  protected
+    function GetShapePoints(const R: TRect; 
+      var P: TShapePoints): Integer; override;
+  end;
+
+function TMyCustomShape.GetShapePoints(const R: TRect; 
+  var P: TShapePoints): Integer;
+begin
+  result := 5;  // Number of points
+  
+  // Define pentagon points
+  P[0] := TeePoint(R.Left + (R.Right - R.Left) div 2, R.Top);
+  P[1] := TeePoint(R.Right, R.Top + (R.Bottom - R.Top) div 3);
+  P[2] := TeePoint(R.Right - 20, R.Bottom);
+  P[3] := TeePoint(R.Left + 20, R.Bottom);
+  P[4] := TeePoint(R.Left, R.Top + (R.Bottom - R.Top) div 3);
+end;
+```
+
+## Specialized Shapes
+
+### BeveledShape
+
+3D beveled rectangle:
+
+```pascal
+var
+  Bevel: TBeveledShape;
+begin
+  Bevel := TBeveledShape.Create(Self);
+  Bevel.Parent := Tree1;
+  Bevel.Bevel := bvRaised;  // bvRaised, bvLowered, bvNone
+  Bevel.BevelSize := 1;     // Border width
+  Bevel.Color := clBtnFace;
+end;
+```
+
+### EnvelopeShape
+
+```pascal
+var
+  Envelope: TEnvelopeShape;
+begin
+  Envelope := TEnvelopeShape.Create(Self);
+  Envelope.Parent := Tree1;
+  Envelope.OffsetY := 33;  // Flap position percentage
+  Envelope.Text.Add('Message');
+end;
+```
+
+### RingShape
+
+Circle with inner circle:
+
+```pascal
+var
+  Ring: TRingShape;
+begin
+  Ring := TRingShape.Create(Self);
+  Ring.Parent := Tree1;
+  Ring.Style := tssCircle;
+  Ring.Text.Add('Ring');
+end;
+```
+
+## Best Practices
+
+<CardGroup cols={2}>
+
+<Card title="Use Appropriate Shapes" icon="shapes">
+  Match shape types to their standard meanings (e.g., diamonds for decisions).
+</Card>
+
+<Card title="Set Default Colors" icon="palette">
+  Many shapes have recommended default colors—use them for consistency.
+</Card>
+
+<Card title="Test Custom Handles" icon="hand">
+  Shapes with custom handles need testing for proper interaction.
+</Card>
+
+<Card title="Consider Performance" icon="gauge">
+  Complex polygon shapes may impact rendering speed with thousands of nodes.
+</Card>
+
+</CardGroup>
+
+## Shape Aliases
+
+Some shapes have alias names (TreeFlow.pas lines 1938-1943):
+
+```pascal
+TConditionShape = TDecisionShape  // Same as Decision
+TTitleShape = TInputOutputShape   // Same as Input/Output  
+TCardShape = TPunchCardShape      // Same as Punch Card
+TManualShape = TManualInputShape  // Same as Manual Input
+TDataShape = TOnlineStorageShape  // Same as Online Storage
+TTapeShape = TMagneticTapeShape   // Same as Magnetic Tape
+```
+
+<Note>
+  All flowchart shapes follow standard ANSI/ISO flowchart symbol conventions for maximum compatibility.
+</Note>

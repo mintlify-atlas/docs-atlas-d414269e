@@ -1,0 +1,588 @@
+---
+title: 'Electric Shapes'
+description: 'Specialized shape classes for creating electronic circuit and electrical diagrams'
+---
+
+## Overview
+
+The `TreeElectric` unit provides specialized shapes for creating electronic circuit diagrams and electrical schematics in TeeTree. These shapes represent common electrical components and logic gates.
+
+## Inheritance Hierarchy
+
+```
+TCustomTreeShape
+  └── TElectricShape (base class for electric shapes)
+        ├── TSolidResistorShape
+        ├── TResistorShape
+        ├── TCapacitorShape
+        ├── TDiodeShape
+        ├── TGroundShape
+        ├── TSourceShape
+        ├── TChasisShape
+        ├── TOrGateShape
+        ├── TAndGateShape
+        └── TLampShape
+```
+
+## Base Class
+
+### TElectricShape
+
+<Card title="Electric Shape" icon="bolt">
+  Base class for all electrical component shapes.
+</Card>
+
+**Description:** Foundation class for electrical and electronic components.
+
+```pascal
+TElectricShape = class(TCustomTreeShape);
+```
+
+## Resistors
+
+### TResistorShape
+
+<Card title="Resistor" icon="wave-square" color="#000000">
+  Standard resistor with zigzag pattern.
+</Card>
+
+**Description:** Traditional resistor symbol with zigzag line pattern.
+
+**Drawing:**
+- Horizontal lines at ends (terminals)
+- Six zigzag segments in the middle
+- Total width divided into 8 segments
+
+**Usage:**
+```pascal
+var
+  Resistor: TResistorShape;
+begin
+  Resistor := TResistorShape.Create(Tree);
+  Resistor.Text.Add('1kΩ');
+  Resistor.Width := 80;
+  Resistor.Height := 30;
+end;
+```
+
+### TSolidResistorShape
+
+<Card title="Solid Resistor" icon="square" color="#000000">
+  Modern resistor symbol (rectangular box).
+</Card>
+
+**Description:** IEC/European style resistor symbol.
+
+**Drawing:**
+- Rectangle in the middle (2/3 of width)
+- Terminal lines extending from each end
+
+**Usage:**
+```pascal
+var
+  Resistor: TSolidResistorShape;
+begin
+  Resistor := TSolidResistorShape.Create(Tree);
+  Resistor.Text.Add('2.2kΩ');
+end;
+```
+
+### TFuseShape
+
+<Card title="Fuse" icon="minus" color="#000000">
+  Fuse symbol (resistor box with center line).
+</Card>
+
+**Description:** Extends solid resistor with a horizontal line through the center.
+
+**Usage:**
+```pascal
+var
+  Fuse: TFuseShape;
+begin
+  Fuse := TFuseShape.Create(Tree);
+  Fuse.Text.Add('5A');
+end;
+```
+
+## Capacitors
+
+### TCapacitorShape
+
+<Card title="Capacitor" icon="bars" color="#000000">
+  Standard capacitor symbol.
+</Card>
+
+**Description:** Two parallel vertical lines with terminal leads.
+
+**Drawing:**
+- Two vertical lines in the center (2-8 pixels apart)
+- Horizontal terminal lines extending from center to edges
+
+**Usage:**
+```pascal
+var
+  Capacitor: TCapacitorShape;
+begin
+  Capacitor := TCapacitorShape.Create(Tree);
+  Capacitor.Text.Add('100µF');
+  Capacitor.Width := 60;
+  Capacitor.Height := 40;
+end;
+```
+
+## Semiconductors
+
+### TDiodeShape
+
+<Card title="Diode" icon="play" color="#000000">
+  Diode symbol with triangle and line.
+</Card>
+
+**Description:** Triangle pointing right with vertical line on the right side.
+
+**Drawing:**
+- Horizontal terminal lines (1/3 of width each end)
+- Vertical line on left
+- Filled triangle pointing from left to right line
+
+**Usage:**
+```pascal
+var
+  Diode: TDiodeShape;
+begin
+  Diode := TDiodeShape.Create(Tree);
+  Diode.Text.Add('1N4148');
+  Diode.Width := 70;
+end;
+```
+
+## Power and Ground
+
+### TGroundShape
+
+<Card title="Ground" icon="arrow-down" color="#000000">
+  Ground connection symbol.
+</Card>
+
+**Description:** Three horizontal lines of decreasing length.
+
+**Drawing:**
+- Vertical line from top to center
+- Three horizontal lines below, each progressively shorter
+- Lines spaced at 1/4 height intervals
+
+**Usage:**
+```pascal
+var
+  Ground: TGroundShape;
+begin
+  Ground := TGroundShape.Create(Tree);
+  Ground.Width := 50;
+  Ground.Height := 40;
+end;
+```
+
+### TSourceShape
+
+<Card title="Source/Battery" icon="battery-full" color="#000000">
+  Voltage source or battery symbol.
+</Card>
+
+**Description:** Circle with plus/minus terminals.
+
+**Drawing:**
+- Vertical lines extending from top and bottom
+- Circle in the middle
+- Plus sign in upper portion
+- Minus sign in lower portion
+
+**Usage:**
+```pascal
+var
+  Battery: TSourceShape;
+begin
+  Battery := TSourceShape.Create(Tree);
+  Battery.Text.Add('9V');
+  Battery.Height := 80;
+end;
+```
+
+### TChasisShape
+
+<Card title="Chassis Ground" icon="house" color="#000000">
+  Chassis ground connection.
+</Card>
+
+**Description:** Rectangle with hatched bottom.
+
+**Default Color:** `clBlack`
+
+**Drawing:**
+- Vertical line from top
+- Rectangle body (2/3 height)
+- Diagonal hatched lines at bottom
+
+**Usage:**
+```pascal
+var
+  Chassis: TChasisShape;
+begin
+  Chassis := TChasisShape.Create(Tree);
+  Chassis.Height := 60;
+end;
+```
+
+## Logic Gates
+
+### TOrGateShape
+
+<Card title="OR Gate" icon="code-merge" color="#4299E1">
+  Logical OR gate symbol.
+</Card>
+
+**Description:** Curved gate shape with two inputs and one output.
+
+**Drawing:**
+- Curved input side (concave)
+- Curved output side (convex)
+- 33 points for smooth curves
+
+**Usage:**
+```pascal
+var
+  OrGate: TOrGateShape;
+begin
+  OrGate := TOrGateShape.Create(Tree);
+  OrGate.Width := 80;
+  OrGate.Height := 60;
+end;
+```
+
+### TAndGateShape
+
+<Card title="AND Gate" icon="circle-half-stroke" color="#4299E1">
+  Logical AND gate symbol.
+</Card>
+
+**Description:** D-shaped gate with flat input side and rounded output.
+
+**Drawing:**
+- Flat vertical line on left (input side)
+- Semi-circular curve on right (output side)
+- 33 points for smooth output curve
+
+**Usage:**
+```pascal
+var
+  AndGate: TAndGateShape;
+begin
+  AndGate := TAndGateShape.Create(Tree);
+  AndGate.Width := 80;
+  AndGate.Height := 60;
+end;
+```
+
+## Indicators
+
+### TLampShape
+
+<Card title="Lamp/LED" icon="lightbulb" color="#F6E05E">
+  Lamp or LED indicator.
+</Card>
+
+**Description:** Octagon with X pattern inside (from `TOctagonShape`).
+
+**Default Color:** `clYellow`
+
+**Drawing:**
+- Octagonal border
+- Two diagonal lines forming X inside (1/5 from edges)
+
+**Usage:**
+```pascal
+var
+  Lamp: TLampShape;
+begin
+  Lamp := TLampShape.Create(Tree);
+  Lamp.Color := clYellow;
+  Lamp.Width := 40;
+  Lamp.Height := 40;
+end;
+```
+
+## Complete Circuit Example
+
+```pascal
+uses
+  TeeTree, TreeElectric;
+
+procedure CreateSimpleCircuit(Tree: TTree);
+var
+  Battery, Resistor, LED, Ground: TTreeNodeShape;
+begin
+  // Voltage source
+  Battery := TSourceShape.Create(Tree);
+  with Battery do
+  begin
+    Text.Add('+9V');
+    X0 := 50;
+    Y0 := 100;
+    Height := 80;
+    VertTextAlign := vtaBottom;
+  end;
+
+  // Resistor
+  Resistor := TResistorShape.Create(Tree);
+  with Resistor do
+  begin
+    Text.Add('220Ω');
+    X0 := 150;
+    Y0 := 100;
+    Width := 80;
+    Height := 30;
+  end;
+
+  // LED
+  LED := TLampShape.Create(Tree);
+  with LED do
+  begin
+    Text.Add('LED');
+    X0 := 280;
+    Y0 := 90;
+    Color := clYellow;
+  end;
+
+  // Ground
+  Ground := TGroundShape.Create(Tree);
+  with Ground do
+  begin
+    X0 := 360;
+    Y0 := 100;
+  end;
+
+  // Connect components
+  Battery.AddConnection(Resistor);
+  Resistor.AddConnection(LED);
+  LED.AddConnection(Ground);
+
+  // Customize connections
+  with Battery.Connections[0] do
+  begin
+    Border.Color := clRed;
+    Border.Width := 2;
+  end;
+end;
+```
+
+## Logic Circuit Example
+
+```pascal
+procedure CreateLogicCircuit(Tree: TTree);
+var
+  Input1, Input2, AndGate, OrGate, Output: TTreeNodeShape;
+begin
+  // Inputs
+  Input1 := TTreeNodeShape.Create(Tree);
+  with Input1 do
+  begin
+    Style := tssCircle;
+    Text.Add('A');
+    X0 := 50;
+    Y0 := 80;
+    Width := 30;
+    Height := 30;
+  end;
+
+  Input2 := TTreeNodeShape.Create(Tree);
+  with Input2 do
+  begin
+    Style := tssCircle;
+    Text.Add('B');
+    X0 := 50;
+    Y0 := 140;
+    Width := 30;
+    Height := 30;
+  end;
+
+  // AND Gate
+  AndGate := TAndGateShape.Create(Tree);
+  with AndGate do
+  begin
+    X0 := 150;
+    Y0 := 90;
+  end;
+
+  // OR Gate
+  OrGate := TOrGateShape.Create(Tree);
+  with OrGate do
+  begin
+    X0 := 280;
+    Y0 := 100;
+  end;
+
+  // Output
+  Output := TTreeNodeShape.Create(Tree);
+  with Output do
+  begin
+    Style := tssCircle;
+    Text.Add('Out');
+    X0 := 400;
+    Y0 := 110;
+    Width := 40;
+    Height := 40;
+  end;
+
+  // Connect gates
+  Input1.AddConnection(AndGate);
+  Input2.AddConnection(AndGate);
+  AndGate.AddConnection(OrGate);
+  OrGate.AddConnection(Output);
+end;
+```
+
+## Component Properties
+
+### Terminal Connections
+
+Electric shapes are designed to connect at their centers by default. For precise connections:
+
+```pascal
+// Custom connection points
+with MyConnection do
+begin
+  // Use points for precise terminal locations
+  Points.Clear;
+  Points.Add(FromShape.X1, FromShape.YCenter); // Right center
+  Points.Add(ToShape.X0, ToShape.YCenter);     // Left center
+end;
+```
+
+### Component Labels
+
+Use text properties to add component values:
+
+```pascal
+Resistor.Text.Add('10kΩ');
+Capacitor.Text.Add('100µF');
+Diode.Text.Add('1N4001');
+```
+
+### Wire Styling
+
+Customize connection appearance:
+
+```pascal
+with Connection.Border do
+begin
+  Color := clRed;    // Power lines in red
+  Width := 2;        // Thicker for power
+  Style := psSolid;  // Solid lines for connections
+end;
+```
+
+## Shape Registration
+
+Electric shapes are automatically registered in the component palette under the "Electric" tab:
+
+- Resistor
+- Solid Resistor
+- Fuse
+- Capacitor
+- Diode
+- Ground
+- Source
+- Chasis
+- OR Gate
+- AND Gate
+- Lamp
+
+## Drawing Conventions
+
+### Circuit Layout
+
+- **Power**: Top of diagram (red wires)
+- **Ground**: Bottom of diagram (black wires)
+- **Signal Flow**: Left to right
+- **Components**: Horizontal orientation preferred
+
+### Color Coding
+
+```pascal
+// Common wire colors
+PowerWire.Border.Color := clRed;    // Positive voltage
+GroundWire.Border.Color := clBlack; // Ground
+SignalWire.Border.Color := clBlue;  // Signal lines
+```
+
+### Component Sizing
+
+```pascal
+// Typical component sizes
+Resistor.Width := 80;
+Resistor.Height := 30;
+
+Capacitor.Width := 60;
+Capacitor.Height := 40;
+
+Gate.Width := 80;
+Gate.Height := 60;
+```
+
+## Complex Circuit Example
+
+```pascal
+procedure CreateAmplifierCircuit(Tree: TTree);
+var
+  VCC, R1, R2, C1, Transistor, Speaker, GND: TTreeNodeShape;
+begin
+  // Power supply
+  VCC := TSourceShape.Create(Tree);
+  VCC.Text.Add('+12V');
+  
+  // Resistors
+  R1 := TResistorShape.Create(Tree);
+  R1.Text.Add('10kΩ');
+  
+  R2 := TSolidResistorShape.Create(Tree);
+  R2.Text.Add('1kΩ');
+  
+  // Capacitor
+  C1 := TCapacitorShape.Create(Tree);
+  C1.Text.Add('100µF');
+  
+  // Output (speaker represented by lamp)
+  Speaker := TLampShape.Create(Tree);
+  Speaker.Text.Add('Speaker');
+  
+  // Ground
+  GND := TGroundShape.Create(Tree);
+  
+  // Connect circuit
+  VCC.AddConnection(R1);
+  R1.AddConnection(C1);
+  C1.AddConnection(R2);
+  R2.AddConnection(Speaker);
+  Speaker.AddConnection(GND);
+  
+  // Position components
+  Tree.GlobalFormat.ChildManager.ApplyFormat;
+end;
+```
+
+## See Also
+
+<CardGroup cols={2}>
+  <Card title="Basic Shapes" icon="shapes" href="/api/shapes/basic-shapes">
+    Fundamental geometric shapes
+  </Card>
+  <Card title="Flowchart Shapes" icon="diagram-project" href="/api/shapes/flowchart-shapes">
+    Process diagram shapes
+  </Card>
+  <Card title="UML Shapes" icon="sitemap" href="/api/shapes/uml-shapes">
+    UML diagram shapes
+  </Card>
+  <Card title="Custom Shapes" icon="wand-magic-sparkles" href="/api/shapes/custom-shapes">
+    Create custom shapes
+  </Card>
+</CardGroup>

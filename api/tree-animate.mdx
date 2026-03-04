@@ -1,0 +1,557 @@
+---
+title: 'TTreeAnimate'
+description: 'Animation framework for creating dynamic effects on tree nodes and diagrams'
+---
+
+## Overview
+
+The `TTreeAnimate` component provides a comprehensive animation framework for TeeTree. It enables smooth transitions and dynamic effects on tree nodes, including movement, color changes, size adjustments, and text effects.
+
+## Components
+
+### TTreeAnimate
+
+Main animation controller component.
+
+```pascal
+type
+  TTreeAnimate = class(TTeeAnimate)
+  published
+    property Tree:TCustomTree;
+  end;
+```
+
+### TNodeAnimation
+
+Base class for all node-based animations.
+
+```pascal
+type
+  TNodeAnimation = class(TTeeAnimation)
+  public
+    function Animate:TTreeAnimate;
+    property Node:TTreeNodeShape;
+    
+    Procedure Preview; override;
+  end;
+```
+
+## Animation Types
+
+### Integer Animations
+
+#### TFontSizeAnimation
+
+Animates node font size.
+
+```pascal
+type
+  TFontSizeAnimation = class(TIntegerAnimation)
+  published
+    property StartValue:Integer;
+    property EndValue:Integer;
+    property Node;
+  end;
+```
+
+#### TMovementAnimation
+
+Animates node position.
+
+```pascal
+type
+  TMoveSizeDirection = (mdHorizontal, mdVertical);
+  
+  TMovementAnimation = class(TIntegerAnimation)
+  published
+    property Direction:TMoveSizeDirection;
+    property StartValue:Integer;
+    property EndValue:Integer;
+    property Node;
+  end;
+```
+
+#### TSizeAnimation
+
+Animates node size (width or height).
+
+```pascal
+type
+  TSizeAnimation = class(TIntegerAnimation)
+  published
+    property Direction:TMoveSizeDirection;
+    property StartValue:Integer;
+    property EndValue:Integer;
+  end;
+```
+
+#### TTransparencyAnimation
+
+Animates node transparency (0-100).
+
+```pascal
+type
+  TTransparencyAnimation = class(TIntegerAnimation)
+  published
+    property StartValue:Integer;  // 0 = opaque
+    property EndValue:Integer;    // 100 = transparent
+    property Node;
+  end;
+```
+
+#### TTextTranspAnimation
+
+Animates text transparency.
+
+```pascal
+type
+  TTextTranspAnimation = class(TIntegerAnimation)
+  published
+    property StartValue:Integer;
+    property EndValue:Integer;
+    property Node;
+  end;
+```
+
+### Color Animations
+
+#### TNodeColorAnimation
+
+Animates node colors.
+
+```pascal
+type
+  TNodeColor = (
+    ncColor,           // Node background color
+    ncBorder,          // Border color
+    ncFont,            // Font color
+    ncGradientStart,   // Gradient start color
+    ncGradientEnd,     // Gradient end color
+    ncGradientMiddle   // Gradient middle color
+  );
+  
+  TNodeColorAnimation = class(TColorAnimation)
+  published
+    property NodeColor:TNodeColor;
+    property StartColor:TColor;
+    property EndColor:TColor;
+    property Node;
+  end;
+```
+
+#### TTreeColorAnimation
+
+Animates tree panel colors.
+
+```pascal
+type
+  TTreeColor = (
+    tcColor,           // Tree background color
+    tcGrid,            // Grid color
+    tcGradientStart,   // Panel gradient start
+    tcGradientEnd,     // Panel gradient end
+    tcGradientMiddle   // Panel gradient middle
+  );
+  
+  TTreeColorAnimation = class(TColorAnimation)
+  published
+    property TreeColor:TTreeColor;
+    property StartColor:TColor;
+    property EndColor:TColor;
+  end;
+```
+
+#### TTextColorAnimation
+
+Animates node text color.
+
+```pascal
+type
+  TTextColorAnimation = class(TColorAnimation)
+  published
+    property StartColor:TColor;
+    property EndColor:TColor;
+    property Node;
+  end;
+```
+
+### Text Animations
+
+#### TAddTextAnimation
+
+Animates text appearing character by character.
+
+```pascal
+type
+  TAddTextAnimation = class(TNodeAnimation)
+  published
+    property Node;
+  end;
+```
+
+#### TMoveTextAnimation
+
+Animates text scrolling within the node.
+
+```pascal
+type
+  TMoveTextAnimation = class(TNodeAnimation)
+  published
+    property Node;
+  end;
+```
+
+#### TTextAngleAnimation
+
+Animates text rotation angle.
+
+```pascal
+type
+  TTextAngleAnimation = class(TIntegerAnimation)
+  published
+    property StartValue:Integer;  // Start angle (0-360)
+    property EndValue:Integer;    // End angle
+    property Node;
+  end;
+```
+
+#### TTextFlashAnimation
+
+Animates text flashing effect by changing size.
+
+```pascal
+type
+  TTextFlashAnimation = class(TNodeAnimation)
+  published
+    property SizePercent:Integer;  // Default: 100
+    property Node;
+  end;
+```
+
+### Special Animations
+
+#### TVisibleAnimation
+
+Animates node visibility.
+
+```pascal
+type
+  TVisibleAnimation = class(TBooleanAnimation)
+  published
+    property NewValue:Boolean;
+    property Node;
+  end;
+```
+
+#### TNodeZoomAnimation
+
+Animates node zoom effect.
+
+```pascal
+type
+  TNodeZoomAnimation = class(TNodeAnimation)
+  published
+    property ZoomPercent:Integer;  // Default: 100
+    property Node;
+  end;
+```
+
+## Usage Examples
+
+### Basic Setup
+
+```pascal
+var
+  TreeAnimate1: TTreeAnimate;
+begin
+  TreeAnimate1 := TTreeAnimate.Create(Self);
+  TreeAnimate1.Tree := Tree1;
+  TreeAnimate1.Speed := 50;  // Animation speed
+end;
+```
+
+### Font Size Animation
+
+```pascal
+var
+  FontAnim: TFontSizeAnimation;
+begin
+  FontAnim := TFontSizeAnimation.Create(TreeAnimate1);
+  FontAnim.Node := Tree1[0];
+  FontAnim.StartValue := 10;
+  FontAnim.EndValue := 24;
+  FontAnim.Play;
+end;
+```
+
+### Movement Animation
+
+```pascal
+var
+  MoveAnim: TMovementAnimation;
+begin
+  MoveAnim := TMovementAnimation.Create(TreeAnimate1);
+  MoveAnim.Node := Tree1[0];
+  MoveAnim.Direction := mdHorizontal;
+  MoveAnim.StartValue := Tree1[0].Left;
+  MoveAnim.EndValue := Tree1.Width - Tree1[0].Width;
+  MoveAnim.Play;
+end;
+```
+
+### Color Fade Animation
+
+```pascal
+var
+  ColorAnim: TNodeColorAnimation;
+begin
+  ColorAnim := TNodeColorAnimation.Create(TreeAnimate1);
+  ColorAnim.Node := Tree1[0];
+  ColorAnim.NodeColor := ncColor;
+  ColorAnim.StartColor := clYellow;
+  ColorAnim.EndColor := clRed;
+  ColorAnim.Play;
+end;
+```
+
+### Transparency Animation
+
+```pascal
+var
+  TranspAnim: TTransparencyAnimation;
+begin
+  TranspAnim := TTransparencyAnimation.Create(TreeAnimate1);
+  TranspAnim.Node := Tree1[0];
+  TranspAnim.StartValue := 0;    // Fully opaque
+  TranspAnim.EndValue := 100;     // Fully transparent
+  TranspAnim.Play;
+end;
+```
+
+### Text Typing Effect
+
+```pascal
+var
+  TextAnim: TAddTextAnimation;
+begin
+  Tree1[0].SimpleText := 'Hello World!';
+  
+  TextAnim := TAddTextAnimation.Create(TreeAnimate1);
+  TextAnim.Node := Tree1[0];
+  TextAnim.Play;  // Text appears character by character
+end;
+```
+
+### Text Flash Effect
+
+```pascal
+var
+  FlashAnim: TTextFlashAnimation;
+begin
+  FlashAnim := TTextFlashAnimation.Create(TreeAnimate1);
+  FlashAnim.Node := Tree1[0];
+  FlashAnim.SizePercent := 150;  // Flash to 150% size
+  FlashAnim.Play;
+end;
+```
+
+### Zoom Effect
+
+```pascal
+var
+  ZoomAnim: TNodeZoomAnimation;
+begin
+  ZoomAnim := TNodeZoomAnimation.Create(TreeAnimate1);
+  ZoomAnim.Node := Tree1[0];
+  ZoomAnim.ZoomPercent := 50;  // Zoom to 150% of original size
+  ZoomAnim.Play;
+end;
+```
+
+### Text Rotation
+
+```pascal
+var
+  RotateAnim: TTextAngleAnimation;
+begin
+  RotateAnim := TTextAngleAnimation.Create(TreeAnimate1);
+  RotateAnim.Node := Tree1[0];
+  RotateAnim.StartValue := 0;
+  RotateAnim.EndValue := 360;
+  RotateAnim.Play;
+end;
+```
+
+### Visibility Toggle
+
+```pascal
+var
+  VisibleAnim: TVisibleAnimation;
+begin
+  VisibleAnim := TVisibleAnimation.Create(TreeAnimate1);
+  VisibleAnim.Node := Tree1[0];
+  VisibleAnim.NewValue := False;  // Hide node
+  VisibleAnim.Play;
+end;
+```
+
+### Multiple Animations
+
+```pascal
+var
+  MoveAnim: TMovementAnimation;
+  ColorAnim: TNodeColorAnimation;
+begin
+  // Movement
+  MoveAnim := TMovementAnimation.Create(TreeAnimate1);
+  MoveAnim.Node := Tree1[0];
+  MoveAnim.Direction := mdHorizontal;
+  MoveAnim.StartValue := 0;
+  MoveAnim.EndValue := 200;
+  
+  // Color change
+  ColorAnim := TNodeColorAnimation.Create(TreeAnimate1);
+  ColorAnim.Node := Tree1[0];
+  ColorAnim.NodeColor := ncColor;
+  ColorAnim.StartColor := clYellow;
+  ColorAnim.EndColor := clRed;
+  
+  // Play both simultaneously
+  TreeAnimate1.Speed := 30;
+  MoveAnim.Play;
+  ColorAnim.Play;
+end;
+```
+
+### Tree Background Animation
+
+```pascal
+var
+  TreeColorAnim: TTreeColorAnimation;
+begin
+  TreeColorAnim := TTreeColorAnimation.Create(TreeAnimate1);
+  TreeColorAnim.TreeColor := tcColor;
+  TreeColorAnim.StartColor := clWhite;
+  TreeColorAnim.EndColor := clSkyBlue;
+  TreeColorAnim.Play;
+end;
+```
+
+### Size Animation
+
+```pascal
+var
+  SizeAnim: TSizeAnimation;
+begin
+  SizeAnim := TSizeAnimation.Create(TreeAnimate1);
+  SizeAnim.Node := Tree1[0];
+  SizeAnim.Direction := mdHorizontal;
+  SizeAnim.StartValue := Tree1[0].Width;
+  SizeAnim.EndValue := Tree1[0].Width * 2;
+  SizeAnim.Play;
+end;
+```
+
+### Border Color Animation
+
+```pascal
+var
+  BorderAnim: TNodeColorAnimation;
+begin
+  Tree1[0].Border.Visible := True;
+  Tree1[0].Border.Width := 3;
+  
+  BorderAnim := TNodeColorAnimation.Create(TreeAnimate1);
+  BorderAnim.Node := Tree1[0];
+  BorderAnim.NodeColor := ncBorder;
+  BorderAnim.StartColor := clBlue;
+  BorderAnim.EndColor := clRed;
+  BorderAnim.Play;
+end;
+```
+
+### Gradient Animation
+
+```pascal
+var
+  GradAnim: TNodeColorAnimation;
+begin
+  Tree1[0].Gradient.Visible := True;
+  
+  GradAnim := TNodeColorAnimation.Create(TreeAnimate1);
+  GradAnim.Node := Tree1[0];
+  GradAnim.NodeColor := ncGradientEnd;
+  GradAnim.StartColor := clWhite;
+  GradAnim.EndColor := clNavy;
+  GradAnim.Play;
+end;
+```
+
+## Animation Control
+
+### Play Animation
+
+```pascal
+Animation.Play;
+```
+
+### Stop Animation
+
+```pascal
+Animation.Stop;
+```
+
+### Preview Animation
+
+```pascal
+Animation.Preview;  // Sets up sample values
+Animation.Play;
+```
+
+### Check if Enabled
+
+```pascal
+if Animation.IsEnabled then
+  Animation.Play;
+```
+
+## Common Properties
+
+All animations inherit from `TTeeAnimation` and support:
+
+- `Enabled` - Enable/disable animation
+- `Speed` - Animation speed (inherited from TTreeAnimate)
+- `OnStart` - Event fired when animation starts
+- `OnStop` - Event fired when animation stops
+- `OnAnimate` - Event fired on each animation frame
+
+## Direction Constants
+
+```pascal
+const
+  MoveSizeDirection: Array[TMoveSizeDirection] of String = 
+    ('Horizontal','Vertical');
+```
+
+## Color Type Constants
+
+```pascal
+const
+  NodeColor: Array[TNodeColor] of String = 
+    ('Color', 'Border', 'Font', 'GradientStart', 
+     'GradientEnd', 'GradientMiddle');
+     
+  TreeColor: Array[TTreeColor] of String = 
+    ('Color', 'Grid', 'GradientStart', 
+     'GradientEnd', 'GradientMiddle');
+```
+
+## Related Components
+
+- [TCustomTree](/api/ttree) - Tree component
+- [TTreeNodeShape](/api/ttreenodeshape) - Node shapes
+
+## See Also
+
+- [Animation Guide](/examples/animations)
+- [Visual Effects](/guides/node-formatting)

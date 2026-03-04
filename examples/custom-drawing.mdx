@@ -1,0 +1,285 @@
+---
+title: Custom Drawing
+description: Advanced custom drawing techniques for TeeTree nodes and canvas
+---
+
+TeeTree provides powerful custom drawing capabilities, allowing you to extend node rendering with custom graphics, backgrounds, and effects.
+
+## Canvas Events
+
+Use `BeforeDraw` and `AfterDraw` events to add custom graphics to the tree:
+
+```delphi
+procedure TCustomDrawForm.Tree1BeforeDraw(Sender: TObject);
+var
+  t: Integer;
+begin
+  // Draw custom background graphics before nodes are rendered
+  with Tree1.Canvas do
+  begin
+    Pen.Style := psSolid;
+    Pen.Color := clRed;
+    Pen.Width := 2;
+
+    // Draw random lines from bottom-right corner
+    for t := 1 to 10 do
+      LineWithZ(Tree1.Width, Tree1.Height,
+                Tree1.Width - (t * Random(40)),
+                Tree1.Height - (t * Random(30)), 0);
+  end;
+end;
+
+procedure TCustomDrawForm.Tree1AfterDraw(Sender: TObject);
+var
+  t: Integer;
+begin
+  // Draw custom graphics after nodes are rendered
+  with Tree1.Canvas do
+  begin
+    Pen.Style := psSolid;
+    Pen.Color := clBlack;
+    Pen.Width := 2;
+
+    // Draw random lines from top-left corner
+    for t := 1 to 10 do
+      LineWithZ(0, 0, t * Random(40), t * Random(30), 0);
+  end;
+end;
+```
+
+## Custom Shape Classes
+
+Create completely custom node shapes by inheriting from `TTreeNodeShape`:
+
+```delphi
+type
+  // Global formatting options for custom shapes
+  TSpecialShapeFormat = class
+  public
+    MaxLevel: Integer;
+    VertOffset: Integer;
+    Brush: TTeeBrush;
+    Border: TTeePen;
+
+    constructor Create;
+    destructor Destroy; override;
+  end;
+
+  // Custom shape with special drawing behavior
+  TSpecialShape = class(TTreeNodeShape)
+  public
+    constructor Create(AOwner: TComponent); override;
+    procedure Draw; override;
+    class function Format: TSpecialShapeFormat;
+  end;
+
+constructor TSpecialShape.Create(AOwner: TComponent);
+begin
+  inherited;
+  Transparent := True;
+  Border.Visible := False;
+end;
+
+// Custom drawing logic
+procedure TSpecialShape.Draw;
+var
+  R: TRect;
+begin
+  // Only draw for nodes at specified level
+  if Level <= Format.MaxLevel then
+  with Tree.Canvas do
+  begin
+    AssignBrush(Format.Brush);
+    AssignVisiblePen(Format.Border);
+
+    R := Bounds;
+    // Draw a full-width rectangle behind the node
+    Rectangle(0, R.Top, Tree.ClientWidth, R.Bottom + Format.VertOffset);
+  end;
+
+  // Draw node text, image, etc. as usual
+  inherited;
+end;
+```
+
+## Using Custom Shape Classes
+
+Set custom shapes as the default node class:
+
+```delphi
+procedure TCustomShapeForm.FormCreate(Sender: TObject);
+begin
+  // Set custom shape as default for new nodes
+  Tree1.GlobalFormat.NodeClass := TSpecialShape;
+
+  // Add sample nodes (will use TSpecialShape)
+  Tree1.Add('Africa').Add('Kenya');
+  Tree1.Add('America').Add('USA').Add('Los Angeles');
+  Tree1.Add('Asia').Add('Japan').Add('Tokyo');
+
+  // Explicitly create a node with custom shape class
+  Tree1.AddShapeClass(0, 0, 'Universe', nil, TSpecialShape);
+end;
+```
+
+## Gradient Backgrounds
+
+Apply gradient fills to nodes:
+
+```delphi
+uses TeeEdiGrad;
+
+procedure TNodeGradientForm.FormCreate(Sender: TObject);
+begin
+  // Show selected nodes with their original gradient
+  Tree1.Selected.Color := clNone;
+end;
+
+procedure TNodeGradientForm.Button1Click(Sender: TObject);
+begin
+  // Edit gradient for selected node
+  if Tree1.Selected.Count > 0 then
+    TTeeGradientEditor.Edit(Self, Tree1.Selected.First.Gradient);
+end;
+
+procedure TNodeGradientForm.CheckBox1Click(Sender: TObject);
+var
+  t: Integer;
+begin
+  // Enable/disable gradient clipping for all nodes
+  for t := 0 to Tree1.Shapes.Count - 1 do
+    Tree1[t].GradientClip := CheckBox1.Checked;
+end;
+```
+
+## Custom Polygon Shapes
+
+Define shapes using custom point arrays:
+
+```delphi
+type
+  TCustomPolygonShape = class(TTreeCustomPolygonShape)
+  protected
+    function GetShapePoints(const R: TRect; var P: TShapePoints): Integer; override;
+  end;
+
+function TCustomPolygonShape.GetShapePoints(const R: TRect;
+  var P: TShapePoints): Integer;
+begin
+  // Define custom polygon points
+  SetLength(P, 5);
+  P[0] := Point(R.Left, R.Top + (R.Bottom - R.Top) div 2);
+  P[1] := Point(R.Left + (R.Right - R.Left) div 2, R.Top);
+  P[2] := Point(R.Right, R.Top + (R.Bottom - R.Top) div 2);
+  P[3] := Point(R.Left + (R.Right - R.Left) div 2, R.Bottom);
+  P[4] := P[0]; // Close the polygon
+  Result := Length(P);
+end;
+```
+
+## Z-Order Drawing
+
+Control drawing depth with Z-coordinates:
+
+```delphi
+// Draw lines with Z-order
+Tree1.Canvas.LineWithZ(X1, Y1, X2, Y2, ZDepth);
+
+// Control node drawing order
+Node1.ZOrder := 100; // Draw on top
+Node2.ZOrder := 0;   // Draw behind
+```
+
+## Canvas Properties
+
+The `Tree.Canvas` object provides:
+
+<CardGroup cols={2}>
+  <Card title="Drawing Methods" icon="pen">
+    - `Line`, `LineWithZ` - Draw lines
+    - `Rectangle` - Draw rectangles
+    - `Ellipse` - Draw ellipses
+    - `Polygon` - Draw polygons
+    - `TextOut` - Draw text
+  </Card>
+
+  <Card title="Style Properties" icon="palette">
+    - `Pen` - Line and border styling
+    - `Brush` - Fill styling
+    - `Font` - Text styling
+    - `AssignBrush`, `AssignPen` - Apply styles
+  </Card>
+</CardGroup>
+
+## Performance Tips
+
+<AccordionGroup>
+  <Accordion title="Optimize Drawing Code">
+    - Minimize calculations in `Draw` method
+    - Cache frequently used values
+    - Use `BeginUpdate`/`EndUpdate` when modifying multiple nodes
+  </Accordion>
+
+  <Accordion title="Buffered Display">
+    - Enable `BufferedDisplay` for smoother rendering
+    - Use double-buffering for complex custom drawing
+  </Accordion>
+
+  <Accordion title="Invalidation">
+    - Call `Invalidate` only when necessary
+    - Use partial invalidation with `InvalidateRect` when possible
+  </Accordion>
+</AccordionGroup>
+
+## Common Patterns
+
+### Conditional Formatting Based on Level
+
+```delphi
+procedure TSpecialShape.Draw;
+begin
+  // Different appearance for different tree levels
+  case Level of
+    0: Format.Brush.Color := clLime;
+    1: Format.Brush.Color := clAqua;
+    2: Format.Brush.Color := clYellow;
+  end;
+  
+  inherited;
+end;
+```
+
+### Custom Backgrounds
+
+```delphi
+procedure DrawCustomBackground(const Canvas: TCanvas3D);
+begin
+  // Draw a gradient background
+  Canvas.GradientFill(
+    Rect(0, 0, Tree1.Width, Tree1.Height),
+    clWhite, clSilver, gdVertical
+  );
+end;
+```
+
+### Highlighting Effects
+
+```delphi
+procedure TCustomShape.Draw;
+begin
+  if Selected then
+  begin
+    // Draw glow effect for selected nodes
+    Canvas.Pen.Color := clYellow;
+    Canvas.Pen.Width := 3;
+  end;
+  
+  inherited;
+end;
+```
+
+## Related Topics
+
+- [Node Shapes](/api/shapes/basic-shapes) - Built-in shape types
+- [Styling](/guides/node-formatting) - Color and formatting options
+- [Events](/guides/events) - Drawing-related events

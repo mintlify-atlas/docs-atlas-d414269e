@@ -1,0 +1,726 @@
+---
+title: "Import and Export"
+description: "Export trees to XML, HTML, JSON, Excel, and text formats"
+---
+
+## Overview
+
+TeeTree provides comprehensive export capabilities through the `TreeExport.pas` unit. Export your tree hierarchies to multiple formats including XML, HTML, JSON, Excel (XLS), and delimited text files.
+
+<Note>
+  All export formats preserve the hierarchical structure of your tree. Import capabilities are available through the TeeTree editor.
+</Note>
+
+## Export Formats
+
+TeeTree supports five export formats:
+
+| Format | Class | Description | Use Case |
+|--------|-------|-------------|----------|
+| **Text** | `TTreeDataText` | Delimited text with indentation | Simple data exchange |
+| **XML** | `TTreeDataXML` | Structured XML document | Data interchange, web services |
+| **HTML** | `TTreeDataHTML` | HTML table format | Web publishing |
+| **Excel** | `TTreeDataXLS` | Excel XLS file format | Spreadsheet analysis |
+| **JSON** | `TTreeDataJSON` | JSON hierarchical structure | Modern web APIs |
+
+## Quick Start
+
+### Using the Export Dialog
+
+The simplest way to export:
+
+```pascal
+uses
+  TreeExport;
+
+begin
+  // Show export dialog
+  ShowTreeExport(Self, Tree1);
+end;
+```
+
+From TreeExport.pas (lines 1090-1102):
+
+```pascal
+Procedure ShowTreeExport(AOwner: TComponent; ATree: TCustomTree);
+begin
+  With TTreeExportForm.Create(AOwner) do
+  try
+    NativeFilter := TeeMsg_TreeFiles;
+    NativeExtension := TreeMsg_TeeExtension;
+    ExportPanel := ATree;
+    Caption := TreeMsg_ExportTree;
+    ShowModal;
+  finally
+    Free;
+  end;
+end;
+```
+
+### Programmatic Export
+
+<Steps>
+  <Step title="Create Export Data Object">
+    Choose your export format:
+
+    ```pascal
+    var
+      ExportData: TTreeDataXML;
+      FileStream: TFileStream;
+    begin
+      ExportData := TTreeDataXML.Create(Tree1);
+      try
+        // Configure export settings...
+      finally
+        ExportData.Free;
+      end;
+    end;
+    ```
+  </Step>
+
+  <Step title="Configure Options">
+    Set format-specific options:
+
+    ```pascal
+    // For XML
+    ExportData.Encoding := 'UTF-8';
+    ExportData.Compact := False;  // Pretty-printed
+    
+    // For Text
+    TextExport.TextDelimiter := #9;  // Tab
+    TextExport.TextQuotes := '"';   // Quote character
+    ```
+  </Step>
+
+  <Step title="Export to File or String">
+    Save the exported data:
+
+    ```pascal
+    // Save to file
+    FileStream := TFileStream.Create('tree.xml', fmCreate);
+    try
+      ExportData.SaveToStream(FileStream);
+    finally
+      FileStream.Free;
+    end;
+    
+    // Or get as string
+    XMLString := ExportData.AsString;
+    Memo1.Text := XMLString;
+    ```
+  </Step>
+</Steps>
+
+## XML Export
+
+### Basic XML Export
+
+<CodeGroup>
+
+```pascal Compact XML
+uses
+  TreeExport;
+
+var
+  XML: TTreeDataXML;
+begin
+  XML := TTreeDataXML.Create(Tree1);
+  try
+    XML.Compact := True;  // Single line, no formatting
+    XML.Encoding := 'UTF-8';
+    
+    XML.SaveToStream(FileStream);
+  finally
+    XML.Free;
+  end;
+end;
+```
+
+```pascal Pretty-Printed XML
+var
+  XML: TTreeDataXML;
+begin
+  XML := TTreeDataXML.Create(Tree1);
+  try
+    XML.Compact := False;  // Formatted with indentation
+    XML.Encoding := 'UTF-8';
+    
+    // Display in memo
+    Memo1.Lines.Text := XML.AsString;
+  finally
+    XML.Free;
+  end;
+end;
+```
+
+</CodeGroup>
+
+### XML Output Format
+
+From TreeExport.pas (lines 261-329):
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<tree>
+  <node name="Node1" class="TTreeNodeShape">Root Node Text
+    <node name="Node2" class="TTreeNodeShape">Child 1</node>
+    <node name="Node3" class="TTreeNodeShape">Child 2</node>
+  </node>
+</tree>
+```
+
+The WriteNode implementation:
+
+```pascal
+procedure TTreeDataXML.WriteNode(ANode: TTreeNodeShape; 
+                                  AStream: TStream);
+var
+  t: Integer;
+  tmpTab: String;
+begin
+  if not FCompact then
+  begin
+    tmpTab := '';
+    for t := 1 to ANode.Level do
+        tmpTab := tmpTab + TeeTabDelimiter;
+    WriteText(tmpTab, AStream);
+  end;
+  
+  WriteText(
+    '<node name="' + ANode.Name + 
+    '" class="' + ANode.ClassName + '">' +
+    Trim(ANode.Text.Text),
+    AStream
+  );
+  
+  if ANode.HasChildren then
+  begin
+    if not FCompact then
+       WriteText(TeeTextLineSeparator, AStream);
+    
+    for t := 0 to ANode.Children.Count - 1 do
+        WriteNode(ANode.Children[t], AStream);
+    
+    if not FCompact then
+       WriteText(tmpTab, AStream);
+  end;
+  
+  WriteText('</node>', AStream);
+  
+  if not FCompact then
+     WriteText(TeeTextLineSeparator, AStream);
+end;
+```
+
+## HTML Export
+
+### Generating HTML Tables
+
+```pascal
+var
+  HTML: TTreeDataHTML;
+begin
+  HTML := TTreeDataHTML.Create(Tree1);
+  try
+    // Save as HTML file
+    with TFileStream.Create('tree.html', fmCreate) do
+    try
+      HTML.SaveToStream(TFileStream);
+    finally
+      Free;
+    end;
+  finally
+    HTML.Free;
+  end;
+end;
+```
+
+### HTML Output Format
+
+From TreeExport.pas (lines 331-366):
+
+```html
+<table border="1">
+<tr><td>Root Node</td></tr>
+<tr><td></td><td>Child 1</td></tr>
+<tr><td></td><td>Child 2</td></tr>
+<tr><td></td><td></td><td>Grandchild</td></tr>
+</table>
+```
+
+Implementation (TreeExport.pas lines 343-366):
+
+```pascal
+procedure TTreeDataHTML.WriteNode(ANode: TTreeNodeShape; 
+                                   AStream: TStream);
+var
+  t: Integer;
+  tmpText: String;
+begin
+  if ANode <> ANode.Tree.Roots[0] then
+     WriteText(TeeTextLineSeparator, AStream);
+  
+  tmpText := '<tr>';
+  
+  // Add empty cells for indentation
+  for t := 1 to ANode.Level do
+      tmpText := tmpText + '<td></td>';
+  
+  // Add node text
+  tmpText := tmpText + '<td>' + ANode.SimpleText;
+  
+  for t := 1 to ANode.Text.Count - 1 do
+      tmpText := tmpText + ' ' + ANode.Text[t];
+  
+  tmpText := tmpText + '</td></tr>';
+  
+  WriteText(tmpText, AStream);
+  
+  // Recursively write children
+  for t := 0 to ANode.Children.Count - 1 do
+      WriteNode(ANode.Children[t], AStream);
+end;
+```
+
+## JSON Export
+
+### Modern JSON Format
+
+```pascal
+var
+  JSON: TTreeDataJSON;
+begin
+  JSON := TTreeDataJSON.Create(Tree1);
+  try
+    // Save JSON
+    Memo1.Lines.Text := JSON.AsString;
+    
+    // Or save to file
+    JSON.SaveToStream(FileStream);
+  finally
+    JSON.Free;
+  end;
+end;
+```
+
+### JSON Output Format
+
+From TreeExport.pas (lines 499-538):
+
+```json
+{ "tree": [
+  { "text": "Root 1", "items": [
+    { "text": "Child 1" },
+    { "text": "Child 2", "items": [
+      { "text": "Grandchild" }
+    ] }
+  ] },
+  { "text": "Root 2" }
+] }
+```
+
+Implementation:
+
+```pascal
+procedure TTreeDataJSON.WriteNode(ANode: TTreeNodeShape; 
+                                   AStream: TStream);
+var
+  t: Integer;
+begin
+  WriteText('  { "text": "' + ANode.SimpleText + '" ', AStream);
+  
+  if ANode.HasChildren then
+  begin
+    WriteText(', "items": [' + TeeTextLineSeparator, AStream);
+    
+    for t := 0 to ANode.Children.Count - 1 do
+        WriteNode(ANode.Children[t], AStream);
+    
+    WriteText('  ]' + TeeTextLineSeparator, AStream);
+  end;
+  
+  WriteText('  }', AStream);
+  
+  // Add comma if not last item
+  if ANode.Parent = nil then
+  begin
+    if ANode.Tree.Roots.IndexOf(ANode) < 
+       ANode.Tree.Roots.Count - 1 then
+       WriteText(',', AStream);
+  end
+  else
+    if ANode.BrotherIndex < ANode.Parent.Children.Count - 1 then
+       WriteText(',', AStream);
+  
+  WriteText(TeeTextLineSeparator, AStream);
+end;
+```
+
+## Excel (XLS) Export
+
+<Warning>
+  Excel export creates binary XLS files (Excel 97-2003 format), not modern XLSX.
+</Warning>
+
+### Exporting to Excel
+
+```pascal
+var
+  XLS: TTreeDataXLS;
+begin
+  XLS := TTreeDataXLS.Create(Tree1);
+  try
+    with TFileStream.Create('tree.xls', fmCreate) do
+    try
+      XLS.SaveToStream(TFileStream);
+    finally
+      Free;
+    end;
+  finally
+    XLS.Free;
+  end;
+end;
+```
+
+### Excel Format Details
+
+From TreeExport.pas (lines 368-484):
+
+- Each node appears in a separate row
+- Tree levels are shown as columns (indentation)
+- Maximum 100 columns supported (MaxCols = 100)
+- Uses Excel BIFF5 format
+
+```pascal
+procedure TTreeDataXLS.WriteNode(ANode: TTreeNodeShape; 
+                                  AStream: TStream);
+var
+  t: Integer;
+  s: String;
+begin
+  // Write empty cells for indentation
+  for t := 0 to ANode.Level - 1 do
+  begin
+    Col := t;
+    WriteNull;  // Empty cell
+  end;
+  
+  // Write node text at appropriate column
+  Col := ANode.Level;
+  
+  s := ANode.SimpleText;
+  for t := 1 to ANode.Text.Count - 1 do
+      s := s + ' ' + ANode.Text[t];
+  
+  WriteText(ShortString(s));
+  Inc(Row);
+  
+  // Write children
+  for t := 0 to ANode.Children.Count - 1 do
+      WriteNode(ANode.Children[t], AStream);
+end;
+```
+
+## Text Export
+
+### Delimited Text Format
+
+<Tabs>
+  <Tab title="Tab-Delimited">
+    ```pascal
+    var
+      Text: TTreeDataText;
+    begin
+      Text := TTreeDataText.Create(Tree1);
+      try
+        Text.TextDelimiter := #9;  // Tab character
+        Text.TextQuotes := '';     // No quotes
+        
+        Memo1.Lines.Text := Text.AsString;
+      finally
+        Text.Free;
+      end;
+    end;
+    ```
+    
+    Output:
+    ```
+    Root 1
+    	Child 1
+    	Child 2
+    		Grandchild
+    Root 2
+    ```
+  </Tab>
+
+  <Tab title="Comma-Delimited">
+    ```pascal
+    var
+      Text: TTreeDataText;
+    begin
+      Text := TTreeDataText.Create(Tree1);
+      try
+        Text.TextDelimiter := ',';  // Comma
+        Text.TextQuotes := '"';     // Quote strings
+        
+        Text.SaveToStream(FileStream);
+      finally
+        Text.Free;
+      end;
+    end;
+    ```
+    
+    Output:
+    ```
+    "Root 1"
+    ,"Child 1"
+    ,"Child 2"
+    ,,"Grandchild"
+    "Root 2"
+    ```
+  </Tab>
+</Tabs>
+
+From TreeExport.pas (lines 222-259):
+
+```pascal
+procedure TTreeDataText.WriteNode(ANode: TTreeNodeShape; 
+                                   AStream: TStream);
+var
+  t: Integer;
+  tmpText: String;
+begin
+  if ANode <> ANode.Tree.Roots[0] then
+     WriteText(TeeTextLineSeparator, AStream);
+  
+  // Add delimiters for indentation (tree level)
+  tmpText := '';
+  for t := 1 to ANode.Level do
+      tmpText := tmpText + FTextDelimiter;
+  
+  // Add quoted node text
+  tmpText := tmpText + TextQuotes + ANode.SimpleText;
+  
+  for t := 1 to ANode.Text.Count - 1 do
+      tmpText := tmpText + ' ' + ANode.Text[t];
+  
+  tmpText := tmpText + TextQuotes;
+  
+  WriteText(tmpText, AStream);
+  
+  // Write children recursively
+  for t := 0 to ANode.Children.Count - 1 do
+      WriteNode(ANode.Children[t], AStream);
+end;
+```
+
+## Complete Export Example
+
+<CodeGroup>
+
+```pascal Export to All Formats
+procedure TForm1.ExportAllFormats;
+var
+  XML: TTreeDataXML;
+  HTML: TTreeDataHTML;
+  JSON: TTreeDataJSON;
+  XLS: TTreeDataXLS;
+  Text: TTreeDataText;
+  FS: TFileStream;
+begin
+  // XML
+  XML := TTreeDataXML.Create(Tree1);
+  try
+    XML.Compact := False;
+    FS := TFileStream.Create('tree.xml', fmCreate);
+    try
+      XML.SaveToStream(FS);
+    finally
+      FS.Free;
+    end;
+  finally
+    XML.Free;
+  end;
+  
+  // HTML
+  HTML := TTreeDataHTML.Create(Tree1);
+  try
+    FS := TFileStream.Create('tree.html', fmCreate);
+    try
+      HTML.SaveToStream(FS);
+    finally
+      FS.Free;
+    end;
+  finally
+    HTML.Free;
+  end;
+  
+  // JSON
+  JSON := TTreeDataJSON.Create(Tree1);
+  try
+    FS := TFileStream.Create('tree.json', fmCreate);
+    try
+      JSON.SaveToStream(FS);
+    finally
+      FS.Free;
+    end;
+  finally
+    JSON.Free;
+  end;
+  
+  // Excel
+  XLS := TTreeDataXLS.Create(Tree1);
+  try
+    FS := TFileStream.Create('tree.xls', fmCreate);
+    try
+      XLS.SaveToStream(FS);
+    finally
+      FS.Free;
+    end;
+  finally
+    XLS.Free;
+  end;
+  
+  // Text
+  Text := TTreeDataText.Create(Tree1);
+  try
+    Text.TextDelimiter := #9;
+    FS := TFileStream.Create('tree.txt', fmCreate);
+    try
+      Text.SaveToStream(FS);
+    finally
+      FS.Free;
+    end;
+  finally
+    Text.Free;
+  end;
+end;
+```
+
+</CodeGroup>
+
+## Import (Loading Trees)
+
+### Loading from File
+
+```pascal
+uses
+  TeeTree;  // For LoadTreeFromFile
+
+begin
+  // Load native .ttr file
+  LoadTreeFromFile(Tree1, 'mydata.ttr');
+end;
+```
+
+### Loading Children from File
+
+From TreeEd.pas (lines 1106-1120):
+
+```pascal
+Procedure LoadTreeChildsFromFile(
+  ANode: TTreeNodeShape; 
+  Const AName: String);
+var
+  t: Integer;
+  tmpTree: TCustomTree;
+begin
+  tmpTree := TTree.Create(nil);
+  try
+    tmpTree.Parent := ANode.Tree;
+    LoadTreeFromFile(tmpTree, AName);
+    
+    if tmpTree.Shapes.Count > 0 then
+      for t := 0 to tmpTree.Shapes.Count - 1 do
+          ANode.AddChild(tmpTree.Shapes[t].SimpleText);
+  finally
+    tmpTree.Free;
+  end;
+end;
+```
+
+## Export Dialog Customization
+
+The export form provides these options:
+
+From TreeExport.pas (lines 111-146):
+
+```pascal
+Function TTreeExportForm.CreateData: TTeeExportData;
+begin
+  Case RGText.ItemIndex of
+    0: begin  // Text
+         result := TTreeDataText.Create(Tree);
+         TTreeDataText(result).TextDelimiter := GetSeparator;
+         TTreeDataText(result).TextQuotes := EQuotes.Text;
+       end;
+    
+    1: begin  // XML
+         result := TTreeDataXML.Create(Tree);
+         TTreeDataXML(result).Encoding := CBXMLEncoding.Text;
+       end;
+    
+    2: result := TTreeDataHTML.Create(Tree);  // HTML
+    3: result := TTreeDataXLS.Create(Tree);   // Excel
+  else
+    result := TTreeDataJSON.Create(Tree);     // JSON
+  end;
+end;
+```
+
+## Best Practices
+
+<CardGroup cols={2}>
+
+<Card title="Use Appropriate Format" icon="file">
+  - XML/JSON for data exchange
+  - HTML for web display
+  - XLS for analysis
+  - Text for simple viewing
+</Card>
+
+<Card title="Handle Large Trees" icon="database">
+  Use streams instead of AsString for large trees to avoid memory issues.
+</Card>
+
+<Card title="UTF-8 Encoding" icon="language">
+  Always use UTF-8 for XML/JSON to support international characters.
+</Card>
+
+<Card title="Test Round-Trip" icon="rotate">
+  Export and re-import to verify data integrity, especially for custom nodes.
+</Card>
+
+</CardGroup>
+
+## Error Handling
+
+```pascal
+procedure SafeExport;
+var
+  XML: TTreeDataXML;
+  FS: TFileStream;
+begin
+  XML := TTreeDataXML.Create(Tree1);
+  try
+    try
+      FS := TFileStream.Create('tree.xml', fmCreate);
+      try
+        XML.SaveToStream(FS);
+        ShowMessage('Export successful');
+      finally
+        FS.Free;
+      end;
+    except
+      on E: Exception do
+        ShowMessage('Export failed: ' + E.Message);
+    end;
+  finally
+    XML.Free;
+  end;
+end;
+```
+
+<Note>
+  The TeeTree native format (.ttr) preserves all formatting, connections, and custom properties. Use export formats for data interchange, not archival.
+</Note>

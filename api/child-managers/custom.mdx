@@ -1,0 +1,418 @@
+---
+title: 'Custom Child Managers'
+description: 'Create custom layout algorithms by implementing the TChildManager base class'
+---
+
+## Overview
+
+You can create completely custom layout algorithms for TeeTree by implementing the `TChildManager` abstract base class. This allows you to define exactly how child nodes are positioned relative to their parents.
+
+## Base Class: TChildManager
+
+All child managers inherit from the abstract `TChildManager` class, which defines the interface for layout algorithms.
+
+### Abstract Methods
+
+You must implement these four abstract methods:
+
+<ParamField path="CalcXYCross" type="Function">
+  **Signature:** `Function CalcXYCross(const ANode, AParent: TTreeNodeShape): TPoint`
+  
+  Calculates the position of the cross-box (expand/collapse control) for the given node.
+  
+  **Parameters:**
+  - `ANode` - The node for which to calculate cross-box position
+  - `AParent` - The parent node (may be nil for root nodes)
+  
+  **Returns:** TPoint with X and Y coordinates for the cross-box
+</ParamField>
+
+<ParamField path="DrawConnection" type="Function">
+  **Signature:** `Function DrawConnection(const AConnection: TTreeConnection): Boolean`
+  
+  Draws the connection line between parent and child nodes.
+  
+  **Parameters:**
+  - `AConnection` - The connection object to draw
+  
+  **Returns:** True to continue drawing nodes, False to skip
+</ParamField>
+
+<ParamField path="XPosition" type="Function">
+  **Signature:** `Function XPosition(const ANode: TTreeNodeShape; ABrotherIndex: Integer): Integer`
+  
+  Calculates the horizontal (X) position for a child node.
+  
+  **Parameters:**
+  - `ANode` - The node to position
+  - `ABrotherIndex` - Zero-based index among siblings
+  
+  **Returns:** X coordinate in pixels
+</ParamField>
+
+<ParamField path="YPosition" type="Function">
+  **Signature:** `Function YPosition(const ANode: TTreeNodeShape; ABrotherIndex: Integer): Integer`
+  
+  Calculates the vertical (Y) position for a child node.
+  
+  **Parameters:**
+  - `ANode` - The node to position
+  - `ABrotherIndex` - Zero-based index among siblings
+  
+  **Returns:** Y coordinate in pixels
+</ParamField>
+
+## Creating a Custom Child Manager
+
+### Basic Template
+
+```pascal
+type
+  TMyCustomAlignChild = class(TChildManager)
+  private
+    FSpacing: Integer;
+  public
+    Constructor Create;
+    
+    Function CalcXYCross(const ANode, AParent: TTreeNodeShape): TPoint; override;
+    Function DrawConnection(const AConnection: TTreeConnection): Boolean; override;
+    Function XPosition(const ANode: TTreeNodeShape; ABrotherIndex: Integer): Integer; override;
+    Function YPosition(const ANode: TTreeNodeShape; ABrotherIndex: Integer): Integer; override;
+    
+    property Spacing: Integer read FSpacing write FSpacing default 20;
+  end;
+
+implementation
+
+Constructor TMyCustomAlignChild.Create;
+begin
+  inherited;
+  FSpacing := 20;
+end;
+
+Function TMyCustomAlignChild.CalcXYCross(const ANode, AParent: TTreeNodeShape): TPoint;
+begin
+  // Calculate cross-box position
+  result.X := ANode.X0 - 10;
+  result.Y := ANode.Y0 + (ANode.Height div 2);
+end;
+
+Function TMyCustomAlignChild.DrawConnection(const AConnection: TTreeConnection): Boolean;
+begin
+  // Set up connection points and draw
+  with AConnection do
+  begin
+    Style := csLine;
+    // Add custom connection point logic here
+  end;
+  result := True;
+end;
+
+Function TMyCustomAlignChild.XPosition(const ANode: TTreeNodeShape; ABrotherIndex: Integer): Integer;
+begin
+  // Calculate X position based on your algorithm
+  if Assigned(ANode.Parent) then
+    result := ANode.Parent.X0 + FSpacing
+  else
+    result := ANode.X0; // Root node keeps its position
+end;
+
+Function TMyCustomAlignChild.YPosition(const ANode: TTreeNodeShape; ABrotherIndex: Integer): Integer;
+begin
+  // Calculate Y position based on your algorithm  
+  if Assigned(ANode.Parent) then
+    result := ANode.Parent.Y0 + (ABrotherIndex * FSpacing)
+  else
+    result := ANode.Y0; // Root node keeps its position
+end;
+```
+
+### Using Your Custom Manager
+
+```pascal
+var
+  MyManager: TMyCustomAlignChild;
+begin
+  // Free the default manager
+  Tree1.GlobalFormat.ChildManager.Free;
+  
+  // Create and assign your custom manager
+  MyManager := TMyCustomAlignChild.Create;
+  MyManager.Spacing := 30;
+  
+  Tree1.GlobalFormat.ChildManager := MyManager;
+end;
+```
+
+## Example: Diagonal Layout
+
+Here's a complete example of a diagonal child manager:
+
+```pascal
+type
+  TTreeDiagonalAlignChild = class(TChildManager)
+  private
+    FXOffset: Integer;
+    FYOffset: Integer;
+  public
+    Constructor Create;
+    
+    Function CalcXYCross(const ANode, AParent: TTreeNodeShape): TPoint; override;
+    Function DrawConnection(const AConnection: TTreeConnection): Boolean; override;
+    Function XPosition(const ANode: TTreeNodeShape; ABrotherIndex: Integer): Integer; override;
+    Function YPosition(const ANode: TTreeNodeShape; ABrotherIndex: Integer): Integer; override;
+    
+    property XOffset: Integer read FXOffset write FXOffset default 40;
+    property YOffset: Integer read FYOffset write FYOffset default 40;
+  end;
+
+implementation
+
+Constructor TTreeDiagonalAlignChild.Create;
+begin
+  inherited;
+  FXOffset := 40;
+  FYOffset := 40;
+end;
+
+Function TTreeDiagonalAlignChild.CalcXYCross(const ANode, AParent: TTreeNodeShape): TPoint;
+begin
+  result.X := ANode.X0 - 8;
+  result.Y := ANode.Y0 + (ANode.Height div 2);
+end;
+
+Function TTreeDiagonalAlignChild.DrawConnection(const AConnection: TTreeConnection): Boolean;
+begin
+  result := True;
+  AConnection.Style := csLine; // Simple straight line
+end;
+
+Function TTreeDiagonalAlignChild.XPosition(const ANode: TTreeNodeShape; ABrotherIndex: Integer): Integer;
+begin
+  with ANode do
+  if Assigned(Parent) then
+    // Diagonal: each sibling offset both X and Y
+    result := Parent.X1 + FXOffset
+  else
+    result := X0; // Root
+end;
+
+Function TTreeDiagonalAlignChild.YPosition(const ANode: TTreeNodeShape; ABrotherIndex: Integer): Integer;
+begin
+  with ANode do
+  if Assigned(Parent) then
+    // Diagonal: offset Y based on sibling index
+    result := Parent.Y0 + (ABrotherIndex * FYOffset)
+  else
+    result := Y0; // Root
+end;
+```
+
+### Visual Result
+
+```
+Root
+    \│
+     Child 1
+         \│
+          Child 2
+              \│
+               Child 3
+```
+
+## Example: Grid Layout
+
+A child manager that arranges nodes in a grid:
+
+```pascal
+type
+  TTreeGridAlignChild = class(TChildManager)
+  private
+    FColumns: Integer;
+    FSpacingX: Integer;
+    FSpacingY: Integer;
+  public
+    Constructor Create;
+    
+    Function CalcXYCross(const ANode, AParent: TTreeNodeShape): TPoint; override;
+    Function DrawConnection(const AConnection: TTreeConnection): Boolean; override;
+    Function XPosition(const ANode: TTreeNodeShape; ABrotherIndex: Integer): Integer; override;
+    Function YPosition(const ANode: TTreeNodeShape; ABrotherIndex: Integer): Integer; override;
+    
+    property Columns: Integer read FColumns write FColumns default 3;
+    property SpacingX: Integer read FSpacingX write FSpacingX default 80;
+    property SpacingY: Integer read FSpacingY write FSpacingY default 60;
+  end;
+
+implementation
+
+Constructor TTreeGridAlignChild.Create;
+begin
+  inherited;
+  FColumns := 3;
+  FSpacingX := 80;
+  FSpacingY := 60;
+end;
+
+Function TTreeGridAlignChild.XPosition(const ANode: TTreeNodeShape; ABrotherIndex: Integer): Integer;
+var
+  Col: Integer;
+begin
+  if Assigned(ANode.Parent) then
+  begin
+    Col := ABrotherIndex mod FColumns;
+    result := ANode.Parent.X0 + (Col * FSpacingX);
+  end
+  else
+    result := ANode.X0;
+end;
+
+Function TTreeGridAlignChild.YPosition(const ANode: TTreeNodeShape; ABrotherIndex: Integer): Integer;
+var
+  Row: Integer;
+begin
+  if Assigned(ANode.Parent) then
+  begin
+    Row := ABrotherIndex div FColumns;
+    result := ANode.Parent.Y1 + 20 + (Row * FSpacingY);
+  end
+  else
+    result := ANode.Y0;
+end;
+
+Function TTreeGridAlignChild.CalcXYCross(const ANode, AParent: TTreeNodeShape): TPoint;
+begin
+  result.X := ANode.XCenter;
+  result.Y := ANode.Y1 + 5;
+end;
+
+Function TTreeGridAlignChild.DrawConnection(const AConnection: TTreeConnection): Boolean;
+begin
+  result := True;
+  AConnection.Style := csLine;
+end;
+```
+
+### Visual Result
+
+```
+         Parent
+           │
+    ┌──────┼──────┐
+    │      │      │
+  Child1 Child2 Child3
+    │      │      │
+  Child4 Child5 Child6
+```
+
+## Built-in Helper Classes
+
+Several built-in classes provide useful foundations:
+
+### TTreeSideAlignChild
+
+Base class with common properties for side-based layouts:
+
+```pascal
+TTreeSideAlignChild = class(TChildManager)
+public
+  property CrossMargin: Integer;
+  property HorizMargin: Integer;
+  property ToShapeOffset: Integer;
+  property VertMargin: Integer;
+end;
+```
+
+Used by `TTreeTopBottomAlignChild` and `TTreeLeftRightAlignChild`.
+
+## Tips for Custom Layouts
+
+<Tip>
+Access node properties like `ANode.Parent`, `ANode.Count`, `ANode.Children[i]` to make layout decisions based on tree structure.
+</Tip>
+
+<Tip>
+Use `ANode.Tree.ChartBounds` to access the tree's drawing area boundaries.
+</Tip>
+
+<Tip>
+For complex connection drawing, use `AConnection.Points.Add()` to create multi-segment paths.
+</Tip>
+
+<Warning>
+Always check if `ANode.Parent` is assigned before accessing parent properties, as root nodes have no parent.
+</Warning>
+
+## Connection Drawing Techniques
+
+### Simple Line Connection
+
+```pascal
+Function TMyManager.DrawConnection(const AConnection: TTreeConnection): Boolean;
+begin
+  result := True;
+  AConnection.Style := csLine;
+  // TeeTree draws a line from FromShape to ToShape
+end;
+```
+
+### Custom Connection Points
+
+```pascal
+Function TMyManager.DrawConnection(const AConnection: TTreeConnection): Boolean;
+begin
+  result := True;
+  
+  with AConnection do
+  begin
+    Style := csLine;
+    
+    with Points do
+    begin
+      Clear;
+      // Start point: bottom of parent
+      Add(cpsFromPercent, 50, cpsFromPercent, 100);
+      // Midpoint
+      Add(cpsPrevious, 0, cpsPrevious, 20);
+      // End point: top of child
+      Add(cpsToPercent, 50, cpsToRel, -10);
+    end;
+  end;
+end;
+```
+
+## Testing Your Custom Manager
+
+```pascal
+procedure TestCustomManager;
+var
+  Root, Child: TTreeNodeShape;
+begin
+  // Apply your manager
+  Tree1.GlobalFormat.ChildManager.Free;
+  Tree1.GlobalFormat.ChildManager := TMyCustomAlignChild.Create;
+  
+  // Create test nodes
+  Root := Tree1.AddRoot('Root');
+  Root.Expanded := True;
+  
+  Child := Root.AddChild('Child 1');
+  Root.AddChild('Child 2');
+  Root.AddChild('Child 3');
+  
+  // Test nested levels
+  Child.Expanded := True;
+  Child.AddChild('Grandchild 1');
+  Child.AddChild('Grandchild 2');
+  
+  // Force refresh
+  Tree1.Invalidate;
+end;
+```
+
+## Related Classes
+
+- [Explorer Layout](/api/child-managers/explorer) - Reference implementation
+- [Horizontal Layout](/api/child-managers/horizontal) - Left-to-right example
+- [Vertical Layout](/api/child-managers/vertical) - Top-to-bottom example
+- [Circular Layout](/api/child-managers/circular) - Radial example

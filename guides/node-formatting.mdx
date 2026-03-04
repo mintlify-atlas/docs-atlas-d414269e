@@ -1,0 +1,492 @@
+---
+title: Node Formatting
+description: Customize the visual appearance of TeeTree nodes with colors, styles, images, and effects
+---
+
+TeeTree nodes are highly customizable visual components. This guide covers all formatting options to create professional-looking tree diagrams.
+
+## Basic Colors
+
+<CodeGroup>
+```pascal Background Color
+// Simple color
+Node.Color := clLightBlue;
+Node.BackColor := clYellow;  // Alternative property
+
+// Transparent background
+Node.Transparent := True;
+```
+
+```pascal Border Color
+// Configure border pen
+Node.Border.Color := clBlue;
+Node.Border.Width := 2;
+Node.Border.Style := psSolid;  // psDash, psDot, etc.
+
+// Hide border
+Node.Border.Visible := False;
+```
+
+```pascal Brush Fill
+// Configure fill brush
+Node.Brush.Color := clWhite;
+Node.Brush.Style := bsSolid;  // bsClear, bsHatch, etc.
+```
+</CodeGroup>
+
+## Node Styles
+
+TeeTree supports various built-in shapes through the `Style` property.
+
+```pascal
+type
+  TTreeShapeStyle = (
+    tssRectangle,        // Default rectangular node
+    tssCircle,           // Circular/ellipse
+    tssVertLine,         // Vertical line
+    tssHorizLine,        // Horizontal line  
+    tssLine,             // Diagonal line /
+    tssInvertLine,       // Diagonal line \
+    tssDiamond,          // Diamond shape
+    tssTriangleTop,      // Triangle pointing up
+    tssTriangleBottom,   // Triangle pointing down
+    tssTriangleLeft,     // Triangle pointing left
+    tssTriangleRight,    // Triangle pointing right
+    tssRoundRectangle,   // Rounded corners rectangle
+    tssChamfer,          // Chamfered corners
+    tssCustom            // Custom drawing
+  );
+```
+
+### Using Styles
+
+<CodeGroup>
+```pascal Basic Styles
+// Rectangle (default)
+Node.Style := tssRectangle;
+
+// Circle/Ellipse
+Node.Style := tssCircle;
+
+// Diamond
+Node.Style := tssDiamond;
+```
+
+```pascal Rounded Corners
+// Rounded rectangle
+Node.Style := tssRoundRectangle;
+Node.RoundSize := 10;  // Corner radius (default 3)
+
+// Chamfered corners
+Node.Style := tssChamfer;
+Node.RoundSize := 8;
+```
+
+```pascal Triangles
+// Directional indicators
+Node.Style := tssTriangleRight;
+Node.Color := clYellow;
+Node.Border.Color := clRed;
+```
+</CodeGroup>
+
+## Gradients
+
+Add depth with gradient fills.
+
+<Steps>
+  <Step title="Enable Gradient">
+    Configure the gradient properties:
+    
+    ```pascal
+    Node.Gradient.Visible := True;
+    Node.Gradient.StartColor := clWhite;
+    Node.Gradient.EndColor := clBlue;
+    ```
+  </Step>
+  
+  <Step title="Set Direction">
+    Choose gradient direction:
+    
+    ```pascal
+    Node.Gradient.Direction := gdTopBottom;      // Top to bottom
+    Node.Gradient.Direction := gdBottomTop;      // Bottom to top
+    Node.Gradient.Direction := gdLeftRight;      // Left to right
+    Node.Gradient.Direction := gdRightLeft;      // Right to left
+    Node.Gradient.Direction := gdRadial;         // Radial from center
+    ```
+  </Step>
+  
+  <Step title="Advanced Options">
+    Fine-tune gradient appearance:
+    
+    ```pascal
+    // Gradient clipping
+    Node.GradientClip := True;  // Clip to shape (default)
+    Node.GradientClip := False; // Fill entire bounds
+    
+    // Balance point
+    Node.Gradient.Balance := 50;  // 0-100, midpoint position
+    
+    // Transparency
+    Node.Gradient.StartColor := ApplyTransparency(clBlue, 50);
+    ```
+  </Step>
+</Steps>
+
+## Shadows
+
+Add depth with drop shadows.
+
+```pascal
+// Enable shadow
+Node.Shadow.Visible := True;
+
+// Configure appearance
+Node.Shadow.Color := clGray;
+Node.Shadow.Width := 3;
+Node.Shadow.HorizSize := 4;  // Horizontal offset
+Node.Shadow.VertSize := 4;   // Vertical offset
+
+// Smooth shadow
+Node.Shadow.Smooth := True;
+Node.Shadow.SmoothBlur := 2;
+```
+
+<Note>
+Shadows add visual depth but may impact rendering performance with many nodes.
+</Note>
+
+## Transparency
+
+<CodeGroup>
+```pascal Node Transparency
+// Semi-transparent node (0-100%)
+Node.Transparency := 50;  // 50% transparent
+
+// Fully transparent background
+Node.Transparent := True;
+```
+
+```pascal Text Transparency
+// Semi-transparent text
+Node.Text.Transparency := 30;
+```
+</CodeGroup>
+
+## Text Formatting
+
+### Font Properties
+
+```pascal
+// Font configuration
+Node.Font.Name := 'Arial';
+Node.Font.Size := 10;
+Node.Font.Color := clBlack;
+Node.Font.Style := [fsBold];
+
+// Text effects
+Node.Font.Shadow.Visible := True;
+Node.Font.Outline.Visible := True;
+Node.Font.Outline.Color := clWhite;
+```
+
+### Text Alignment
+
+<CodeGroup>
+```pascal Horizontal Alignment
+Node.HorizTextAlign := htaCenter;  // Center (default)
+Node.HorizTextAlign := htaLeft;    // Left align
+Node.HorizTextAlign := htaRight;   // Right align
+
+// Or using Text property
+Node.Text.HorizAlign := htaLeft;
+```
+
+```pascal Vertical Alignment
+Node.VertTextAlign := vtaCenter;  // Center (default)  
+Node.VertTextAlign := vtaTop;     // Top align
+Node.VertTextAlign := vtaBottom;  // Bottom align
+
+// Or using Text property
+Node.Text.VertAlign := vtaTop;
+```
+
+```pascal Text Offset
+// Fine-tune text position
+Node.Text.HorizOffset := 5;   // Pixels right
+Node.Text.VertOffset := -3;   // Pixels up
+```
+</CodeGroup>
+
+### Text Rotation
+
+```pascal
+// Rotate text (0-360 degrees)
+Node.Text.Angle := 45;   // 45 degree rotation
+Node.Text.Angle := 270;  // Vertical text
+```
+
+### Text Clipping
+
+```pascal
+// Clip text to node bounds
+Node.Text.ClipText := True;
+
+// Allow text overflow
+Node.Text.ClipText := False;  // Default
+```
+
+## Images
+
+Nodes can display images from multiple sources.
+
+### Stock Images
+
+TeeTree includes built-in stock images:
+
+```pascal
+type
+  TTreeNodeImageIndex = (
+    tiNone,
+    tiFolderClose,         // Closed folder
+    tiFolderOpen,          // Open folder  
+    tiDesktop,             // Desktop icon
+    tiMyPC,                // Computer icon
+    tiNetworkNei,          // Network
+    tiFloppy3,             // Floppy disk
+    tiRecycleBin,          // Recycle bin
+    tiHardDisk,            // Hard drive
+    tiNetShare,            // Network share
+    tiComputer,            // Computer
+    tiWorld,               // Globe
+    tiFolderOpenClose,     // +/- folder
+    tiFolderCloseChecked,  // Checked folder
+    tiFolderCloseUnChecked,// Unchecked folder
+    tiChecked,             // Checkbox checked
+    tiUnChecked,           // Checkbox unchecked
+    tiRadioChecked,        // Radio button checked
+    tiRadioUnChecked       // Radio button unchecked
+  );
+
+// Use stock image
+Node.ImageIndex := tiFolderClose;
+```
+
+### Custom Images
+
+<CodeGroup>
+```pascal From File
+// Load image from file
+Node.Image.LoadFromFile('icon.bmp');
+
+// Set image properties
+Node.Image.Transparent := True;
+Node.ImageWidth := 32;
+Node.ImageHeight := 32;
+```
+
+```pascal From ImageList
+// Use TImageList component
+Tree1.Images := ImageList1;
+Node.ImageListIndex := 0;  // Index in ImageList
+```
+
+```pascal Programmatic
+// Assign from TPicture
+Node.Image.Assign(MyPicture);
+
+// Assign from TBitmap
+Node.Image.Bitmap.Assign(MyBitmap);
+```
+</CodeGroup>
+
+### Image Alignment
+
+```pascal
+type
+  TTreeImageAlignment = (
+    iaAutomatic,      // Auto position based on tree layout
+    iaLeftTop,        // Top-left corner
+    iaRightBottom,    // Bottom-right corner  
+    iaLeftBottom,     // Bottom-left corner
+    iaRightTop,       // Top-right corner
+    iaLeft,           // Left side, vertically centered
+    iaTop,            // Top side, horizontally centered
+    iaRight,          // Right side, vertically centered
+    iaBottom,         // Bottom side, horizontally centered
+    iaCenter          // Center of node
+  );
+
+// Set alignment
+Node.ImageAlignment := iaLeft;  // Image on left of text
+```
+
+## Checkboxes and Radio Buttons
+
+Create checkbox or radio button nodes:
+
+```pascal
+// Checkbox node
+Node.ImageIndex := tiUnChecked;
+Node.Checked := False;  // Unchecked state
+
+// Toggle checkbox
+Node.ToggleCheck;  // Changes between checked/unchecked
+
+// Radio button
+Node.ImageIndex := tiRadioUnChecked;
+
+// Check if node has checkbox
+if Node.HasCheckBox then
+  ShowMessage('Checked: ' + BoolToStr(Node.Checked));
+```
+
+<Accordion title="Checkbox Example">
+```pascal
+procedure CreateCheckboxNode;
+var CheckNode: TTreeNodeShape;
+begin
+  CheckNode := Tree1.Add('Enable Feature');
+  CheckNode.ImageIndex := tiUnChecked;
+  CheckNode.ImageAlignment := iaLeft;
+  CheckNode.AutoSize := True;
+end;
+
+procedure Tree1ClickShape(Sender: TTreeNodeShape; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  if Sender.HasCheckBox then
+    Sender.ToggleCheck;
+end;
+```
+</Accordion>
+
+## CrossBox (Expand/Collapse Button)
+
+Control the +/- box for expandable nodes:
+
+```pascal
+// Auto display (only when node has children)
+Node.ShowCross := scAuto;  // Default
+
+// Always show
+Node.ShowCross := scAlways;
+
+// Never show
+Node.ShowCross := scNever;
+```
+
+## Cursor
+
+Customize mouse cursor when hovering:
+
+```pascal
+// Set node cursor
+Node.Cursor := crHandPoint;
+Node.Cursor := crCross;
+Node.Cursor := crHelp;
+
+// Set for all nodes
+for i := 0 to Tree1.Shapes.Count - 1 do
+  Tree1.Shapes[i].Cursor := crHandPoint;
+```
+
+## Applying Formats to Multiple Nodes
+
+### Using AssignFormat
+
+```pascal
+// Create template node
+TemplateNode := TTreeNodeShape.Create(nil);
+try
+  TemplateNode.Color := clLightBlue;
+  TemplateNode.Border.Width := 2;
+  TemplateNode.Font.Style := [fsBold];
+  TemplateNode.Gradient.Visible := True;
+  
+  // Apply to other nodes
+  for i := 0 to Tree1.Shapes.Count - 1 do
+    Tree1.Shapes[i].AssignFormat(TemplateNode);
+finally
+  TemplateNode.Free;
+end;
+```
+
+### Using Global Format
+
+```pascal
+// Set global default for new nodes
+Tree1.GlobalFormat.Color := clLightYellow;
+Tree1.GlobalFormat.Border.Color := clNavy;
+Tree1.GlobalFormat.Font.Size := 10;
+
+// New nodes inherit these settings
+NewNode := Tree1.Add('Inherits global format');
+```
+
+## Advanced: Custom Drawing
+
+For complete control, use custom drawing:
+
+```pascal
+Node.Style := tssCustom;
+
+procedure Tree1DrawShape(Sender: TTreeNodeShape; Canvas: TCanvas3D);
+var R: TRect;
+begin
+  R := Sender.Bounds;
+  
+  // Custom drawing code
+  Canvas.Brush.Color := clYellow;
+  Canvas.Ellipse(R);
+  
+  Canvas.Pen.Color := clRed;
+  Canvas.Line(R.Left, R.Top, R.Right, R.Bottom);
+end;
+```
+
+## Common Formatting Recipes
+
+<Accordion title="Windows Explorer Style">
+```pascal
+Node.ImageIndex := tiFolderClose;
+Node.ImageAlignment := iaLeft;
+Node.ShowCross := scAuto;
+Node.AutoSize := True;
+Node.Border.Visible := False;
+Node.Transparent := True;
+```
+</Accordion>
+
+<Accordion title="Modern Card Style">
+```pascal
+Node.Style := tssRoundRectangle;
+Node.RoundSize := 8;
+Node.Color := clWhite;
+Node.Shadow.Visible := True;
+Node.Shadow.Color := clGray;
+Node.Shadow.HorizSize := 2;
+Node.Shadow.VertSize := 2;
+Node.Border.Color := clSilver;
+Node.Border.Width := 1;
+```
+</Accordion>
+
+<Accordion title="Flowchart Node">
+```pascal
+Node.Style := tssRoundRectangle;
+Node.Color := clLightBlue;
+Node.Border.Color := clNavy;
+Node.Border.Width := 2;
+Node.Font.Style := [fsBold];
+Node.Font.Color := clNavy;
+Node.AutoSize := True;
+```
+</Accordion>
+
+## Next Steps
+
+- Connect nodes visually with [Connections](/guides/connections)
+- Learn data binding in [Database Trees](/guides/database-trees)
+- Explore the [API Reference](/api/ttree) for all properties

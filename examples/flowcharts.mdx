@@ -1,0 +1,384 @@
+---
+title: Flowcharts
+description: Create professional flowcharts with TeeTree's specialized flowchart shapes
+---
+
+TeeTree includes a comprehensive set of flowchart shapes in the `TreeFlow` unit, making it ideal for creating process diagrams, decision trees, and workflow visualizations.
+
+## Flowchart Shapes
+
+Import the flowchart shapes:
+
+```delphi
+uses TreeFlow;
+```
+
+### Basic Flowchart Shapes
+
+<CardGroup cols={2}>
+  <Card title="Process" icon="square">
+    ```delphi
+    TProcessShape
+    // Standard rectangular process box
+    Style: tssRectangle
+    ```
+  </Card>
+
+  <Card title="Decision" icon="diamond">
+    ```delphi
+    TDecisionShape
+    // Diamond shape for decisions
+    Style: tssDiamond
+    ```
+  </Card>
+
+  <Card title="Terminal" icon="circle">
+    ```delphi
+    TTerminalShape
+    // Rounded rectangle for start/end
+    ```
+  </Card>
+
+  <Card title="Connector" icon="circle-dot">
+    ```delphi
+    TConnectorShape
+    // Small circle for connectors
+    Style: tssCircle
+    ```
+  </Card>
+</CardGroup>
+
+## Creating a Simple Flowchart
+
+```delphi
+procedure CreateSimpleFlowchart;
+var
+  Start, Process1, Decision1, Process2, End1: TTreeNodeShape;
+begin
+  Tree1.BeginUpdate;
+  try
+    // Start terminal
+    Start := TTerminalShape.Create(Self);
+    Start.Text.Text := 'Start';
+    Start.X0 := 200;
+    Start.Y0 := 50;
+    Start.Width := 100;
+    Start.Height := 50;
+    Start.Color := clLime;
+    Start.Tree := Tree1;
+
+    // Process step
+    Process1 := TProcessShape.Create(Self);
+    Process1.Text.Text := 'Initialize';
+    Process1.Width := 120;
+    Process1.Height := 60;
+    Process1.Color := clAqua;
+    Process1.Tree := Tree1;
+    Start.AddConnection(Process1);
+
+    // Decision point
+    Decision1 := TDecisionShape.Create(Self);
+    Decision1.Text.Text := 'Valid?';
+    Decision1.Width := 100;
+    Decision1.Height := 100;
+    Decision1.Color := clYellow;
+    Decision1.Tree := Tree1;
+    Process1.AddConnection(Decision1);
+
+    // Process step 2
+    Process2 := TProcessShape.Create(Self);
+    Process2.Text.Text := 'Continue';
+    Process2.Width := 120;
+    Process2.Height := 60;
+    Process2.Color := clAqua;
+    Process2.Tree := Tree1;
+    Decision1.AddConnection(Process2);
+
+    // End terminal
+    End1 := TTerminalShape.Create(Self);
+    End1.Text.Text := 'End';
+    End1.Width := 100;
+    End1.Height := 50;
+    End1.Color := clRed;
+    End1.Tree := Tree1;
+    Process2.AddConnection(End1);
+
+  finally
+    Tree1.EndUpdate;
+  end;
+end;
+```
+
+## Advanced Flowchart Shapes
+
+### Input/Output Shapes
+
+```delphi
+type
+  TInputOutputShape = class(TFlowChartShape)
+  public
+    property Slant: Double; // Angle of parallelogram slant
+  end;
+
+// Create an input/output shape
+var
+  IO: TInputOutputShape;
+begin
+  IO := TInputOutputShape.Create(Self);
+  IO.Text.Text := 'Read Input';
+  IO.Slant := 0.3; // 30% slant
+  IO.Color := clMoneyGreen;
+  IO.Tree := Tree1;
+end;
+```
+
+### Predefined Process
+
+```delphi
+// Double-bordered rectangle for predefined processes
+var
+  Predefined: TPredefinedProcessShape;
+begin
+  Predefined := TPredefinedProcessShape.Create(Self);
+  Predefined.Text.Text := 'Call Subroutine';
+  Predefined.Tree := Tree1;
+end;
+```
+
+### Document Shape
+
+```delphi
+var
+  Doc: TDocumentShape;
+begin
+  Doc := TDocumentShape.Create(Self);
+  Doc.Text.Text := 'Generate Report';
+  Doc.Color := clWhite;
+  Doc.Border.Color := clBlack;
+  Doc.Tree := Tree1;
+end;
+```
+
+### Manual Operations
+
+```delphi
+// Trapezoid for manual operations
+var
+  Manual: TManualOperationShape;
+begin
+  Manual := TManualOperationShape.Create(Self);
+  Manual.Text.Text := 'Manual Review';
+  Manual.Color := clInfoBk;
+  Manual.Tree := Tree1;
+end;
+```
+
+### Storage Shapes
+
+```delphi
+// Online storage (curved trapezoid)
+var
+  Storage: TOnlineStorageShape;
+begin
+  Storage := TOnlineStorageShape.Create(Self);
+  Storage.Text.Text := 'Database';
+  Storage.Color := clSkyBlue;
+  Storage.Tree := Tree1;
+end;
+
+// Magnetic tape (circle with line)
+var
+  Tape: TMagneticTapeShape;
+begin
+  Tape := TMagneticTapeShape.Create(Self);
+  Tape.Text.Text := 'Archive';
+  Tape.Tree := Tree1;
+end;
+```
+
+### Logic Gates
+
+```delphi
+// AND gate
+var
+  AndGate: TAndShape;
+begin
+  AndGate := TAndShape.Create(Self);
+  AndGate.Text.Text := 'AND';
+  AndGate.Style := tssCircle;
+  AndGate.Tree := Tree1;
+end;
+
+// OR gate
+var
+  OrGate: TOrShape;
+begin
+  OrGate := TOrShape.Create(Self);
+  OrGate.Text.Text := 'OR';
+  OrGate.Style := tssCircle;
+  OrGate.Tree := Tree1;
+end;
+```
+
+## Connection Styling
+
+Customize flowchart connections:
+
+```delphi
+procedure StyleFlowchartConnections;
+begin
+  with Tree1.GlobalFormat.Connection do
+  begin
+    // Arrow style
+    ArrowTo.Size := 12;
+    ArrowTo.Visible := True;
+    
+    // Line style
+    Border.Width := 2;
+    Border.Style := psSolid;
+    Border.Color := clBlack;
+    
+    // Connection style
+    Style := csLine; // or csCurve, csAuto
+  end;
+end;
+```
+
+## Decision Labels
+
+Add labels to decision branches:
+
+```delphi
+var
+  Connection: TTreeConnection;
+begin
+  // Create connection from decision to process
+  Connection := DecisionNode.AddConnection(ProcessNode);
+  
+  // Add label to connection
+  Connection.Text.Text := 'Yes';
+  Connection.Text.Visible := True;
+  Connection.Text.Font.Style := [fsBold];
+  Connection.Text.Font.Color := clGreen;
+end;
+```
+
+## Complete Flowchart Example
+
+```delphi
+procedure CreateCompleteFlowchart;
+var
+  Start, Input, Process, Decision, Output, End1: TTreeNodeShape;
+  YesPath, NoPath: TTreeConnection;
+begin
+  Tree1.BeginUpdate;
+  try
+    // Configure global connection style
+    with Tree1.GlobalFormat.Connection do
+    begin
+      ArrowTo.Size := 10;
+      Border.Width := 2;
+      Border.Color := clNavy;
+    end;
+
+    // Start
+    Start := TTerminalShape.Create(Self);
+    Start.Text.Text := 'Begin Process';
+    Start.X0 := 250;
+    Start.Y0 := 50;
+    Start.Width := 120;
+    Start.Height := 50;
+    Start.Color := clLime;
+    Start.Border.Color := clGreen;
+    Start.Tree := Tree1;
+
+    // Input
+    Input := TInputOutputShape.Create(Self);
+    Input.Text.Text := 'Get User Data';
+    Input.Width := 140;
+    Input.Height := 60;
+    Input.Color := clMoneyGreen;
+    Input.Tree := Tree1;
+    Start.AddConnection(Input);
+
+    // Process
+    Process := TProcessShape.Create(Self);
+    Process.Text.Text := 'Validate Data';
+    Process.Width := 130;
+    Process.Height := 60;
+    Process.Color := clSkyBlue;
+    Process.Tree := Tree1;
+    Input.AddConnection(Process);
+
+    // Decision
+    Decision := TDecisionShape.Create(Self);
+    Decision.Text.Text := 'Data Valid?';
+    Decision.Width := 120;
+    Decision.Height := 100;
+    Decision.Color := clYellow;
+    Decision.Tree := Tree1;
+    Process.AddConnection(Decision);
+
+    // Output (Yes path)
+    Output := TInputOutputShape.Create(Self);
+    Output.Text.Text := 'Save to Database';
+    Output.Width := 140;
+    Output.Height := 60;
+    Output.Color := clMoneyGreen;
+    Output.Tree := Tree1;
+    YesPath := Decision.AddConnection(Output);
+    YesPath.Text.Text := 'Yes';
+    YesPath.Text.Visible := True;
+    YesPath.Text.Font.Color := clGreen;
+
+    // End
+    End1 := TTerminalShape.Create(Self);
+    End1.Text.Text := 'End';
+    End1.Width := 100;
+    End1.Height := 50;
+    End1.Color := clRed;
+    End1.Tree := Tree1;
+    Output.AddConnection(End1);
+
+    // No path back to Input
+    NoPath := Decision.AddConnection(Input);
+    NoPath.Text.Text := 'No';
+    NoPath.Text.Visible := True;
+    NoPath.Text.Font.Color := clRed;
+    NoPath.Style := csCurve;
+
+  finally
+    Tree1.EndUpdate;
+  end;
+end;
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Layout">
+    - Use consistent shape sizes within categories
+    - Maintain adequate spacing between shapes
+    - Align shapes on a grid for professional appearance
+    - Use vertical or horizontal flow consistently
+  </Accordion>
+
+  <Accordion title="Colors">
+    - Use standard flowchart colors (green for start, red for end)
+    - Keep color palette limited (3-5 colors)
+    - Ensure sufficient contrast for text readability
+  </Accordion>
+
+  <Accordion title="Connections">
+    - Label decision branches clearly (Yes/No, True/False)
+    - Avoid crossing connection lines when possible
+    - Use appropriate arrow styles
+    - Keep connection paths simple
+  </Accordion>
+</AccordionGroup>
+
+## Related Topics
+
+- [Node Shapes](/api/shapes/basic-shapes) - All available shapes
+- [Connections](/guides/connections) - Connection styling
+- [Layout Algorithms](/concepts/child-managers) - Auto-layout options

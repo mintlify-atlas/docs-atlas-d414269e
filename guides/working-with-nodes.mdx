@@ -1,0 +1,450 @@
+---
+title: Working with Nodes
+description: Master node manipulation, navigation, and hierarchy management in TeeTree
+---
+
+Once you've created nodes, TeeTree provides extensive APIs to manipulate, navigate, and manage them. This guide covers essential node operations.
+
+## Node Properties
+
+Every `TTreeNodeShape` is a full component with comprehensive properties.
+
+### Position and Size
+
+<CodeGroup>
+```pascal Coordinates
+// Direct position control
+Node.X0 := 100;  // Left
+Node.Y0 := 50;   // Top
+Node.X1 := 300;  // Right
+Node.Y1 := 150;  // Bottom
+
+// Or use aliases
+Node.Left := 100;
+Node.Top := 50;
+Node.Width := 200;
+Node.Height := 100;
+```
+
+```pascal Auto Size
+// Let node size itself based on text
+Node.AutoSize := True;  // Default
+
+// Manual size control
+Node.AutoSize := False;
+Node.Width := 250;
+Node.Height := 80;
+```
+
+```pascal Auto Position
+// Control automatic positioning
+Node.AutoPosition.Left := True;   // Default
+Node.AutoPosition.Top := True;    // Default
+
+// Fix horizontal position, auto vertical
+Node.AutoPosition.Left := False;
+Node.X0 := 200;  // Fixed X position
+```
+</CodeGroup>
+
+### Text Content
+
+```pascal
+// Single line text (property)
+Node.SimpleText := 'Quick text';
+
+// Multi-line text (TStringList)
+Node.Text.Clear;
+Node.Text.Add('First line');
+Node.Text.Add('Second line');
+Node.Text.Add('Third line');
+
+// Assign from TStrings
+Node.Text.Assign(Memo1.Lines);
+```
+
+### Visibility and State
+
+```pascal
+// Visibility
+Node.Visible := True;
+Node.Show;
+Node.Hide;
+
+// Expansion state
+Node.Expanded := True;
+Node.Toggle;  // Toggle expansion
+
+// Selection
+Node.Selected := True;
+Tree1.Selected.Clear;  // Unselect all
+
+// Checked state (for checkbox nodes)
+Node.Checked := True;
+Node.ToggleCheck;
+```
+
+<Note>
+The `Visible` property determines if a node is drawn. If a parent is collapsed, children have `Visible = False` automatically.
+</Note>
+
+## Navigating the Hierarchy
+
+### Parent-Child Navigation
+
+<CodeGroup>
+```pascal Parent Access
+// Get parent node
+if Assigned(Node.Parent) then
+  ShowMessage('Parent: ' + Node.Parent.SimpleText);
+
+// Get root node
+RootNode := Node.Root;
+```
+
+```pascal Children Access
+// Count children
+ChildCount := Node.Count;
+
+// Access children by index
+if Node.Count > 0 then
+  FirstChild := Node.Children[0];
+
+// Check if has children
+if Node.HasChildren then
+  ShowMessage('Node has ' + IntToStr(Node.Count) + ' children');
+```
+
+```pascal Siblings
+// Get previous brother (sibling)
+PrevNode := Node.PreviousBrother;
+
+// Get brother index
+Index := Node.BrotherIndex;
+
+// Set brother position
+Node.BrotherIndex := 0;  // Move to first position
+```
+</CodeGroup>
+
+### Tree Navigation
+
+```pascal
+// Access root nodes
+for i := 0 to Tree1.Roots.Count - 1 do
+  ProcessNode(Tree1.Roots[i]);
+
+// Access all nodes
+for i := 0 to Tree1.Shapes.Count - 1 do
+  ProcessNode(Tree1.Shapes[i]);
+
+// Using default array property
+Node := Tree1[0];  // First node in tree
+```
+
+## Finding Nodes
+
+<Steps>
+  <Step title="Find by Text">
+    Search for nodes by their text content:
+    
+    ```pascal
+    // Exact match
+    Node := Tree1.Shapes.Find('MyNode', False);
+    
+    // Partial match
+    Node := Tree1.Shapes.Find('My', True);
+    
+    if Assigned(Node) then
+      Node.Selected := True;
+    ```
+  </Step>
+  
+  <Step title="Find by Object">
+    Search for nodes by associated TagObject:
+    
+    ```pascal
+    Node := Tree1.Shapes.FindObject(MyObject);
+    ```
+  </Step>
+  
+  <Step title="Find by Click">
+    Determine which node was clicked:
+    
+    ```pascal
+    procedure Tree1MouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+    var Node: TTreeNodeShape;
+    begin
+      Node := Tree1.Shapes.Clicked(X, Y);
+      if Assigned(Node) then
+        Label1.Caption := 'Node: ' + Node.SimpleText
+      else
+        Label1.Caption := '';
+    end;
+    ```
+  </Step>
+</Steps>
+
+## Manipulating Nodes
+
+### Moving Nodes
+
+<CodeGroup>
+```pascal Relative Movement
+// Move node and its children
+Node.MoveRelative(50, 30, True);
+
+// Move only the node
+Node.MoveRelative(50, 30, False);
+```
+
+```pascal Absolute Position
+// Set absolute position
+Node.X0 := 150;
+Node.Y0 := 200;
+
+// Move with bounds
+Node.SetBounds(Rect(100, 100, 300, 200));
+```
+</CodeGroup>
+
+### Resizing Nodes
+
+```pascal
+// Interactive resize
+Node.Resize(rcRightBottom, 20, 10);
+
+// Direct size change
+Node.Width := Node.Width + 50;
+Node.Height := Node.Height + 20;
+```
+
+### Z-Order Management
+
+```pascal
+// Bring to front
+Node.BringToFront;
+
+// Send to back  
+Node.SendToBack;
+```
+
+## Iterating Through Nodes
+
+### Using ForEach
+
+```pascal
+procedure ProcessNode(Sender: TTreeNodeShape);
+begin
+  // Process each node
+  Sender.Color := clYellow;
+end;
+
+begin
+  // Apply to all nodes
+  Tree1.Shapes.ForEach(ProcessNode);
+  
+  // Apply to children only
+  MyNode.Children.ForEach(ProcessNode);
+end;
+```
+
+### Manual Iteration
+
+```pascal
+var i: Integer;
+begin
+  // Iterate all nodes
+  for i := 0 to Tree1.Shapes.Count - 1 do
+  begin
+    Tree1.Shapes[i].Color := clWhite;
+  end;
+  
+  // Iterate children
+  for i := 0 to ParentNode.Count - 1 do
+  begin
+    ParentNode.Children[i].Visible := True;
+  end;
+end;
+```
+
+## Expanding and Collapsing
+
+<CodeGroup>
+```pascal Single Node
+// Expand/collapse one node
+Node.Expanded := True;
+Node.Expanded := False;
+
+// Toggle
+Node.Toggle;
+```
+
+```pascal Recursive
+// Collapse node and all descendants
+Node.Collapse(True);
+
+// Expand all under a node
+procedure ExpandAll(ANode: TTreeNodeShape);
+var i: Integer;
+begin
+  ANode.Expanded := True;
+  for i := 0 to ANode.Count - 1 do
+    ExpandAll(ANode.Children[i]);
+end;
+```
+</CodeGroup>
+
+## Sorting Nodes
+
+```pascal
+// Sort children by text
+ParentNode.SortChildsText(True, False);   // Ascending, case sensitive
+ParentNode.SortChildsText(False, True);   // Descending, ignore case
+
+// Sort entire node list
+Tree1.Shapes.Sort(True, True);  // Ascending, ignore case
+```
+
+## Selecting Nodes
+
+```pascal
+// Select single node
+Node.Selected := True;
+
+// Unselect all
+Tree1.Selected.Clear;
+
+// Select all children
+ParentNode.SelectChilds;
+
+// Access selected nodes
+if Tree1.Selected.Count > 0 then
+  FirstSelected := Tree1.Selected.First;
+```
+
+## Editing Node Text
+
+<CodeGroup>
+```pascal Programmatic
+// Start editing
+Tree1.StartEditing(Node);
+
+// Check if editing
+if Tree1.Editing then
+  ShowMessage('Editing in progress');
+```
+
+```pascal Events
+procedure Tree1StartEditing(Shape: TTreeNodeShape; var AllowEditing: Boolean);
+begin
+  // Allow/prevent editing
+  AllowEditing := Shape.Parent <> nil;  // Only edit non-root nodes
+end;
+
+procedure Tree1StopEditing(Sender: TTreeNodeShape);
+begin
+  // Text has been modified
+  ShowMessage('New text: ' + Sender.SimpleText);
+end;
+```
+</CodeGroup>
+
+## Deleting Nodes
+
+<Warning>
+Deleting a node automatically deletes all its children and associated connections.
+</Warning>
+
+```pascal
+// Delete node and children
+Node.Free;
+
+// Clear all children
+ParentNode.Clear;
+
+// Remove specific child
+ParentNode.RemoveChild(ChildNode);
+
+// Clear entire tree
+Tree1.Shapes.Clear;
+```
+
+## Working with Node Data
+
+### Data Property
+
+```pascal
+type
+  PMyRecord = ^TMyRecord;
+  TMyRecord = record
+    ID: Integer;
+    Name: string;
+  end;
+
+var
+  MyData: PMyRecord;
+begin
+  New(MyData);
+  MyData^.ID := 1;
+  MyData^.Name := 'Test';
+  
+  // Associate with node
+  Node.Data := MyData;
+  
+  // Retrieve later
+  if Assigned(Node.Data) then
+  begin
+    MyData := PMyRecord(Node.Data);
+    ShowMessage(MyData^.Name);
+  end;
+end;
+```
+
+### TagObject Property
+
+```pascal
+// Associate object (no need to free)
+Node.TagObject := MyCustomObject;
+
+// Retrieve
+if Assigned(Node.TagObject) then
+  MyObj := TMyClass(Node.TagObject);
+```
+
+## Getting Node Bounds
+
+```pascal
+var R: TRect;
+begin
+  // Node bounds
+  R := Node.Bounds;
+  
+  // Adjusted bounds (includes image)
+  R := Node.AdjustedRectangle;
+  
+  // Image position
+  R := Node.ImageRect;
+  
+  // Center coordinates
+  CenterX := Node.XCenter;
+  CenterY := Node.YCenter;
+end;
+```
+
+## Level and Hierarchy Info
+
+```pascal
+// Get depth level (0 for root)
+NodeLevel := Node.Level;
+
+// Check if inside tree bounds
+if Node.InsideTreeBounds then
+  ShowMessage('Node is visible in tree viewport');
+```
+
+## Next Steps
+
+- Customize appearance with [Node Formatting](/guides/node-formatting)
+- Link nodes using [Connections](/guides/connections)
+- Bind to databases with [Database Trees](/guides/database-trees)

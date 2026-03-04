@@ -1,0 +1,658 @@
+---
+title: TTree
+description: Main visual component for displaying hierarchical tree structures with nodes and connections
+---
+
+## Overview
+
+`TTree` (and its base class `TCustomTree`) is the main visual component in TeeTree. It maintains a network-hierarchy of nodes, similar to Microsoft TreeView, but with enhanced features. Each node is a full standalone component with properties, methods, and events.
+
+## Class Hierarchy
+
+```
+TCustomTeePanelExtended
+  └─ TCustomTree
+      └─ TTree
+```
+
+## Key Features
+
+- Hierarchical node structure with parent-child relationships
+- Visual connections between nodes
+- Multiple selection support
+- Drag and drop functionality
+- Zoom and pan capabilities
+- Grid display options
+- Custom node shapes and styles
+- Database integration (via TDBTree)
+
+## Properties
+
+### Core Properties
+
+<ResponseField name="Roots" type="TNodeShapeList" >
+List of root-level nodes in the tree. Root nodes have no parent.
+</ResponseField>
+
+<ResponseField name="Shapes" type="TTreeShapeList" >
+Collection of all nodes in the tree, regardless of hierarchy.
+</ResponseField>
+
+<ResponseField name="Selected" type="TSelectedShapeList" >
+List of currently selected nodes and selection formatting options.
+</ResponseField>
+
+<ResponseField name="Connections" type="TTreeConnectionList" >
+List of all connection objects that link nodes together.
+</ResponseField>
+
+### Display Properties
+
+<ResponseField name="ShowText" type="Boolean" default="True">
+When True, node text is displayed.
+</ResponseField>
+
+<ResponseField name="ShowImages" type="Boolean" default="True">
+When True, node images are displayed.
+</ResponseField>
+
+<ResponseField name="ShowHintShapes" type="Boolean" default="True">
+When True, shows hints when hovering over nodes.
+</ResponseField>
+
+<ResponseField name="ShowRootCross" type="Boolean" default="True">
+When True, displays expand/collapse cross-box for root nodes.
+</ResponseField>
+
+<ResponseField name="BufferedDisplay" type="Boolean" default="True">
+When True, uses double-buffering for smoother display.
+</ResponseField>
+
+### Interaction Properties
+
+<ResponseField name="AllowDelete" type="Boolean" default="True">
+When True, allows users to delete nodes using the Delete key.
+</ResponseField>
+
+<ResponseField name="AllowResize" type="Boolean" default="True">
+When True, allows users to resize nodes by dragging handles.
+</ResponseField>
+
+<ResponseField name="ReadOnly" type="Boolean" default="False">
+When True, prevents editing of node positions and text.
+</ResponseField>
+
+<ResponseField name="SingleSelection" type="Boolean" default="True">
+When True, only one node can be selected at a time.
+</ResponseField>
+
+<ResponseField name="SnapToGrid" type="Boolean" default="True">
+When True, nodes snap to grid when moved.
+</ResponseField>
+
+<ResponseField name="Navigation" type="TTreeNavigation" default="tnExplorer">
+Keyboard navigation style: `tnExplorer`, `tnNearest`, `tnNone`, or `tnCircularExplorer`.
+</ResponseField>
+
+<ResponseField name="WheelNavigation" type="TTreeWheelNavigation" default="wnSelection">
+Mouse wheel behavior: `wnSelection`, `wnScrollVert`, `wnScrollHoriz`, `wnZoom`, or `wnNone`.
+</ResponseField>
+
+### Visual Components
+
+<ResponseField name="CrossBox" type="TTreeNodeCrossBox" >
+Configuration for the expand/collapse cross-box displayed on nodes with children.
+</ResponseField>
+
+<ResponseField name="Grid" type="TTreeGrid" >
+Grid display options including step size, color, and visibility.
+</ResponseField>
+
+<ResponseField name="HotTrack" type="TTreeHotTrack" >
+Highlight settings when hovering over nodes.
+</ResponseField>
+
+<ResponseField name="Page" type="TTreePage" >
+Page size and boundary configuration for printing.
+</ResponseField>
+
+<ResponseField name="Images" type="TImageList" >
+Image list for node icons.
+</ResponseField>
+
+### Scrolling
+
+<ResponseField name="HorzScrollBar" type="TTeeScrollBar" >
+Horizontal scrollbar configuration.
+</ResponseField>
+
+<ResponseField name="VertScrollBar" type="TTeeScrollBar" >
+Vertical scrollbar configuration.
+</ResponseField>
+
+<ResponseField name="ScrollMouseButton" type="TMouseButton" default="mbRight">
+Mouse button used for panning: `mbLeft`, `mbRight`, or `mbMiddle`.
+</ResponseField>
+
+### Drag and Drop
+
+<ResponseField name="DragAndDrop" type="TTreeDragDrop" >
+Automatic drag and drop configuration.
+</ResponseField>
+
+### Text Editing
+
+<ResponseField name="TextEditor" type="TTreeTextEditor" >
+Configuration for inline text editing with a memo control.
+</ResponseField>
+
+### Advanced Properties
+
+<ResponseField name="GlobalFormat" type="TTreeGlobal" >
+Global formatting settings applied to all new nodes, including default border, brush, font, and child manager.
+</ResponseField>
+
+<ResponseField name="Designing" type="Boolean" default="False">
+When True, enables design-time features at runtime.
+</ResponseField>
+
+<ResponseField name="AssignParent" type="Boolean" default="False">
+When True, newly added nodes copy format from their parent node.
+</ResponseField>
+
+<ResponseField name="CreateConnections" type="Boolean" default="False">
+When True, adding a child node automatically creates a connection object.
+</ResponseField>
+
+<ResponseField name="NoOwnerShapes" type="Boolean" default="False">
+When True, new nodes are created without VCL Owner (nil).
+</ResponseField>
+
+<ResponseField name="ZoomCentered" type="Boolean" default="False">
+When True, zoom operations center on the current view.
+</ResponseField>
+
+## Methods
+
+### Adding Nodes
+
+<ParamField path="Add" type="function" >
+Adds a new node to the tree.
+
+**Overloads:**
+```pascal
+function Add(const Text: String): TTreeNodeShape;
+function Add(const Text: String; const Parent: TTreeNodeShape): TTreeNodeShape;
+function Add(X, Y: Integer; const Text: String; const Parent: TTreeNodeShape): TTreeNodeShape;
+```
+
+**Parameters:**
+- `Text` - Text to display in the node
+- `Parent` - Optional parent node
+- `X, Y` - Optional position coordinates
+
+**Returns:** The newly created node
+</ParamField>
+
+<ParamField path="AddRoot" type="function" >
+Adds a new root-level node.
+
+```pascal
+function AddRoot(const RootText: String): TTreeNodeShape;
+```
+
+**Parameters:**
+- `RootText` - Text to display in the root node
+
+**Returns:** The newly created root node
+</ParamField>
+
+<ParamField path="AddShape" type="function" >
+Adds a new node at specific coordinates.
+
+```pascal
+function AddShape(X, Y: Integer; const AText: String; const AParentShape: TTreeNodeShape): TTreeNodeShape;
+```
+</ParamField>
+
+<ParamField path="AddShapeClass" type="function" >
+Adds a new node using a specific node class.
+
+```pascal
+function AddShapeClass(X, Y: Integer; const AText: String; const AParentShape: TTreeNodeShape; const AClass: TTreeNodeShapeClass): TTreeNodeShape;
+```
+</ParamField>
+
+### Node Management
+
+<ParamField path="DeleteShape" type="procedure" >
+Deletes a node and all its children.
+
+```pascal
+procedure DeleteShape(const AShape: TTreeNodeShape);
+```
+</ParamField>
+
+<ParamField path="Clear" type="procedure" >
+Removes all nodes from the tree.
+
+```pascal
+procedure Clear;
+```
+</ParamField>
+
+<ParamField path="CloneShape" type="function" >
+Creates a copy of a node.
+
+```pascal
+function CloneShape(const AShape: TTreeNodeShape): TTreeNodeShape;
+```
+</ParamField>
+
+<ParamField path="ClickedShape" type="function" >
+Finds the node at the specified coordinates.
+
+```pascal
+function ClickedShape(x, y: Integer): TTreeNodeShape;
+```
+
+**Returns:** Node at coordinates, or nil if none
+</ParamField>
+
+### Selection
+
+<ParamField path="SelectConnection" type="procedure" >
+Selects a connection.
+
+```pascal
+procedure SelectConnection(const AConnection: TTreeConnection);
+```
+</ParamField>
+
+### Expand/Collapse
+
+<ParamField path="FullExpandCollapse" type="procedure" >
+Expands or collapses all nodes.
+
+```pascal
+procedure FullExpandCollapse(Expand: Boolean);
+```
+</ParamField>
+
+### Zoom and View
+
+<ParamField path="ZoomRectangle" type="procedure" >
+Zooms to fit a specific rectangle.
+
+```pascal
+procedure ZoomRectangle(R: TRect);
+```
+</ParamField>
+
+<ParamField path="ZoomFromCenter" type="procedure" >
+Zooms from a specific point.
+
+```pascal
+procedure ZoomFromCenter(NewZoom: Integer; X, Y: Integer);
+```
+</ParamField>
+
+<ParamField path="ZoomReset" type="procedure" >
+Resets zoom to 100%.
+
+```pascal
+procedure ZoomReset;
+```
+</ParamField>
+
+<ParamField path="ZoomSetHome" type="procedure" >
+Saves current zoom and position as default.
+
+```pascal
+procedure ZoomSetHome;
+procedure ZoomSetHome(const ZoomParams: TTreeZoomDefault);
+```
+</ParamField>
+
+<ParamField path="CenterInView" type="procedure" >
+Centers a node in the viewport.
+
+```pascal
+procedure CenterInView(const Shape: TTreeNodeShape; Animated: Boolean = True);
+```
+</ParamField>
+
+### Text Editing
+
+<ParamField path="StartEditing" type="procedure" >
+Begins editing a node's text.
+
+```pascal
+procedure StartEditing(const AShape: TTreeNodeShape);
+```
+</ParamField>
+
+<ParamField path="StopEditing" type="procedure" >
+Stops text editing.
+
+```pascal
+procedure StopEditing;
+```
+</ParamField>
+
+### Sorting
+
+<ParamField path="Sort" type="procedure" >
+Sorts all nodes alphabetically.
+
+```pascal
+procedure Sort(Ascending: Boolean = True; IgnoreCase: Boolean = True);
+```
+</ParamField>
+
+### Loading and Saving
+
+<ParamField path="LoadFromTextFile" type="function" >
+Loads tree structure from a text file.
+
+```pascal
+function LoadFromTextFile(const FileName: String): TTreeNodeShape;
+```
+</ParamField>
+
+<ParamField path="LoadFromStrings" type="function" >
+Loads tree structure from string list.
+
+```pascal
+function LoadFromStrings(const Strings: TStrings): TTreeNodeShape;
+```
+</ParamField>
+
+### Drawing
+
+<ParamField path="BeginUpdate" type="procedure" >
+Suspends drawing to improve performance during batch operations.
+
+```pascal
+procedure BeginUpdate;
+```
+</ParamField>
+
+<ParamField path="EndUpdate" type="procedure" >
+Resumes drawing after BeginUpdate.
+
+```pascal
+procedure EndUpdate;
+```
+</ParamField>
+
+## Events
+
+### Node Events
+
+<ResponseField name="OnClickShape" type="TClickShapeEvent" >
+Fired when a node is clicked.
+
+```pascal
+property OnClickShape: TClickShapeEvent;
+// procedure(Sender: TTreeNodeShape; Button: TMouseButton; Shift: TShiftState; X, Y: Integer)
+```
+</ResponseField>
+
+<ResponseField name="OnDblClickShape" type="TClickShapeEvent" >
+Fired when a node is double-clicked.
+</ResponseField>
+
+<ResponseField name="OnSelectShape" type="TNotifyShapeEvent" >
+Fired when a node is selected.
+
+```pascal
+property OnSelectShape: TNotifyShapeEvent;
+// procedure(Sender: TTreeNodeShape)
+```
+</ResponseField>
+
+<ResponseField name="OnUnSelectShape" type="TNotifyShapeEvent" >
+Fired when a node is deselected.
+</ResponseField>
+
+<ResponseField name="OnNewShape" type="TTreeNewShapeEvent" >
+Fired when a new node is created.
+
+```pascal
+property OnNewShape: TTreeNewShapeEvent;
+// procedure(Sender: TCustomTreePanel; NewShape: TTreeNodeShape)
+```
+</ResponseField>
+
+<ResponseField name="OnMovingShape" type="TMovingShapeEvent" >
+Fired when a node is being moved.
+
+```pascal
+property OnMovingShape: TMovingShapeEvent;
+// procedure(Sender: TTreeNodeShape; var DeltaX, DeltaY: Integer)
+```
+</ResponseField>
+
+<ResponseField name="OnResizingShape" type="TTreeResizingShape" >
+Fired when a node is being resized.
+
+```pascal
+property OnResizingShape: TTreeResizingShape;
+// procedure(Sender: TTreeNodeShape; ACorner: TTreeShapeHandle; var DeltaX, DeltaY: Integer)
+```
+</ResponseField>
+
+<ResponseField name="OnMouseEnterShape" type="TMouseShapeEvent" >
+Fired when mouse enters a node.
+</ResponseField>
+
+<ResponseField name="OnMouseLeaveShape" type="TMouseShapeEvent" >
+Fired when mouse leaves a node.
+</ResponseField>
+
+### Expand/Collapse Events
+
+<ResponseField name="OnExpandingCollapsing" type="TExpandingCollapsingEvent" >
+Fired before a node expands or collapses. Can be cancelled.
+
+```pascal
+property OnExpandingCollapsing: TExpandingCollapsingEvent;
+// procedure(Sender: TTreeNodeShape; var Expand: Boolean)
+```
+</ResponseField>
+
+<ResponseField name="OnExpandedCollapsed" type="TNotifyShapeEvent" >
+Fired after a node has expanded or collapsed.
+</ResponseField>
+
+### Connection Events
+
+<ResponseField name="OnClickConnection" type="TClickConnectionEvent" >
+Fired when a connection is clicked.
+</ResponseField>
+
+<ResponseField name="OnDblClickConnection" type="TClickConnectionEvent" >
+Fired when a connection is double-clicked.
+</ResponseField>
+
+<ResponseField name="OnNewConnection" type="TTreeNewConnectionEvent" >
+Fired when a new connection is created.
+</ResponseField>
+
+<ResponseField name="OnSelectConnection" type="TNotifyConnectionEvent" >
+Fired when a connection is selected.
+</ResponseField>
+
+<ResponseField name="OnAddingConnection" type="TTreeAddingConnectionEvent" >
+Fired before a connection is added. Can be cancelled.
+
+```pascal
+property OnAddingConnection: TTreeAddingConnectionEvent;
+// procedure(Node1, Node2: TTreeNodeShape; var Add: Boolean)
+```
+</ResponseField>
+
+### Edit Events
+
+<ResponseField name="OnStartEditing" type="TNotifyShapeEventStartEdit" >
+Fired before editing begins. Can be cancelled.
+
+```pascal
+property OnStartEditing: TNotifyShapeEventStartEdit;
+// procedure(Shape: TTreeNodeShape; var AllowEditing: Boolean)
+```
+</ResponseField>
+
+<ResponseField name="OnStopEditing" type="TNotifyShapeEvent" >
+Fired when editing ends.
+</ResponseField>
+
+### Delete Events
+
+<ResponseField name="OnDeletingShapes" type="TDeleteShapesEvent" >
+Fired before nodes are deleted. Can be cancelled.
+
+```pascal
+property OnDeletingShapes: TDeleteShapesEvent;
+// procedure(Sender: TSelectedShapeList; var AllowDelete: Boolean)
+```
+</ResponseField>
+
+<ResponseField name="OnDeletedShapes" type="TNotifyEvent" >
+Fired after nodes have been deleted.
+</ResponseField>
+
+### Drag and Drop Events
+
+<ResponseField name="OnDragDropShape" type="TDragDropShapeEvent" >
+Fired when a node is dropped.
+
+```pascal
+property OnDragDropShape: TDragDropShapeEvent;
+// procedure(Sender: TCustomTree; Dragged, Parent: TTreeNodeShape)
+```
+</ResponseField>
+
+### Drawing Events
+
+<ResponseField name="OnBeforeDraw" type="TNotifyEvent" >
+Fired before the tree is drawn.
+</ResponseField>
+
+<ResponseField name="OnAfterDraw" type="TNotifyEvent" >
+Fired after the tree is drawn.
+</ResponseField>
+
+### Other Events
+
+<ResponseField name="OnChanging" type="TTreeChangingEvent" >
+Fired before any change. Can be cancelled.
+
+```pascal
+property OnChanging: TTreeChangingEvent;
+// procedure(Sender: TCustomTree; Node: TTreeNodeShape; var Allow: Boolean)
+```
+</ResponseField>
+
+<ResponseField name="OnClickBackground" type="TTreeClick" >
+Fired when empty area is clicked.
+</ResponseField>
+
+<ResponseField name="OnShowHint" type="TShowHintShapeEvent" >
+Fired when showing a node hint.
+
+```pascal
+property OnShowHint: TShowHintShapeEvent;
+// procedure(Sender: TCustomTree; Shape: TTreeNodeShape; var Text: String)
+```
+</ResponseField>
+
+<ResponseField name="OnCheckedShape" type="TNotifyEvent" >
+Fired when a node's checkbox is checked or unchecked.
+</ResponseField>
+
+<ResponseField name="OnSortCompare" type="TTreeSortCompareEvent" >
+Fired during sorting to compare two nodes.
+
+```pascal
+property OnSortCompare: TTreeSortCompareEvent;
+// procedure(Node1, Node2: TTreeNodeShape; var Compare: Integer)
+```
+</ResponseField>
+
+## Usage Examples
+
+### Creating a Simple Tree
+
+```pascal
+var
+  Root, Child1, Child2: TTreeNodeShape;
+begin
+  // Create root node
+  Root := Tree1.AddRoot('Root');
+  
+  // Add children
+  Child1 := Root.AddChild('Child 1');
+  Child2 := Root.AddChild('Child 2');
+  
+  // Expand root
+  Root.Expanded := True;
+end;
+```
+
+### Handling Node Selection
+
+```pascal
+procedure TForm1.Tree1SelectShape(Sender: TTreeNodeShape);
+begin
+  ShowMessage('Selected: ' + Sender.Text[0]);
+end;
+```
+
+### Customizing Node Appearance
+
+```pascal
+var
+  Node: TTreeNodeShape;
+begin
+  Node := Tree1.AddRoot('Custom Node');
+  Node.Color := clYellow;
+  Node.Border.Color := clBlue;
+  Node.Border.Width := 2;
+  Node.Font.Style := [fsBold];
+  Node.Shadow.Visible := True;
+end;
+```
+
+### Using Grid and Snap
+
+```pascal
+begin
+  Tree1.Grid.Visible := True;
+  Tree1.Grid.Step := 20;
+  Tree1.SnapToGrid := True;
+end;
+```
+
+### Batch Operations
+
+```pascal
+var
+  i: Integer;
+begin
+  Tree1.BeginUpdate;
+  try
+    for i := 1 to 1000 do
+      Tree1.AddRoot('Node ' + IntToStr(i));
+  finally
+    Tree1.EndUpdate;
+  end;
+end;
+```
+
+## See Also
+
+- [TTreeNodeShape](/api/ttreenodeshape) - Individual tree nodes
+- [TTreeConnection](/api/ttreeconnection) - Connections between nodes
+- [TDBTree](/api/tdbtree) - Database-aware tree component

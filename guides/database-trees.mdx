@@ -1,0 +1,554 @@
+---
+title: Database Trees
+description: Connect TeeTree to databases using TDBTree component for data-driven tree views
+---
+
+The `TDBTree` component (from `TeeDBTre.pas`) connects TeeTree to database tables and queries, automatically creating tree structures from your data. This guide covers all database binding scenarios.
+
+## Understanding TDBTree
+
+`TDBTree` is a specialized tree component that:
+- Automatically creates nodes from database records
+- Supports parent-child relationships via fields
+- Handles master-detail datasets
+- Allows multiple dataset levels with Layout collections
+- Updates dynamically when data changes
+
+<Note>
+TDBTree inherits from `TCustomTree`, so all standard tree features are available.
+</Note>
+
+## Basic Database Binding
+
+### Required Properties
+
+```pascal
+with DBTree1 do
+begin
+  DataSet := Table1;      // The dataset to display
+  TextFields := 'Name';   // Field(s) to show as node text
+  Refresh;                // Build the tree
+end;
+```
+
+## Situation 1: Parent-Child Relationships
+
+When your table has **Code** and **Parent** fields defining the hierarchy:
+
+### Data Structure
+
+```
+Code   Parent   Text
+------ ------   ------------
+  1      0      Continents
+  2      1        America
+  3      1        Africa
+  4      1        Australia
+  5      2          USA
+  6      5            California
+  7      4          Sydney
+```
+
+### Configuration
+
+```pascal
+with DBTree1 do
+begin
+  DataSet := Table1;
+  CodeField := 'Code';        // Primary key field
+  ParentField := 'Parent';    // Foreign key to parent
+  TextFields := 'Text';       // Display field
+  Refresh;
+end;
+```
+
+### Result Tree
+
+```
+Continents
+  ├─ America
+  │   └─ USA
+  │       └─ California
+  ├─ Africa
+  └─ Australia
+      └─ Sydney
+```
+
+### Multiple Text Fields
+
+Display multiple fields in each node:
+
+```pascal
+DBTree1.TextFields := 'Text;Description;Code';
+DBTree1.MultiLineText := True;  // Each field on separate line
+```
+
+<CodeGroup>
+```pascal Multi-Line
+// Each field on new line
+DBTree1.MultiLineText := True;
+
+// Result:
+// California
+// Western State  
+// 6
+```
+
+```pascal Single Line
+// All fields on one line
+DBTree1.MultiLineText := False;
+
+// Result:
+// California Western State 6
+```
+</CodeGroup>
+
+## Situation 2: Group By Field
+
+When your data doesn't have explicit parent-child fields, use a field to group by:
+
+### Data Structure
+
+```
+Country      City
+-----------  ---------------
+AUSTRALIA    Sydney
+USA          New York
+UK           London
+AUSTRALIA    Canberra
+UK           Manchester
+UK           Liverpool
+USA          Michigan
+USA          Chicago
+```
+
+### Configuration
+
+```pascal
+with DBTree1 do
+begin
+  DataSet := Table1;
+  CodeField := '';            // No code field
+  ParentField := 'Country';   // Group by this field
+  TextFields := 'City';       // Show cities
+  Refresh;
+end;
+```
+
+### Result Tree
+
+```
+AUSTRALIA
+  ├─ Sydney
+  └─ Canberra
+UK
+  ├─ Liverpool
+  ├─ London
+  └─ Manchester
+USA
+  ├─ Chicago
+  ├─ Michigan
+  └─ New York
+```
+
+### Expanding First Group
+
+```pascal
+DBTree1.Refresh;
+if DBTree1.Roots.Count > 0 then
+  DBTree1.Roots[0].Expanded := True;
+```
+
+## Situation 3: Master-Detail Relationships
+
+Display related data from two linked datasets:
+
+### Data Structure
+
+**Master Table (Employees):**
+```
+Person   Department
+-------  --------------
+John     Accounting
+Chris    Management
+Anne     Sales
+Peter    Accounting
+James    Sales
+Linda    Sales
+```
+
+**Detail Table (Salaries):**
+```
+Person   Month   Salary
+-------  ------  ----------
+John     April   $1000
+John     May     $1100
+John     June    $800
+Chris    March   $900
+Chris    April   $700
+```
+
+### Configuration
+
+```pascal
+with DBTree1 do
+begin
+  DataSet := EmployeeTable;       // Master table
+  CodeField := '';
+  ParentField := 'Department';    // Group by department
+  TextFields := 'Person';         // Show employee names
+  
+  Detail := SalaryTable;          // Detail table
+  DetailFields := 'Month;Salary'; // Show detail fields
+  
+  Refresh;
+end;
+```
+
+### Result Tree
+
+```
+Accounting
+  ├─ John
+  │   ├─ April $1000
+  │   ├─ May $1100
+  │   └─ June $800
+  └─ Peter
+Management
+  └─ Chris
+      ├─ March $900
+      └─ April $700
+Sales
+  ├─ Anne
+  ├─ James
+  └─ Linda
+```
+
+<Warning>
+Ensure the master-detail relationship is properly configured in your dataset components (MasterSource, MasterFields properties).
+</Warning>
+
+## Advanced: Multiple Dataset Levels
+
+For complex hierarchies with more than two dataset levels, use the `Layout` collection:
+
+### Layout Collection
+
+```pascal
+type
+  TDBLayout = class(TCollectionItem)
+    property DataSet: TDataSet;           // Dataset for this level
+    property CodeField: String;           // Primary key field
+    property ParentField: String;         // Parent/group field
+    property Fields: String;              // Fields to display
+    property DisplayMode: TDBLayoutDisplay; // Single/Multi/Grid
+    property Format: TTreeNodeShape;      // Node formatting template
+    property HeaderFormat: TTreeNodeShape; // Header node format
+  end;
+```
+
+### Example: Three-Level Hierarchy
+
+```pascal
+// First level: Departments
+with DBTree1.Layout.Add do
+begin
+  DataSet := DepartmentTable;
+  ParentField := 'DepartmentName';
+  Fields := 'DepartmentName';
+  Format.Color := clYellow;
+  Format.Font.Style := [fsBold];
+end;
+
+// Second level: Employees  
+with DBTree1.Layout.Add do
+begin
+  DataSet := EmployeeTable;
+  ParentField := '';
+  Fields := 'EmployeeName;Title';
+  Format.Color := clLightBlue;
+end;
+
+// Third level: Projects
+with DBTree1.Layout.Add do
+begin
+  DataSet := ProjectTable;
+  ParentField := '';
+  Fields := 'ProjectName;Status';
+  Format.Color := clWhite;
+end;
+
+DBTree1.Refresh;
+```
+
+## Display Modes
+
+Control how field data is displayed:
+
+```pascal
+type
+  TDBLayoutDisplay = (
+    ldSingle,     // Single line
+    ldMultiLine,  // Multiple lines
+    ldGrid        // Grid format
+  );
+
+with DBTree1.Layout[0] do
+  DisplayMode := ldMultiLine;
+```
+
+## Formatting Database Nodes
+
+### Per-Layout Formatting
+
+```pascal
+// Format nodes for specific layout level
+with DBTree1.Layout[0] do
+begin
+  Format.Color := clLightBlue;
+  Format.Border.Width := 2;
+  Format.Font.Style := [fsBold];
+  Format.ImageIndex := tiFolderClose;
+end;
+```
+
+### Header Formatting
+
+```pascal
+// Format header nodes (group names)
+with DBTree1.Layout[0] do
+begin
+  HeaderFormat.Color := clYellow;
+  HeaderFormat.Font.Style := [fsBold];
+  HeaderFormat.ImageIndex := tiFolderClose;
+end;
+```
+
+## Refreshing the Tree
+
+<Steps>
+  <Step title="Manual Refresh">
+    Call `Refresh` after data changes:
+    
+    ```pascal
+    Table1.Edit;
+    Table1.FieldByName('Name').AsString := 'New Name';
+    Table1.Post;
+    
+    DBTree1.Refresh;  // Rebuild tree
+    ```
+  </Step>
+  
+  <Step title="Automatic Refresh">
+    Respond to dataset events:
+    
+    ```pascal
+    procedure Table1AfterPost(DataSet: TDataSet);
+    begin
+      DBTree1.Refresh;
+    end;
+    
+    procedure Table1AfterDelete(DataSet: TDataSet);
+    begin
+      DBTree1.Refresh;
+    end;
+    ```
+  </Step>
+</Steps>
+
+## Working with Database Nodes
+
+### Accessing Data
+
+Each node can be linked back to its source record:
+
+```pascal
+// Store record bookmark in node
+Node.Data := DataSet.GetBookmark;
+
+// Later, navigate to that record
+if Assigned(Node.Data) then
+begin
+  DataSet.GotoBookmark(Node.Data);
+  DataSet.FreeBookmark(Node.Data);
+end;
+```
+
+### Node Click Events
+
+```pascal
+procedure DBTree1ClickShape(Sender: TTreeNodeShape; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  // Navigate dataset to clicked node's record
+  if Assigned(Sender.Data) then
+  begin
+    Table1.GotoBookmark(Sender.Data);
+    // Now Table1 is positioned at the clicked record
+  end;
+end;
+```
+
+## Performance Optimization
+
+<Accordion title="Large Datasets">
+```pascal
+// Disable visual updates during rebuild
+DBTree1.BeginUpdate;
+try
+  DBTree1.Refresh;
+finally
+  DBTree1.EndUpdate;
+end;
+```
+</Accordion>
+
+<Accordion title="Filtered Data">
+```pascal
+// Apply filter before binding
+Table1.Filtered := False;
+Table1.Filter := 'Active = True';
+Table1.Filtered := True;
+DBTree1.Refresh;
+```
+</Accordion>
+
+<Accordion title="On-Demand Loading">
+For very large datasets, consider loading nodes on-demand:
+
+```pascal
+procedure DBTree1Expanding(Sender: TTreeNodeShape; var Expand: Boolean);
+begin
+  // Load children only when parent expands
+  if Sender.Count = 0 then
+    LoadChildrenFromDatabase(Sender);
+end;
+```
+</Accordion>
+
+## Database Wizard
+
+TeeTree includes a Database Wizard dialog for visual configuration:
+
+```pascal
+// Show wizard dialog
+DBTreeWizard(DBTree1);
+```
+
+The wizard helps configure:
+- DataSet selection
+- Field mappings
+- Master-detail relationships
+- Layout options
+- Node formatting
+
+## Common Patterns
+
+<Accordion title="File System Browser">
+```pascal
+with DBTree1 do
+begin
+  DataSet := FileTable;
+  CodeField := 'FileID';
+  ParentField := 'ParentID';
+  TextFields := 'FileName';
+  
+  Layout[0].Format.ImageIndex := tiFolderClose;
+  Layout[0].Format.ImageAlignment := iaLeft;
+  Layout[0].Format.AutoSize := True;
+  
+  Refresh;
+end;
+```
+</Accordion>
+
+<Accordion title="Organization Chart">
+```pascal
+with DBTree1 do
+begin
+  DataSet := EmployeeTable;
+  CodeField := 'EmployeeID';
+  ParentField := 'ManagerID';
+  TextFields := 'FirstName;LastName;Title';
+  MultiLineText := True;
+  
+  Layout[0].Format.Style := tssRoundRectangle;
+  Layout[0].Format.Color := clLightBlue;
+  Layout[0].Format.AutoSize := True;
+  
+  Refresh;
+end;
+```
+</Accordion>
+
+<Accordion title="Category Product Tree">
+```pascal
+// Categories (Master)
+with DBTree1.Layout.Add do
+begin
+  DataSet := CategoryTable;
+  ParentField := 'CategoryName';
+  Fields := 'CategoryName';
+  HeaderFormat.Color := clYellow;
+  HeaderFormat.Font.Style := [fsBold];
+end;
+
+// Products (Detail)  
+with DBTree1.Layout.Add do
+begin
+  DataSet := ProductTable;
+  Fields := 'ProductName;Price';
+  DisplayMode := ldMultiLine;
+  Format.Color := clWhite;
+end;
+
+DBTree1.Refresh;
+```
+</Accordion>
+
+## Troubleshooting
+
+<Warning>
+**Common Issues:**
+
+1. **Empty Tree**: Ensure DataSet is Open before calling Refresh
+2. **Duplicate Nodes**: Check CodeField is unique
+3. **Missing Children**: Verify ParentField values match CodeField values
+4. **Slow Performance**: Use BeginUpdate/EndUpdate or filter large datasets
+5. **Master-Detail Not Working**: Check MasterSource and MasterFields are configured
+</Warning>
+
+## Database Exceptions
+
+Handle database errors:
+
+```pascal
+try
+  DBTree1.Refresh;
+except
+  on E: EDBTreeException do
+    ShowMessage('Database Tree Error: ' + E.Message);
+end;
+```
+
+## Saving and Loading
+
+While DBTree is data-driven, you can save the tree structure:
+
+```pascal
+// Save tree to file (preserves formatting, not data)
+DBTree1.SaveToFile('tree.ttx');
+
+// Load tree from file
+DBTree1.LoadFromFile('tree.ttx');
+
+// Note: You'll need to Refresh to reload data
+DBTree1.Refresh;
+```
+
+## Next Steps
+
+- Customize node appearance with [Node Formatting](/guides/node-formatting)
+- Add visual relationships with [Connections](/guides/connections)
+- Explore [Tree Events](/guides/events) for interactive features
+- Learn about [Advanced Layouts](/concepts/child-managers) for automatic positioning

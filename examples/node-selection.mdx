@@ -1,0 +1,224 @@
+---
+title: "Node Selection"
+description: "Learn how to select and work with selected nodes in TeeTree"
+---
+
+## Overview
+
+TeeTree provides comprehensive support for node selection, including single and multiple node selection, programmatic selection, and selection events.
+
+## Selecting Nodes Programmatically
+
+### Select a Single Node
+
+```delphi
+// Select a specific node
+MyNode.Selected := True;
+
+// Clear previous selections first
+Tree1.Selected.Clear;
+MyNode.Selected := True;
+```
+
+### Select All Nodes
+
+```delphi
+// Select all nodes in the tree
+Tree1.Selected.SelectAll;
+```
+
+### Clear Selection
+
+```delphi
+// Clear all selected nodes
+Tree1.Selected.Clear;
+```
+
+## Working with Selected Nodes
+
+### Access the First Selected Node
+
+```delphi
+// Get the first selected node
+if Assigned(Tree1.Selected.First) then
+begin
+  // Work with the selected node
+  Tree1.Selected.First.Text.Text := 'Updated text';
+end;
+```
+
+### Iterate Through Selected Nodes
+
+```delphi
+var
+  i: Integer;
+  Node: TTreeNodeShape;
+begin
+  // Loop through all selected nodes
+  for i := 0 to Tree1.Selected.Count - 1 do
+  begin
+    Node := Tree1.Selected[i];
+    // Process each selected node
+  end;
+end;
+```
+
+## Selection Events
+
+TeeTree provides events to respond to selection changes:
+
+### OnSelectShape Event
+
+Triggered when a node is selected:
+
+```delphi
+procedure TForm1.Tree1SelectShape(Sender: TTreeNodeShape);
+begin
+  // Enable buttons when a node is selected
+  ButtonAddChild.Enabled := True;
+  ButtonAddBrother.Enabled := True;
+  ButtonDelete.Enabled := True;
+  
+  // Show node information
+  Label1.Caption := 'Selected: ' + Sender.Text.Text;
+end;
+```
+
+### OnUnSelectShape Event
+
+Triggered when a node is unselected:
+
+```delphi
+procedure TForm1.Tree1UnSelectShape(Sender: TTreeNodeShape);
+begin
+  // Disable buttons when no node is selected
+  ButtonAddChild.Enabled := False;
+  ButtonAddBrother.Enabled := False;
+  ButtonDelete.Enabled := False;
+end;
+```
+
+## Selection Properties
+
+### Check if a Node is Selected
+
+```delphi
+if MyNode.Selected then
+  ShowMessage('Node is selected');
+```
+
+### Get Selection Count
+
+```delphi
+Label1.Caption := 'Selected nodes: ' + IntToStr(Tree1.Selected.Count);
+```
+
+### Check if Any Node is Selected
+
+```delphi
+if Tree1.Selected.Count > 0 then
+  // At least one node is selected
+  ProcessSelection;
+```
+
+## Multiple Selection
+
+TeeTree supports multiple node selection:
+
+```delphi
+// Enable multiple selection (typically done at design time or in FormCreate)
+Tree1.MultiSelect := True;
+
+// Select multiple nodes programmatically
+Tree1.Selected.Clear;
+Node1.Selected := True;
+Node2.Selected := True;
+Node3.Selected := True;
+```
+
+## Complete Example
+
+Here's a complete example showing selection management:
+
+```delphi
+type
+  TSelectingNodesForm = class(TForm)
+    Tree1: TTree;
+    Button1: TButton;
+    ButtonDelete: TButton;
+    LabelStatus: TLabel;
+    procedure FormCreate(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
+    procedure Tree1SelectShape(Sender: TTreeNodeShape);
+    procedure Tree1UnSelectShape(Sender: TTreeNodeShape);
+    procedure ButtonDeleteClick(Sender: TObject);
+  end;
+
+procedure TSelectingNodesForm.FormCreate(Sender: TObject);
+begin
+  // Create sample nodes
+  Tree1.Add('Node 1');
+  Tree1.Add('Node 2');
+  Tree1.Add('Node 3');
+  
+  // Enable multiple selection
+  Tree1.MultiSelect := True;
+  
+  // Initially disable delete button
+  ButtonDelete.Enabled := False;
+end;
+
+procedure TSelectingNodesForm.Button1Click(Sender: TObject);
+begin
+  // Select all nodes
+  Tree1.Selected.SelectAll;
+end;
+
+procedure TSelectingNodesForm.Tree1SelectShape(Sender: TTreeNodeShape);
+begin
+  // Update status label
+  LabelStatus.Caption := 'Selected: ' + IntToStr(Tree1.Selected.Count) + ' node(s)';
+  
+  // Enable delete button
+  ButtonDelete.Enabled := True;
+end;
+
+procedure TSelectingNodesForm.Tree1UnSelectShape(Sender: TTreeNodeShape);
+begin
+  // Update status label
+  if Tree1.Selected.Count = 0 then
+  begin
+    LabelStatus.Caption := 'No nodes selected';
+    ButtonDelete.Enabled := False;
+  end
+  else
+    LabelStatus.Caption := 'Selected: ' + IntToStr(Tree1.Selected.Count) + ' node(s)';
+end;
+
+procedure TSelectingNodesForm.ButtonDeleteClick(Sender: TObject);
+var
+  i: Integer;
+begin
+  // Delete all selected nodes (iterate backwards to avoid index issues)
+  for i := Tree1.Selected.Count - 1 downto 0 do
+    Tree1.Selected[i].Free;
+end;
+```
+
+## Selection with Keyboard
+
+Users can select nodes using keyboard navigation:
+
+- **Arrow keys**: Navigate between nodes
+- **Ctrl+Click**: Add/remove nodes from selection (with MultiSelect enabled)
+- **Shift+Click**: Select range of nodes (with MultiSelect enabled)
+
+## Key Points
+
+- Use `Selected` property to programmatically select/deselect nodes
+- Use `Tree1.Selected` collection to access all selected nodes
+- Use `OnSelectShape` and `OnUnSelectShape` events to respond to selection changes
+- Enable `MultiSelect` property for multiple node selection
+- Always check `Assigned(Tree1.Selected.First)` before accessing selected nodes
+- Use `Tree1.Selected.Clear` before making new selections to avoid accumulation
+- Iterate backwards when deleting multiple selected nodes to avoid index issues

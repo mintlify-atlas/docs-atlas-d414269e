@@ -1,0 +1,375 @@
+---
+title: 'VCL Platform'
+description: 'Using TeeTree with Delphi VCL for Windows desktop applications'
+icon: 'windows'
+---
+
+## Overview
+
+TeeTree's VCL (Visual Component Library) version provides full support for Windows desktop applications using native VCL components and controls. The VCL framework offers optimal performance and native Windows integration.
+
+## Installation
+
+### Unit References
+
+For VCL applications, include the following units in your uses clause:
+
+```pascal
+uses
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  ExtCtrls, StdCtrls, TeeProcs, TeeTree, TreeEd;
+```
+
+### Component Placement
+
+Add the `TTree` component to your VCL form:
+
+1. Open the Tool Palette in Delphi IDE
+2. Navigate to the **TeeTree** tab
+3. Drag `TTree` component onto your form
+4. Set properties in the Object Inspector
+
+## Key VCL Features
+
+### Native Windows Controls
+
+The VCL version uses native Windows GDI/GDI+ for rendering, providing:
+
+- **Fast rendering** with hardware acceleration
+- **Native scrollbars** (TWinControl-based)
+- **Standard Windows messages** for mouse/keyboard input
+- **ImageList integration** for node icons
+- **Print preview** using VCL's TPrinter
+
+### VCL-Specific Constants
+
+```pascal
+const
+  TeeDefaultBoxSize = 4;  // VCL uses smaller default
+  crArrowRight = TCursor(2021);  // Custom VCL cursors
+  crArrowDown  = TCursor(2022);
+```
+
+## Creating Your First VCL Tree
+
+<Tabs>
+  <Tab title="Design-Time">
+    ### Using the Designer
+
+    1. Drop a `TTree` component on your form
+    2. Right-click and select **Edit Tree** to open the designer
+    3. Add nodes using the toolbar buttons
+    4. Configure node properties in the Object Inspector
+    5. Set up connections between nodes by dragging
+  </Tab>
+  
+  <Tab title="Code">
+    ### Programmatic Creation
+
+    ```pascal
+    procedure TForm1.FormCreate(Sender: TObject);
+    var
+      RootNode, ChildNode: TTreeNodeShape;
+    begin
+      // Add root node
+      RootNode := Tree1.Add('Root Node');
+      
+      // Add child nodes
+      ChildNode := RootNode.AddChild('Child 1');
+      RootNode.AddChild('Child 2');
+      RootNode.AddChild('Child 3');
+      
+      // Expand the root
+      RootNode.Expanded := True;
+      
+      // Select first child
+      ChildNode.Selected := True;
+      
+      // Focus the tree
+      Tree1.SetFocus;
+    end;
+    ```
+  </Tab>
+</Tabs>
+
+## Working with Node Images
+
+### Using ImageList
+
+<CodeGroup>
+```pascal VCL ImageList Integration
+procedure TForm1.SetupImages;
+begin
+  // Assign ImageList to Tree
+  Tree1.Images := ImageList1;
+  
+  // Set image index for nodes
+  Tree1.Roots[0].ImageListIndex := 0;  // Folder icon
+  Tree1.Roots[0].Children[0].ImageListIndex := 1;  // File icon
+end;
+```
+
+```pascal Built-in Images
+procedure TForm1.UseBuiltInImages;
+begin
+  // Use built-in stock images
+  Tree1.Roots[0].ImageIndex := tiFolderClose;
+  Tree1.Roots[0].Children[0].ImageIndex := tiMyPC;
+  Tree1.Roots[0].Children[1].ImageIndex := tiHardDisk;
+end;
+```
+</CodeGroup>
+
+## VCL-Specific Properties
+
+### Canvas and Drawing
+
+The VCL version uses `TCanvas` for all drawing operations:
+
+```pascal
+procedure TForm1.Tree1CustomDraw(Sender: TObject);
+var
+  R: TRect;
+begin
+  with Tree1.Canvas do
+  begin
+    Brush.Color := clWhite;
+    Pen.Color := clBlack;
+    Pen.Width := 1;
+    
+    // Custom drawing here
+    Rectangle(10, 10, 100, 100);
+  end;
+end;
+```
+
+### Scrollbars
+
+VCL scrollbars are standard Windows controls:
+
+```pascal
+procedure TForm1.ConfigureScrollbars;
+begin
+  Tree1.HorzScrollBar.Automatic := True;
+  Tree1.HorzScrollBar.Visible := True;
+  
+  Tree1.VertScrollBar.Automatic := True;
+  Tree1.VertScrollBar.Visible := True;
+  
+  // Flat style (Windows theme)
+  Tree1.HorzScrollBar.Flat := True;
+  Tree1.VertScrollBar.Flat := True;
+end;
+```
+
+## Printing Support
+
+### Print Preview
+
+VCL provides full printing capabilities:
+
+```pascal
+uses
+  Printers;
+
+procedure TForm1.PrintTree;
+begin
+  with Tree1 do
+  begin
+    PrintPreview;
+    // or
+    Print;
+  end;
+end;
+
+procedure TForm1.ConfigurePrintOptions;
+begin
+  Tree1.PrintOptions.Orientation := poLandscape;
+  Tree1.PrintOptions.Margins.Left := 10;
+  Tree1.PrintOptions.Margins.Top := 10;
+end;
+```
+
+## Event Handling
+
+### Standard VCL Events
+
+```pascal
+procedure TForm1.Tree1ClickShape(Sender: TTreeNodeShape; 
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  // Handle node click
+  ShowMessage('Clicked: ' + Sender.Text[0]);
+end;
+
+procedure TForm1.Tree1SelectShape(Sender: TTreeNodeShape);
+begin
+  // Update status bar
+  StatusBar1.SimpleText := 'Selected: ' + Sender.Text[0];
+end;
+
+procedure TForm1.Tree1MouseMove(Sender: TObject; Shift: TShiftState; 
+  X, Y: Integer);
+var
+  Node: TTreeNodeShape;
+begin
+  // Show hint on mouse over
+  Node := Tree1.Shapes.Clicked(X, Y);
+  if Assigned(Node) then
+    Tree1.Hint := Node.Text[0];
+end;
+```
+
+## Database Integration
+
+### DBTree Component
+
+VCL includes the `TDBTree` component for automatic database binding:
+
+```pascal
+procedure TForm1.SetupDBTree;
+begin
+  // Connect to dataset
+  DBTree1.DataSource := DataSource1;
+  
+  // Map fields
+  DBTree1.MasterField := 'ParentID';
+  DBTree1.DetailField := 'ID';
+  DBTree1.TextField := 'Name';
+  DBTree1.IconField := 'IconIndex';
+  
+  // Populate from database
+  DBTree1.Active := True;
+end;
+```
+
+## Performance Optimization
+
+### Large Trees in VCL
+
+<Note>
+For optimal performance with thousands of nodes:
+- Disable `AutoSize` on nodes
+- Use `BeginUpdate`/`EndUpdate` when adding multiple nodes
+- Set appropriate `TreeListCapacity` values
+</Note>
+
+```pascal
+procedure TForm1.AddManyNodes;
+var
+  I: Integer;
+begin
+  // Increase capacity for better performance
+  TreeListCapacity := 1000;
+  TreeShapeListCapacity := 1000;
+  
+  Tree1.BeginUpdate;
+  try
+    for I := 0 to 999 do
+      Tree1.Add('Node ' + IntToStr(I));
+  finally
+    Tree1.EndUpdate;
+  end;
+end;
+```
+
+## Advanced Features
+
+### Custom Node Shapes
+
+```pascal
+type
+  TMyCustomShape = class(TTreeNodeShape)
+  protected
+    procedure DrawShapeCanvas(const ACanvas: TCanvas3D; 
+      const R: TRect); override;
+  end;
+
+procedure TMyCustomShape.DrawShapeCanvas(const ACanvas: TCanvas3D; 
+  const R: TRect);
+begin
+  // Custom drawing code
+  ACanvas.Pen.Color := clRed;
+  ACanvas.Ellipse(R);
+end;
+```
+
+### Clipboard Operations
+
+```pascal
+procedure TForm1.CopyToClipboard;
+begin
+  Tree1.CopyToClipboardMetafile;
+  // or
+  Tree1.CopyToClipboardBitmap;
+end;
+
+procedure TForm1.PasteFromClipboard;
+begin
+  if Tree1.CanPaste then
+    Tree1.Paste;
+end;
+```
+
+## Styling and Themes
+
+### Windows Visual Styles
+
+```pascal
+procedure TForm1.ApplyVCLStyles;
+begin
+  // Enable Windows themes
+  Tree1.ParentColor := False;
+  Tree1.Color := clWindow;
+  
+  // Flat scrollbars (themed)
+  Tree1.HorzScrollBar.Flat := True;
+  Tree1.VertScrollBar.Flat := True;
+  
+  // Border style
+  Tree1.BevelOuter := bvLowered;
+  Tree1.BevelInner := bvNone;
+end;
+```
+
+## Compatibility
+
+<Warning>
+VCL applications are Windows-only. For cross-platform development, use the FMX version instead.
+</Warning>
+
+### Supported Delphi Versions
+
+- Delphi 5 through RAD Studio 13.0 Florence (2025)
+- C++ Builder (all VCL versions)
+- Both 32-bit and 64-bit Windows targets
+
+## Common VCL Patterns
+
+### TreeView Replacement
+
+```pascal
+procedure TForm1.MigrateFromTreeView;
+var
+  TVNode: TTreeNode;
+  TreeNode: TTreeNodeShape;
+begin
+  // TreeView compatibility mode
+  Tree1.GlobalFormat.ChildManager := TTreeExplorerAlignChild;
+  
+  // Similar API to TTreeView
+  TreeNode := Tree1.Add('Item');
+  TreeNode.AddChild('SubItem');
+  TreeNode.Expanded := True;
+  
+  // Access like TreeView
+  ShowMessage(Tree1.Roots[0].Text[0]);
+end;
+```
+
+## See Also
+
+- [FireMonkey (FMX) Platform](/platforms/fmx)
+- [Migrating from VCL to FMX](/platforms/migration)
+- [Getting Started Guide](/quickstart)
+- [API Reference](/api-reference)

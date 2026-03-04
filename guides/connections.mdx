@@ -1,0 +1,512 @@
+---
+title: Connections
+description: Create and customize visual connections between TeeTree nodes
+---
+
+Connections are visual lines linking nodes together in TeeTree. Like nodes, connections are full components with extensive customization options.
+
+## Understanding Connections
+
+Connections:
+- Link a **FromShape** (source node) to a **ToShape** (destination node)
+- Are components with properties, methods, and events
+- Can have custom styles, arrows, colors, and text
+- Support multiple connection points for complex routing
+
+## Creating Connections
+
+### Programmatic Creation
+
+<CodeGroup>
+```pascal AddConnection
+// Simple connection between two nodes
+var Connection: TTreeConnection;
+begin
+  Connection := NodeA.AddConnection(NodeC);
+end;
+```
+
+```pascal With Formatting
+// Create and format connection
+var Connection: TTreeConnection;
+begin
+  Connection := NodeA.AddConnection(NodeC);
+  Connection.Style := csLine;
+  Connection.Border.Color := clBlue;
+  Connection.Border.Width := 2;
+end;
+```
+
+```pascal With Data
+// Connection with associated data
+var Connection: TTreeConnection;
+begin
+  Connection := NodeA.AddConnectionObject(NodeB, MyDataPointer);
+end;
+```
+</CodeGroup>
+
+### Interactive Creation
+
+Allow users to create connections by clicking:
+
+```pascal
+procedure ButtonConnectClick(Sender: TObject);
+var Connection: TTreeConnection;
+begin
+  if SpeedButton1.Down then
+  begin
+    // Change cursor to indicate connection mode
+    Tree1.Cursor := crCross;
+    Tree1.OriginalCursor := crCross;
+    
+    // Start interactive connection
+    Connection := Tree1.StartConnecting;
+    
+    // If user connected two nodes
+    if Assigned(Connection) then
+    begin
+      Connection.Style := csLine;
+      Connection.Border.Color := clRed;
+    end;
+    
+    SpeedButton1.Down := False;
+  end
+  else
+    Tree1.StopConnecting;  // Cancel connection
+  
+  // Restore cursor
+  Tree1.Cursor := crDefault;
+  Tree1.OriginalCursor := crDefault;
+end;
+```
+
+<Warning>
+Call `Tree1.StopConnecting` to cancel an in-progress connection, such as when the user presses Escape.
+</Warning>
+
+## Connection Styles
+
+TeeTree supports multiple connection line styles:
+
+```pascal
+type
+  TTreeConnectionStyle = (
+    csAuto,        // Automatic based on tree layout
+    csLine,        // Direct straight line
+    csHoriz,       // Horizontal then vertical
+    csVert,        // Vertical then horizontal  
+    csSegments,    // Multiple segments with connection points
+    csCurve        // Bezier curve
+  );
+```
+
+### Using Styles
+
+<CodeGroup>
+```pascal Direct Line
+// Straight line connection
+Connection.Style := csLine;
+Connection.Border.Color := clBlue;
+Connection.Border.Width := 2;
+```
+
+```pascal Right-Angle
+// Horizontal then vertical
+Connection.Style := csHoriz;
+
+// Vertical then horizontal  
+Connection.Style := csVert;
+```
+
+```pascal Curved
+// Smooth bezier curve
+Connection.Style := csCurve;
+Connection.Border.Color := clGreen;
+Connection.Border.Width := 2;
+```
+</CodeGroup>
+
+## Connection Appearance
+
+### Border Properties
+
+```pascal
+// Line color and width
+Connection.Border.Color := clRed;
+Connection.Border.Width := 3;
+
+// Line style
+Connection.Border.Style := psSolid;     // Solid line
+Connection.Border.Style := psDash;      // Dashed line
+Connection.Border.Style := psDot;       // Dotted line
+Connection.Border.Style := psDashDot;   // Dash-dot pattern
+
+// Hide connection
+Connection.Border.Visible := False;
+```
+
+### Arrows
+
+Connections can have arrows at the start, end, or both ends.
+
+<Steps>
+  <Step title="Enable Arrows">
+    ```pascal
+    // Arrow at destination (end)
+    Connection.ArrowTo.Visible := True;
+    
+    // Arrow at source (start)
+    Connection.ArrowFrom.Visible := True;
+    ```
+  </Step>
+  
+  <Step title="Configure Arrow Style">
+    ```pascal
+    type
+      TConnectionArrowStyle = (
+        casNone,      // No arrow
+        casSolid,     // Filled triangle
+        casLines,     // Line arrows (>)
+        casSquare,    // Square cap
+        casCircle,    // Circle cap
+        casDiamond    // Diamond cap
+      );
+    
+    Connection.ArrowTo.Style := casSolid;
+    Connection.ArrowFrom.Style := casLines;
+    ```
+  </Step>
+  
+  <Step title="Customize Arrow Appearance">
+    ```pascal
+    // Arrow size
+    Connection.ArrowTo.Size := 8;  // Default is 4
+    
+    // Arrow colors
+    Connection.ArrowTo.Border.Color := clRed;
+    Connection.ArrowTo.Brush.Color := clYellow;
+    
+    // Arrow angle (width)
+    Connection.ArrowTo.Angle := 45;  // Degrees
+    ```
+  </Step>
+</Steps>
+
+### Example Configurations
+
+<CodeGroup>
+```pascal Standard Arrow
+Connection.Style := csLine;
+Connection.Border.Color := clBlue;
+Connection.Border.Width := 2;
+Connection.ArrowTo.Visible := True;
+Connection.ArrowTo.Style := casSolid;
+Connection.ArrowTo.Size := 8;
+```
+
+```pascal Double Arrow
+Connection.Style := csLine;
+Connection.ArrowFrom.Visible := True;
+Connection.ArrowFrom.Style := casLines;
+Connection.ArrowTo.Visible := True;
+Connection.ArrowTo.Style := casLines;
+```
+
+```pascal Decorated
+Connection.Style := csCurve;
+Connection.Border.Color := clGreen;
+Connection.Border.Width := 3;
+Connection.ArrowTo.Visible := True;
+Connection.ArrowTo.Style := casDiamond;
+Connection.ArrowTo.Border.Color := clRed;
+Connection.ArrowTo.Brush.Color := clYellow;
+```
+</CodeGroup>
+
+## Connection Text
+
+Connections can display text labels:
+
+```pascal
+// Add text to connection
+Connection.Text.Add('Label');
+Connection.Text.Add('Multi-line');
+Connection.Text.Add('Supported');
+
+// Or simple text
+Connection.SimpleText := 'Connection Label';
+
+// Text formatting
+Connection.Font.Color := clBlue;
+Connection.Font.Style := [fsBold];
+Connection.HorizTextAlign := htaCenter;
+Connection.VertTextAlign := vtaCenter;
+
+// Text visibility
+Connection.Text.Visible := True;
+```
+
+## Connection Points
+
+For complex routing, use connection points to create multi-segment paths.
+
+### Adding Points
+
+```pascal
+// Set style to use points
+Connection.Style := csSegments;
+
+// Add connection points
+Connection.Points.Add(150, 100);  // X, Y coordinates
+Connection.Points.Add(200, 150);
+Connection.Points.Add(250, 150);
+```
+
+### Point Styles
+
+Connection points support various positioning modes:
+
+```pascal
+type
+  TConnectionPointStyle = (
+    cpsAutoFrom,      // Auto position on source node
+    cpsAutoTo,        // Auto position on destination node
+    cpsFromPercent,   // Percentage of source size
+    cpsToPercent,     // Percentage of destination size
+    cpsFromRel,       // Relative to source origin
+    cpsToRel,         // Relative to destination origin
+    cpsPrevious,      // Relative to previous point
+    cpsNext,          // Relative to next point
+    cpsFixed          // Fixed pixel position
+  );
+```
+
+### Advanced Point Usage
+
+```pascal
+// Add point with style
+Connection.Points.Add(cpsFromPercent, 50,  // 50% from source width
+                      cpsFromPercent, 100); // 100% from source height
+
+// Relative to previous point
+Connection.Points.AddFromPrevious(20, 0);  // 20 pixels right
+
+// Move point
+Connection.Points.Move(0, 10, 5);  // Move point 0 by delta X,Y
+
+// Delete point
+Connection.Points.Delete(1);  // Remove point at index 1
+
+// Clear all points
+Connection.Points.Clear;
+```
+
+## Finding Connections
+
+### From Node
+
+```pascal
+var i: Integer;
+begin
+  // Iterate all connections from a node
+  for i := 0 to MyNode.Connections.Count - 1 do
+    ProcessConnection(MyNode.Connections[i]);
+  
+  // Find connection to specific node
+  Connection := MyNode.Connections.ToShape(TargetNode);
+  if Assigned(Connection) then
+    ShowMessage('Found connection');
+end;
+```
+
+### From Tree
+
+```pascal
+var i: Integer;
+begin
+  // All connections in tree
+  for i := 0 to Tree1.Connections.Count - 1 do
+  begin
+    Connection := Tree1.Connections[i];
+    ShowMessage(Connection.FromShape.SimpleText + ' -> ' +
+                Connection.ToShape.SimpleText);
+  end;
+end;
+```
+
+### By Click
+
+```pascal
+procedure Tree1MouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+var Connection: TTreeConnection;
+begin
+  Connection := Tree1.Connections.Clicked(X, Y);
+  if Assigned(Connection) then
+    Label1.Caption := 'Connection: ' + Connection.FromShape.SimpleText + 
+                      ' -> ' + Connection.ToShape.SimpleText
+  else
+    Label1.Caption := '';
+end;
+```
+
+## Deleting Connections
+
+```pascal
+// Delete specific connection
+Connection.Free;
+
+// Delete connection from node
+MyNode.Connections.DeleteConnection(Connection);
+
+// Delete all connections to a node
+MyNode.Connections.DeleteAllTo(TargetNode);
+```
+
+## Connection Events
+
+### Click Events
+
+```pascal
+procedure Tree1ClickConnection(Sender: TTreeConnection; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  // User clicked a connection
+  ShowMessage('Clicked: ' + Sender.FromShape.SimpleText + 
+              ' to ' + Sender.ToShape.SimpleText);
+  
+  // Select the connection
+  Tree1.Connections.Selected := Sender;
+end;
+```
+
+### Delete Events
+
+```pascal
+procedure Tree1ConnectionDeleting(Sender: TTreeConnection; 
+  var AllowDelete: Boolean);
+begin
+  // Confirm before deleting
+  AllowDelete := MessageDlg('Delete connection?', mtConfirmation, 
+                            [mbYes, mbNo], 0) = mrYes;
+end;
+```
+
+## Connection Visibility
+
+```pascal
+// Hide single connection
+Connection.Visible := False;
+
+// Hide all connections from a node
+MyNode.Connections.Visible := False;
+
+// Show all connections
+for i := 0 to Tree1.Connections.Count - 1 do
+  Tree1.Connections[i].Visible := True;
+```
+
+## Cursor
+
+Customize the cursor when hovering over connections:
+
+```pascal
+// Set global connection cursor
+TeeConnectionCursor := crHandPoint;
+
+// Set for specific connection
+Connection.Cursor := crCross;
+```
+
+## Editing Connections
+
+```pascal
+// Open connection editor dialog
+EditTreeConnection(Self, Connection);
+```
+
+## Magnetic Connections
+
+When creating connections interactively, you can configure magnetic snapping:
+
+```pascal
+// Control magnetic handle snapping
+Tree1.Connections.MagneticHandle := rcRightTop;
+```
+
+## Connection Selection
+
+```pascal
+// Select a connection
+Tree1.Connections.Selected := Connection;
+
+// Get selected connection
+if Assigned(Tree1.Connections.Selected) then
+  ShowMessage('Selected: ' + Tree1.Connections.Selected.SimpleText);
+
+// Clear selection
+Tree1.Connections.Selected := nil;
+```
+
+## Practical Examples
+
+<Accordion title="Flowchart Connections">
+```pascal
+procedure CreateFlowchart;
+var 
+  Start, Process, Decision, End_: TTreeNodeShape;
+  Conn: TTreeConnection;
+begin
+  // Create nodes
+  Start := Tree1.Add('Start');
+  Process := Tree1.Add('Process Data');
+  Decision := Tree1.Add('Valid?');
+  End_ := Tree1.Add('End');
+  
+  // Connect with arrows
+  Conn := Start.AddConnection(Process);
+  Conn.Style := csLine;
+  Conn.ArrowTo.Visible := True;
+  
+  Conn := Process.AddConnection(Decision);
+  Conn.Style := csLine;
+  Conn.ArrowTo.Visible := True;
+  
+  Conn := Decision.AddConnection(End_);
+  Conn.Style := csLine;
+  Conn.ArrowTo.Visible := True;
+  Conn.SimpleText := 'Yes';
+end;
+```
+</Accordion>
+
+<Accordion title="Network Diagram">
+```pascal
+procedure CreateNetworkDiagram;
+var 
+  Server, PC1, PC2, PC3: TTreeNodeShape;
+  Conn: TTreeConnection;
+begin
+  Server := Tree1.Add('Server');
+  PC1 := Tree1.Add('PC1');
+  PC2 := Tree1.Add('PC2');
+  PC3 := Tree1.Add('PC3');
+  
+  // Bidirectional connections
+  Conn := Server.AddConnection(PC1);
+  Conn.Style := csLine;
+  Conn.Border.Color := clGreen;
+  Conn.Border.Width := 2;
+  Conn.ArrowFrom.Visible := True;
+  Conn.ArrowTo.Visible := True;
+  
+  // Repeat for other PCs
+end;
+```
+</Accordion>
+
+## Next Steps
+
+- Bind to database relationships with [Database Trees](/guides/database-trees)
+- Learn about [Tree Events](/guides/events) for interactive diagrams
+- Explore [Advanced Layouts](/concepts/child-managers) for automatic node positioning

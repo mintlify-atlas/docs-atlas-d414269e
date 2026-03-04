@@ -1,0 +1,523 @@
+---
+title: 'VCL to FMX Migration'
+description: 'Guide for migrating TeeTree applications from VCL to FireMonkey'
+icon: 'arrow-right-arrow-left'
+---
+
+## Overview
+
+Migrating a TeeTree application from VCL to FireMonkey (FMX) enables cross-platform deployment while maintaining most of your existing code. This guide covers the key differences and required changes.
+
+## Quick Migration Checklist
+
+<Steps>
+  <Step title="Update Unit References">
+    Replace VCL units with FMX equivalents
+  </Step>
+  <Step title="Update Color Constants">
+    Change VCL colors to TAlphaColors
+  </Step>
+  <Step title="Update Component Types">
+    Replace VCL controls with FMX controls
+  </Step>
+  <Step title="Handle Platform Differences">
+    Adapt code for mobile and desktop platforms
+  </Step>
+  <Step title="Test on All Platforms">
+    Verify functionality on each target platform
+  </Step>
+</Steps>
+
+## Unit References
+
+### Replace VCL Units with FMX
+
+<CodeGroup>
+```pascal VCL Units (Before)
+uses
+  Windows, Messages, SysUtils, Classes, Graphics, 
+  Controls, Forms, Dialogs, ExtCtrls, StdCtrls, 
+  Printers, ImgList,
+  TeeProcs, TeeTree, TeCanvas, TreeEd;
+```
+
+```pascal FMX Units (After)
+uses
+  System.SysUtils, System.Types, System.UITypes, 
+  System.Classes, System.Variants,
+  FMX.Types, FMX.Controls, FMX.Forms, FMX.Dialogs,
+  FMX.StdCtrls, FMX.Layouts, FMX.Objects,
+  
+  {$IFNDEF ANDROID}
+  FMX.Printer,  // Not available on Android/iOS
+  {$ENDIF}
+  
+  FMXTee.Procs, FMXTee.Tree, FMXTee.Canvas;
+```
+</CodeGroup>
+
+### Key Unit Mappings
+
+| VCL Unit | FMX Unit | Notes |
+|----------|----------|-------|
+| `TeeTree` | `FMXTee.Tree` | Main tree component |
+| `TeeProcs` | `FMXTee.Procs` | Helper procedures |
+| `TeCanvas` | `FMXTee.Canvas` | Canvas operations |
+| `Graphics` | `FMX.Graphics` | Graphics types |
+| `Controls` | `FMX.Controls` | Control base classes |
+| `Forms` | `FMX.Forms` | Form classes |
+| `Dialogs` | `FMX.Dialogs` | Dialog functions |
+| `StdCtrls` | `FMX.StdCtrls` | Standard controls |
+| `ExtCtrls` | `FMX.Layouts` | Panels become layouts |
+| `Printers` | `FMX.Printer` | Desktop only |
+| `ImgList` | N/A | Use different approach |
+
+## Color System Changes
+
+### VCL to FMX Color Conversion
+
+<CodeGroup>
+```pascal VCL Colors
+procedure TForm1.SetVCLColors;
+begin
+  Tree1.Color := clWhite;
+  Node1.Brush.Color := clBlue;
+  Node1.Border.Color := clBlack;
+  Node1.Font.Color := clRed;
+  
+  // Custom color
+  Node1.Brush.Color := RGB(255, 128, 0);
+end;
+```
+
+```pascal FMX Colors
+procedure TForm1.SetFMXColors;
+begin
+  Tree1.Color := TAlphaColors.White;
+  Node1.Brush.Color := TAlphaColors.Blue;
+  Node1.Border.Color := TAlphaColors.Black;
+  Node1.Font.Color := TAlphaColors.Red;
+  
+  // Custom color with alpha
+  Node1.Brush.Color := MakeColor(255, 128, 0, 255);
+  
+  // Semi-transparent
+  Node1.Transparency := 50;  // 0-100%
+end;
+```
+</CodeGroup>
+
+### Color Constant Mapping
+
+| VCL Constant | FMX Constant |
+|--------------|---------------|
+| `clWhite` | `TAlphaColors.White` |
+| `clBlack` | `TAlphaColors.Black` |
+| `clRed` | `TAlphaColors.Red` |
+| `clBlue` | `TAlphaColors.Blue` |
+| `clGreen` | `TAlphaColors.Green` |
+| `clYellow` | `TAlphaColors.Yellow` |
+| `clGray` | `TAlphaColors.Gray` |
+| `clSilver` | `TAlphaColors.Silver` |
+| `clNavy` | `TAlphaColors.Navy` |
+| `clNone` | `TAlphaColors.Null` |
+
+## Component Property Changes
+
+### Control Alignment
+
+<CodeGroup>
+```pascal VCL Alignment
+Tree1.Align := alClient;
+Panel1.Align := alTop;
+Button1.Align := alBottom;
+```
+
+```pascal FMX Alignment
+Tree1.Align := TAlignLayout.Client;
+Layout1.Align := TAlignLayout.Top;
+Button1.Align := TAlignLayout.Bottom;
+```
+</CodeGroup>
+
+### Bevel Styles
+
+<CodeGroup>
+```pascal VCL Bevels
+Tree1.BevelOuter := bvLowered;
+Tree1.BevelInner := bvNone;
+Tree1.BevelWidth := 1;
+```
+
+```pascal FMX Bevels
+Tree1.BevelOuter := TPanelBevel.bvLowered;
+Tree1.BevelInner := TPanelBevel.bvNone;
+// BevelWidth not available in FMX
+```
+</CodeGroup>
+
+## TeeTree-Specific Changes
+
+### No Breaking Changes in Core API
+
+<Note>
+Good news! The core TeeTree API remains virtually identical between VCL and FMX.
+Most of your tree manipulation code will work without changes.
+</Note>
+
+```pascal
+// This code works identically in both VCL and FMX!
+procedure TForm1.CreateTreeStructure;
+var
+  Root, Child: TTreeNodeShape;
+begin
+  Root := Tree1.Add('Root');
+  Child := Root.AddChild('Child 1');
+  Root.AddChild('Child 2');
+  Root.AddChild('Child 3');
+  
+  Root.Expanded := True;
+  Child.Selected := True;
+  
+  // Styling
+  Root.Brush.Color := {VCL: clBlue} {FMX: TAlphaColors.Blue};
+  Root.Font.Size := 12;
+  Root.Border.Width := 2;
+end;
+```
+
+### Minor Constant Differences
+
+<CodeGroup>
+```pascal VCL Constants
+const
+  TeeDefaultBoxSize = 4;
+  TreeMsg_TeeExtension = 'tte';
+```
+
+```pascal FMX Constants
+const
+  TeeDefaultBoxSize = 5;  // Slightly larger for touch
+  TreeMsg_TeeExtension = 'ttx';  // Different extension
+```
+</CodeGroup>
+
+## Event Handler Signatures
+
+### Coordinate Types
+
+FMX uses `Single` (float) instead of `Integer` for some coordinates:
+
+<CodeGroup>
+```pascal VCL Events
+procedure TForm1.FormMouseMove(Sender: TObject; 
+  Shift: TShiftState; X, Y: Integer);
+begin
+  // X, Y are Integer
+end;
+```
+
+```pascal FMX Events
+procedure TForm1.FormMouseMove(Sender: TObject; 
+  Shift: TShiftState; X, Y: Single);
+begin
+  // X, Y are Single (float)
+  // Convert when needed:
+  Tree1.Shapes.Clicked(Round(X), Round(Y));
+end;
+```
+</CodeGroup>
+
+### TeeTree Events Remain the Same
+
+```pascal
+// Both VCL and FMX use identical signatures:
+
+procedure TForm1.Tree1ClickShape(Sender: TTreeNodeShape;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  ShowMessage('Clicked: ' + Sender.Text[0]);
+end;
+
+procedure TForm1.Tree1SelectShape(Sender: TTreeNodeShape);
+begin
+  Caption := 'Selected: ' + Sender.Text[0];
+end;
+```
+
+## Platform-Specific Code
+
+### Conditional Compilation
+
+```pascal
+procedure TForm1.PlatformSpecificFeatures;
+begin
+  {$IFDEF MSWINDOWS}
+  // Windows-specific code (both VCL and FMX)
+  Tree1.CopyToClipboardMetafile;
+  {$ENDIF}
+  
+  {$IFDEF FMX}
+  // FMX-specific code (all platforms)
+  Tree1.Touch.InteractiveGestures := [TInteractiveGesture.Zoom];
+  {$ENDIF}
+  
+  {$IFNDEF FMX}
+  // VCL-specific code
+  Tree1.PrintPreview;
+  {$ENDIF}
+  
+  {$IF DEFINED(IOS) OR DEFINED(ANDROID)}
+  // Mobile platforms
+  Tree1.Selected.HandleSize := 10;  // Larger for touch
+  {$ENDIF}
+end;
+```
+
+## Feature Availability Matrix
+
+| Feature | VCL | FMX Windows | FMX macOS | FMX Mobile |
+|---------|-----|-------------|-----------|------------|
+| Core tree operations | ✅ | ✅ | ✅ | ✅ |
+| Node styling | ✅ | ✅ | ✅ | ✅ |
+| Connections | ✅ | ✅ | ✅ | ✅ |
+| Printing | ✅ | ✅ | ✅ | ❌ |
+| Clipboard (Bitmap) | ✅ | ✅ | ✅ | ❌ |
+| Clipboard (Metafile) | ✅ | ✅ | ❌ | ❌ |
+| ImageList | ✅ | ❌* | ❌* | ❌* |
+| Touch gestures | ❌ | ✅ | ✅ | ✅ |
+| Custom cursors | ✅ | ✅ | ⚠️ | ⚠️ |
+| Transparency | ⚠️ | ✅ | ✅ | ✅ |
+| GPU acceleration | ❌ | ✅ | ✅ | ✅ |
+
+*Use alternative approaches in FMX
+
+## Common Migration Scenarios
+
+### Replacing ImageList
+
+<CodeGroup>
+```pascal VCL with ImageList
+procedure TForm1.SetupVCLImages;
+begin
+  Tree1.Images := ImageList1;
+  Node1.ImageListIndex := 0;
+  Node2.ImageListIndex := 1;
+end;
+```
+
+```pascal FMX Alternative
+procedure TForm1.SetupFMXImages;
+begin
+  // Use built-in image indexes
+  Node1.ImageIndex := tiFolderClose;
+  Node2.ImageIndex := tiMyPC;
+  
+  // Or load custom images
+  Node3.Image.LoadFromFile('icon.png');
+end;
+```
+</CodeGroup>
+
+### Printing Code
+
+<CodeGroup>
+```pascal VCL Printing
+uses
+  Printers;
+
+procedure TForm1.PrintTree;
+begin
+  Tree1.PrintPreview;
+end;
+```
+
+```pascal FMX Printing
+uses
+  {$IFNDEF ANDROID}
+  FMX.Printer;
+  {$ENDIF}
+
+procedure TForm1.PrintTree;
+begin
+  {$IF DEFINED(MSWINDOWS) OR DEFINED(MACOS)}
+  Tree1.Print;  // Desktop only
+  {$ELSE}
+  ShowMessage('Printing not available on this platform');
+  {$ENDIF}
+end;
+```
+</CodeGroup>
+
+### Form Styling
+
+<CodeGroup>
+```pascal VCL Form
+procedure TForm1.SetupVCLForm;
+begin
+  Color := clBtnFace;
+  Font.Name := 'Tahoma';
+  Font.Size := 8;
+end;
+```
+
+```pascal FMX Form
+procedure TForm1.SetupFMXForm;
+begin
+  Fill.Color := TAlphaColors.White;
+  // Font automatically adapts to platform
+end;
+```
+</CodeGroup>
+
+## Step-by-Step Migration Process
+
+### Step 1: Create FMX Project
+
+```pascal
+// File > New > Multi-Device Application - Delphi
+// Choose Blank Application template
+```
+
+### Step 2: Copy and Convert Form
+
+1. Create a new FMX form with the same name
+2. Manually recreate the form layout (cannot directly convert .dfm to .fmx)
+3. Place TTree component from Tool Palette
+
+### Step 3: Update Code
+
+```pascal
+// 1. Update uses clause (see above)
+// 2. Replace color constants
+// 3. Update alignment constants
+// 4. Add conditional compilation where needed
+```
+
+### Step 4: Test on Multiple Platforms
+
+```pascal
+// Test on each target platform:
+// - Windows 32/64
+// - macOS
+// - iOS (if targeting)
+// - Android (if targeting)
+```
+
+## Migration Tools
+
+### Search and Replace Patterns
+
+<Tabs>
+  <Tab title="Colors">
+    | Find | Replace |
+    |------|----------|
+    | `clWhite` | `TAlphaColors.White` |
+    | `clBlack` | `TAlphaColors.Black` |
+    | `clRed` | `TAlphaColors.Red` |
+    | `clBlue` | `TAlphaColors.Blue` |
+    | `clGreen` | `TAlphaColors.Green` |
+  </Tab>
+  
+  <Tab title="Alignment">
+    | Find | Replace |
+    |------|----------|
+    | `alClient` | `TAlignLayout.Client` |
+    | `alTop` | `TAlignLayout.Top` |
+    | `alBottom` | `TAlignLayout.Bottom` |
+    | `alLeft` | `TAlignLayout.Left` |
+    | `alRight` | `TAlignLayout.Right` |
+  </Tab>
+  
+  <Tab title="Units">
+    | Find | Replace |
+    |------|----------|
+    | `TeeTree` | `FMXTee.Tree` |
+    | `TeeProcs` | `FMXTee.Procs` |
+    | `TeCanvas` | `FMXTee.Canvas` |
+  </Tab>
+</Tabs>
+
+## Testing Your Migration
+
+### Validation Checklist
+
+- [ ] All nodes display correctly
+- [ ] Colors appear as expected
+- [ ] Fonts scale properly
+- [ ] Touch/mouse interaction works
+- [ ] Zoom and scroll function
+- [ ] Events fire correctly
+- [ ] File save/load works
+- [ ] Printing works (desktop only)
+- [ ] Performance is acceptable
+- [ ] Mobile gestures work (if applicable)
+
+## Common Issues and Solutions
+
+### Issue: Colors Look Different
+
+<Warning>
+FMX uses RGBA color space. Ensure you're using TAlphaColors constants.
+</Warning>
+
+```pascal
+// Wrong
+Node.Brush.Color := clBlue;  // VCL constant
+
+// Correct
+Node.Brush.Color := TAlphaColors.Blue;
+```
+
+### Issue: Text Too Small on Mobile
+
+```pascal
+procedure TForm1.FixMobileFonts;
+begin
+  {$IF DEFINED(IOS) OR DEFINED(ANDROID)}
+  Tree1.Font.Size := 16;  // Larger for mobile
+  {$ELSE}
+  Tree1.Font.Size := 10;  // Desktop size
+  {$ENDIF}
+end;
+```
+
+### Issue: Touch Targets Too Small
+
+```pascal
+procedure TForm1.FixTouchTargets;
+begin
+  {$IF DEFINED(IOS) OR DEFINED(ANDROID)}
+  // Make nodes larger for touch
+  Tree1.GlobalFormat.ChildManager.HorizMargin := 30;
+  Tree1.GlobalFormat.ChildManager.VertMargin := 20;
+  {$ENDIF}
+end;
+```
+
+## Best Practices
+
+<Note>
+- Test on all target platforms early and often
+- Use conditional compilation for platform-specific features
+- Design with touch in mind if targeting mobile
+- Keep a VCL version if Windows-only features are critical
+- Use TAlphaColors from the start in new FMX code
+</Note>
+
+## When Not to Migrate
+
+Consider keeping VCL if:
+
+- Application is Windows-only and will remain so
+- Heavy reliance on Windows-specific features
+- Performance is critical (VCL is faster on Windows)
+- Using many third-party VCL-only components
+- Target users are all on Windows desktop
+
+## See Also
+
+- [VCL Platform Documentation](/platforms/vcl)
+- [FMX Platform Documentation](/platforms/fmx)
+- [Cross-Platform Best Practices](/guides/cross-platform)
+- [Mobile Development Guide](/guides/mobile)

@@ -1,0 +1,204 @@
+---
+title: Database Binding
+description: Learn how to connect TeeTree to databases and display hierarchical data from tables
+---
+
+TeeTree provides powerful database binding capabilities through the `TDBTree` component, allowing you to display hierarchical data directly from database tables.
+
+## Basic Database Connection
+
+The simplest way to connect TeeTree to a database is using the `TDBTree` component:
+
+```delphi
+type
+  TDBTreeForm = class(TForm)
+    DBTree1: TDBTree;
+    Table1: TTable;
+    Button1: TButton;
+  end;
+
+procedure TDBTreeForm.Button1Click(Sender: TObject);
+begin
+  // Open the table and refresh the tree
+  Table1.Open;
+  DBTree1.Refresh;
+end;
+```
+
+## Database Tree Wizard
+
+TeeTree includes a visual wizard to configure database connections:
+
+```delphi
+uses TreeDBEd;  // Database Tree Wizard dialog
+
+procedure TDBTreeWizardForm.Button1Click(Sender: TObject);
+begin
+  ShowDBTreeEditor(Self, DBTree1);
+end;
+
+procedure TDBTreeWizardForm.CheckBox1Click(Sender: TObject);
+begin
+  Table1.Active := CheckBox1.Checked;
+  
+  DBTree1.Clear;
+  DBTree1.Refresh;
+end;
+```
+
+## Master-Detail Relationships
+
+Display complex hierarchical data with master-detail table relationships:
+
+```delphi
+type
+  TDBTreeMasterDetailForm = class(TForm)
+    DBTree1: TDBTree;
+    Customer: TTable;
+    Orders: TTable;
+    Items: TTable;
+    DataSource1: TDataSource;
+    DataSource2: TDataSource;
+  end;
+
+procedure TDBTreeMasterDetailForm.CheckBox1Click(Sender: TObject);
+begin
+  // Open or close all datasets
+  Customer.Active := CheckBox1.Checked;
+  Orders.Active := CheckBox1.Checked;
+  Items.Active := CheckBox1.Checked;
+
+  DBTree1.Clear;
+  DBTree1.Refresh;
+end;
+
+// Customize node appearance when selected
+procedure TDBTreeMasterDetailForm.DBTree1SelectShape(Sender: TTreeNodeShape);
+begin
+  // Make selected node bold
+  with Sender.Font do
+    Style := Style + [fsBold];
+end;
+
+procedure TDBTreeMasterDetailForm.DBTree1UnSelectShape(Sender: TTreeNodeShape);
+begin
+  // Remove bold when unselecting
+  with Sender.Font do
+    Style := Style - [fsBold];
+end;
+```
+
+## Formatting Database Nodes
+
+Customize the appearance of database-bound nodes:
+
+```delphi
+uses TreeShEd;
+
+procedure TDBTreeFormatForm.CheckBox1Click(Sender: TObject);
+begin
+  Table1.Active := CheckBox1.Checked;
+  
+  DBTree1.Clear;
+  DBTree1.Refresh;
+end;
+
+procedure TDBTreeFormatForm.Button2Click(Sender: TObject);
+begin
+  // Edit the layout format for database nodes
+  EditTreeShape(Self, DBTree1.Layout[0].Format);
+  DBTree1.Refresh;
+end;
+```
+
+## Grouping Database Records
+
+Group database records by multiple fields:
+
+```delphi
+procedure TDBTreeGroupForm.ComboFlat3Change(Sender: TObject);
+begin
+  // Set multiple parent fields for grouping
+  with DBTree1.Layout[0] do
+    ParentField := ComboFlat1.Items[ComboFlat1.ItemIndex] + ';' +
+                   ComboFlat2.Items[ComboFlat2.ItemIndex] + ';' +
+                   ComboFlat3.Items[ComboFlat3.ItemIndex];
+
+  DBTree1.Refresh;
+end;
+```
+
+## Key Properties
+
+### Layout Configuration
+
+The `Layout` property controls how database data is displayed:
+
+- `Layout[0].DataSet` - The dataset to bind to
+- `Layout[0].TextField` - Field to display as node text
+- `Layout[0].ParentField` - Field(s) that define parent-child relationships
+- `Layout[0].Format` - Visual formatting for nodes at this level
+
+### Multiple Levels
+
+You can configure multiple layout levels for complex hierarchies:
+
+```delphi
+// Configure first level
+DBTree1.Layout[0].DataSet := CustomersTable;
+DBTree1.Layout[0].TextField := 'CompanyName';
+
+// Configure second level
+DBTree1.Layout[1].DataSet := OrdersTable;
+DBTree1.Layout[1].TextField := 'OrderNumber';
+DBTree1.Layout[1].ParentField := 'CustomerID';
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Performance Optimization">
+    - Use `BeginUpdate` and `EndUpdate` when refreshing large datasets
+    - Close and reopen datasets when changing layout configuration
+    - Consider limiting the number of visible levels for very large hierarchies
+  </Accordion>
+
+  <Accordion title="Data Integrity">
+    - Always call `Clear` before `Refresh` when dataset state changes
+    - Handle database connection errors gracefully
+    - Validate parent-child relationships in your data
+  </Accordion>
+
+  <Accordion title="User Experience">
+    - Provide visual feedback during data loading
+    - Use the database wizard for initial setup
+    - Format nodes appropriately for the data type
+  </Accordion>
+</AccordionGroup>
+
+## Common Patterns
+
+### Self-Referencing Tables
+
+For tables that reference themselves (like employee hierarchies):
+
+```delphi
+DBTree1.Layout[0].DataSet := EmployeeTable;
+DBTree1.Layout[0].TextField := 'EmployeeName';
+DBTree1.Layout[0].ParentField := 'ManagerID';
+DBTree1.Layout[0].IDField := 'EmployeeID';
+```
+
+### Multiple Parent Fields
+
+Group by multiple criteria using semicolon-separated field names:
+
+```delphi
+DBTree1.Layout[0].ParentField := 'Department;Division;Region';
+```
+
+## Related Topics
+
+- [Node Formatting](/guides/node-formatting) - Style database nodes
+- [Events](/guides/events) - Handle database tree events
+- [Layout Configuration](/concepts/child-managers) - Advanced layout options

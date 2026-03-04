@@ -1,0 +1,515 @@
+---
+title: 'FireMonkey (FMX) Platform'
+description: 'Cross-platform TeeTree development with FireMonkey for Windows, macOS, iOS, and Android'
+icon: 'mobile'
+---
+
+## Overview
+
+TeeTree's FireMonkey (FMX) version enables true cross-platform development, allowing you to create tree diagrams that run on Windows, macOS, iOS, Android, and Linux using a single codebase.
+
+## Supported Platforms
+
+The FMX version of TeeTree supports all FireMonkey target platforms:
+
+- **Windows** (32-bit and 64-bit)
+- **macOS** (32-bit, 64-bit, and ARM64)
+- **iOS** (Simulator and Device, 32-bit and 64-bit)
+- **Android** (ARM 32-bit and 64-bit)
+- **Linux** (64-bit)
+
+## Installation
+
+### Unit References
+
+For FMX applications, include the FMX-specific units:
+
+```pascal
+uses
+  System.SysUtils, System.Types, System.UITypes, System.Classes,
+  System.Variants, FMX.Types, FMX.Controls, FMX.Forms, FMX.Dialogs,
+  FMX.Layouts, FMX.StdCtrls, FMX.Objects,
+  FMXTee.Tree, FMXTee.Procs, FMXTee.Canvas;
+```
+
+<Note>
+Notice the `FMXTee.Tree` unit instead of `TeeTree` - this is the FireMonkey version.
+</Note>
+
+### Component Placement
+
+Adding TTree to FMX forms:
+
+1. Create a new FireMonkey application
+2. Open the Tool Palette
+3. Find the **TeeTree** tab
+4. Drag `TTree` component onto your form
+5. The component will automatically adapt to the target platform
+
+## FMX-Specific Features
+
+### Cross-Platform Rendering
+
+FMX uses GPU-accelerated rendering on all platforms:
+
+- **Vector graphics** with anti-aliasing
+- **Hardware acceleration** via DirectX, Metal, or OpenGL
+- **High DPI** support automatic
+- **Retina display** support on iOS/macOS
+
+### FMX-Specific Constants
+
+```pascal
+const
+  TeeDefaultBoxSize = 5;  // FMX uses slightly larger default
+  
+  // FMX color constants
+  clWhite = TAlphaColors.White;
+  clBlack = TAlphaColors.Black;
+  clGray = TAlphaColors.Gray;
+  
+  // File extension for FMX
+  TreeMsg_TeeExtension = 'ttx';
+  TeeMsg_TreeFiles = 'TeeTree v2 FMX files (*.ttx)|*.ttx';
+```
+
+## Creating Your First FMX Tree
+
+<Tabs>
+  <Tab title="Mobile">
+    ### Mobile Application
+
+    ```pascal
+    unit Unit_FMX_Mobile_Tree;
+
+    interface
+
+    uses
+      System.SysUtils, System.Types, System.UITypes, System.Classes,
+      FMX.Types, FMX.Controls, FMX.Forms, FMX.StdCtrls,
+      FMXTee.Tree, FMXTee.Procs;
+
+    type
+      TMobileTreeForm = class(TForm)
+        procedure FormCreate(Sender: TObject);
+      private
+        Tree1: TTree;
+        procedure PopulateTree;
+      end;
+
+    implementation
+
+    procedure TMobileTreeForm.FormCreate(Sender: TObject);
+    begin
+      // Create tree at runtime
+      Tree1 := TTree.Create(Self);
+      Tree1.Parent := Self;
+      Tree1.Align := TAlignLayout.Client;
+      
+      PopulateTree;
+    end;
+
+    procedure TMobileTreeForm.PopulateTree;
+    var
+      Root: TTreeNodeShape;
+    begin
+      Root := Tree1.Add('Mobile Root');
+      Root.AddChild('Touch-enabled');
+      Root.AddChild('Gesture support');
+      Root.AddChild('Cross-platform');
+      Root.Expanded := True;
+    end;
+    ```
+  </Tab>
+  
+  <Tab title="Desktop">
+    ### Desktop Application
+
+    ```pascal
+    procedure TFireMonkey_TeeTree_Form.FormCreate(Sender: TObject);
+    begin
+      // Create tree component
+      Tree1 := TTree.Create(Self);
+      Tree1.Parent := Self;
+      Tree1.Align := TAlignLayout.Client;
+      
+      // Add nodes
+      with Tree1.Add('Desktop') do
+      begin
+        AddChild('Windows');
+        AddChild('macOS');
+        AddChild('Linux');
+        Expanded := True;
+      end;
+    end;
+    ```
+  </Tab>
+</Tabs>
+
+## Platform-Specific Adaptations
+
+### Touch and Gesture Support
+
+```pascal
+procedure TForm1.EnableTouchSupport;
+begin
+  // FMX automatically handles touch events
+  Tree1.Touch.InteractiveGestures := [TInteractiveGesture.Zoom, 
+                                       TInteractiveGesture.Pan];
+end;
+
+procedure TForm1.Tree1Gesture(Sender: TObject;
+  const EventInfo: TGestureEventInfo; var Handled: Boolean);
+begin
+  case EventInfo.GestureID of
+    igiZoom:
+      begin
+        // Handle pinch zoom
+        Tree1.Zoom := Tree1.Zoom * (1 + EventInfo.Distance / 100);
+        Handled := True;
+      end;
+    igiPan:
+      begin
+        // Handle pan/scroll
+        Tree1.ScrollBy(Round(EventInfo.Location.X), 
+                       Round(EventInfo.Location.Y));
+        Handled := True;
+      end;
+  end;
+end;
+```
+
+### Mobile UI Considerations
+
+<CodeGroup>
+```pascal Touch-Friendly Sizing
+procedure TForm1.SetupMobileUI;
+begin
+  // Larger touch targets for mobile
+  Tree1.Selected.HandleSize := 10;  // Bigger than desktop
+  
+  // Adjust node sizes
+  Tree1.Roots[0].Height := 60;  // Larger tap area
+  Tree1.Roots[0].Font.Size := 16; // Readable on mobile
+  
+  // Spacing for touch
+  with Tree1.GlobalFormat.ChildManager as TTreeExplorerAlignChild do
+  begin
+    HorizMargin := 30;
+    VertMargin := 20;
+  end;
+end;
+```
+
+```pascal Desktop Optimization
+procedure TForm1.SetupDesktopUI;
+begin
+  // Smaller handles for mouse precision
+  Tree1.Selected.HandleSize := 3;
+  
+  // Compact layout
+  with Tree1.GlobalFormat.ChildManager as TTreeExplorerAlignChild do
+  begin
+    HorizMargin := 19;
+    VertMargin := 1;
+  end;
+  
+  // Enable mouse wheel
+  Tree1.WheelNavigation := wnScrollVert;
+end;
+```
+</CodeGroup>
+
+## Color System
+
+### Alpha Channel Support
+
+FMX uses RGBA colors with alpha transparency:
+
+```pascal
+procedure TForm1.SetupFMXColors;
+begin
+  // Using TAlphaColors
+  Tree1.Color := TAlphaColors.White;
+  
+  // Semi-transparent nodes
+  Tree1.Roots[0].Brush.Color := MakeColor(TAlphaColors.Blue, 128);
+  
+  // Transparency property (0-100)
+  Tree1.Roots[0].Transparency := 50;
+  
+  // Gradient with alpha
+  with Tree1.Roots[0].Gradient do
+  begin
+    Visible := True;
+    StartColor := TAlphaColors.Skyblue;
+    EndColor := MakeColor(TAlphaColors.Navy, 200);
+  end;
+end;
+```
+
+## Conditional Compilation
+
+### Platform Detection
+
+```pascal
+procedure TForm1.PlatformSpecificCode;
+begin
+  {$IFDEF ANDROID}
+  // Android-specific code
+  Tree1.Font.Size := 14;
+  {$ENDIF}
+  
+  {$IFDEF IOS}
+  // iOS-specific code
+  Tree1.Font.Family := 'Helvetica Neue';
+  {$ENDIF}
+  
+  {$IFDEF MSWINDOWS}
+  // Windows-specific code
+  Tree1.Font.Family := 'Segoe UI';
+  {$ENDIF}
+  
+  {$IFDEF MACOS}
+  // macOS-specific code
+  Tree1.Font.Family := 'San Francisco';
+  {$ENDIF}
+end;
+```
+
+## Printing on FMX
+
+<Warning>
+Printing is not available on Android and iOS due to platform limitations.
+</Warning>
+
+```pascal
+procedure TForm1.PrintTree;
+begin
+  {$IFNDEF ANDROID}
+  {$IF DEFINED(MSWINDOWS) OR DEFINED(MACOS)}
+  // Printing only on desktop platforms
+  Tree1.Print;
+  {$ENDIF}
+  {$ENDIF}
+end;
+```
+
+## FMX Styling
+
+### Style Books
+
+Apply FMX styles to TeeTree:
+
+```pascal
+procedure TForm1.ApplyStyle;
+begin
+  // Load style book
+  StyleBook1.LoadFromFile('MyStyle.style');
+  Self.StyleBook := StyleBook1;
+  
+  // Tree adapts to style automatically
+  Tree1.StyleLookup := 'treestyle';
+end;
+```
+
+### Custom FMX Styles
+
+```pascal
+procedure TForm1.CustomizeAppearance;
+begin
+  // Bevels work differently in FMX
+  Tree1.BevelOuter := TPanelBevel.None;
+  Tree1.BevelInner := TPanelBevel.None;
+  
+  // Effects (FMX-specific)
+  with Tree1 do
+  begin
+    // Shadow effect
+    // Note: Effects are applied via TEffect descendants
+  end;
+end;
+```
+
+## Performance on Mobile
+
+### Optimization Tips
+
+<Note>
+Mobile devices have limited resources. Optimize for performance:
+- Limit the number of visible nodes
+- Use virtual mode for large datasets
+- Disable animations if needed
+- Reduce transparency effects
+</Note>
+
+```pascal
+procedure TForm1.OptimizeForMobile;
+begin
+  // Reduce animation overhead
+  TeeTreeAnimatedScroll := False;
+  
+  // Disable shadows on mobile
+  {$IFDEF ANDROID}
+  Tree1.Roots[0].Shadow.Visible := False;
+  {$ENDIF}
+  
+  // Simpler graphics
+  Tree1.AntiAlias := False;  // Faster rendering
+  
+  // Virtual mode for large trees
+  Tree1.VirtualMode := True;
+end;
+```
+
+## Layout and Scaling
+
+### Multi-Resolution Support
+
+```pascal
+procedure TForm1.SetupMultiResolution;
+begin
+  // Auto-scale for different DPI
+  Tree1.Align := TAlignLayout.Client;
+  
+  // Use relative sizing
+  Tree1.Margins.Left := 10;
+  Tree1.Margins.Top := 10;
+  Tree1.Margins.Right := 10;
+  Tree1.Margins.Bottom := 10;
+  
+  // Font scaling
+  Tree1.Font.Size := 14;  // FMX auto-scales
+end;
+```
+
+## Event Handling in FMX
+
+### Mouse vs Touch Events
+
+```pascal
+procedure TForm1.Tree1ClickShape(Sender: TTreeNodeShape;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  // Works for both mouse and touch
+  ShowMessage('Node clicked: ' + Sender.Text[0]);
+end;
+
+procedure TForm1.HandleSingleClick(X, Y: Single);
+var
+  Node: TTreeNodeShape;
+begin
+  // FMX uses Single (float) coordinates
+  Node := Tree1.Shapes.Clicked(Round(X), Round(Y));
+  if Assigned(Node) then
+    Node.Selected := True;
+end;
+```
+
+## Cross-Platform File I/O
+
+### Platform-Independent Paths
+
+```pascal
+uses
+  System.IOUtils;
+
+procedure TForm1.SaveLoadTree;
+var
+  FileName: string;
+begin
+  // Use TPath for cross-platform paths
+  FileName := TPath.Combine(TPath.GetDocumentsPath, 'mytree.ttx');
+  
+  // Save
+  Tree1.SaveToFile(FileName);
+  
+  // Load
+  Tree1.LoadFromFile(FileName);
+end;
+```
+
+## Deployment Considerations
+
+### iOS Deployment
+
+```pascal
+// Note: No special code needed
+// TeeTree automatically adapts to iOS
+```
+
+### Android Deployment
+
+```pascal
+// Permissions in AndroidManifest.xml if saving files:
+// <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+```
+
+### macOS App Store
+
+```pascal
+// Ensure sandbox compatibility
+// Use app container paths for file operations
+```
+
+## Common FMX Patterns
+
+### Responsive Layout
+
+```pascal
+procedure TForm1.SetupResponsiveLayout;
+begin
+  // Adapt to orientation changes
+  Tree1.Align := TAlignLayout.Client;
+  
+  // Different layouts for portrait/landscape
+  if Width > Height then
+  begin
+    // Landscape
+    Tree1.GlobalFormat.ChildManager.HorizMargin := 30;
+  end
+  else
+  begin
+    // Portrait
+    Tree1.GlobalFormat.ChildManager.HorizMargin := 15;
+  end;
+end;
+```
+
+### Multi-Platform Dialogs
+
+```pascal
+uses
+  FMX.DialogService;
+
+procedure TForm1.ShowPlatformDialog;
+begin
+  TDialogService.ShowMessage('Node selected: ' + 
+    Tree1.Selected.First.Text[0]);
+end;
+```
+
+## Advantages of FMX
+
+- Single codebase for all platforms
+- Modern GPU-accelerated graphics
+- Touch and gesture support built-in
+- Vector graphics with anti-aliasing
+- Automatic DPI scaling
+- Native look and feel on each platform
+
+## Limitations
+
+<Warning>
+Some features are desktop-only:
+- Printing (Windows/macOS only)
+- Clipboard metafile (Windows only)
+- Some custom cursor types
+</Warning>
+
+## See Also
+
+- [VCL Platform](/platforms/vcl)
+- [Migrating from VCL to FMX](/platforms/migration)
+- [Mobile Development Guide](/guides/mobile)
+- [Cross-Platform Best Practices](/guides/cross-platform)

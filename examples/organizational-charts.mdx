@@ -1,0 +1,439 @@
+---
+title: Organizational Charts
+description: Create professional organizational charts with hierarchical layouts
+---
+
+TeeTree is ideal for creating organizational charts, employee hierarchies, and corporate structure diagrams with automatic layout management.
+
+## Basic Organizational Chart
+
+Create a simple org chart structure:
+
+```delphi
+procedure CreateOrgChart;
+var
+  CEO, CFO, CTO, CIO: TTreeNodeShape;
+begin
+  Tree1.BeginUpdate;
+  try
+    // CEO at the top
+    CEO := Tree1.AddRoot('John Smith');
+    CEO.SubText.Text := 'Chief Executive Officer';
+    CEO.Width := 150;
+    CEO.Height := 60;
+    CEO.Color := clSkyBlue;
+    CEO.Border.Width := 2;
+    CEO.Font.Style := [fsBold];
+
+    // Executive team
+    CFO := CEO.AddChild('Sarah Johnson');
+    CFO.SubText.Text := 'Chief Financial Officer';
+    CFO.Color := clMoneyGreen;
+
+    CTO := CEO.AddChild('Mike Chen');
+    CTO.SubText.Text := 'Chief Technology Officer';
+    CTO.Color := clMoneyGreen;
+
+    CIO := CEO.AddChild('Lisa Davis');
+    CIO.SubText.Text := 'Chief Information Officer';
+    CIO.Color := clMoneyGreen;
+
+    // Expand all nodes
+    CEO.Expanded := True;
+
+  finally
+    Tree1.EndUpdate;
+  end;
+end;
+```
+
+## Top-to-Bottom Layout
+
+Use the top-to-bottom alignment manager for org charts:
+
+```delphi
+uses TreeChildManagers;
+
+type
+  TForm1 = class(TForm)
+  private
+    SideAlign: TTreeSideAlignChild;
+  end;
+
+procedure TForm1.FormCreate(Sender: TObject);
+begin
+  // Create and replace the default child manager
+  SideAlign := TTreeTopBottomAlignChild.Create;
+  Tree1.ChangeManager(SideAlign);
+
+  // Copy formatting from parent to children
+  Tree1.AssignParent := True;
+
+  // Build organizational hierarchy
+  with Tree1.AddRoot('CEO') do
+  begin
+    Width := 120;
+    Height := 60;
+    X0 := (Tree1.Width div 2) - 60;
+    Y0 := 20;
+    Style := tssRectangle;
+    Color := clSkyBlue;
+    Border.Color := clNavy;
+    Border.Width := 2;
+    Font.Style := [fsBold];
+    ImageIndex := tiNone;
+    Expanded := True;
+
+    // First level
+    with AddChild('VP Sales') do
+    begin
+      Color := clMoneyGreen;
+      AddChild('Sales Manager East');
+      AddChild('Sales Manager West');
+      AddChild('Sales Manager International');
+    end;
+
+    with AddChild('VP Engineering') do
+    begin
+      Color := clMoneyGreen;
+      AddChild('Dev Team Lead');
+      AddChild('QA Team Lead');
+      AddChild('DevOps Lead');
+    end;
+
+    with AddChild('VP Operations') do
+    begin
+      Color := clMoneyGreen;
+      AddChild('Operations Manager');
+      AddChild('Facilities Manager');
+    end;
+  end;
+end;
+```
+
+## Left-to-Right Layout
+
+Alternative horizontal layout:
+
+```delphi
+procedure TForm1.FormCreate(Sender: TObject);
+begin
+  // Create horizontal layout manager
+  SideAlign := TTreeLeftRightAlignChild.Create;
+  Tree1.ChangeManager(SideAlign);
+
+  Tree1.AssignParent := True;
+
+  with Tree1.AddRoot('President') do
+  begin
+    Width := 100;
+    Height := 50;
+    X0 := 20;
+    Y0 := (Tree1.Height div 2) - 25;
+    Style := tssRoundRectangle;
+    Color := clSkyBlue;
+    Border.Width := 2;
+    Font.Style := [fsBold];
+    Expanded := True;
+
+    AddChild('Division A').AddChild('Department 1');
+    AddChild('Division B').AddChild('Department 2');
+    AddChild('Division C').AddChild('Department 3');
+  end;
+end;
+```
+
+## Adjusting Spacing
+
+Control the spacing between nodes:
+
+```delphi
+procedure AdjustHorizontalSpacing(Sender: TObject);
+begin
+  SideAlign.HorizMargin := TrackBar1.Position;
+  Tree1.Invalidate;
+end;
+
+procedure AdjustVerticalSpacing(Sender: TObject);
+begin
+  SideAlign.VertMargin := TrackBar2.Position;
+  Tree1.Invalidate;
+end;
+```
+
+## Multi-Column Nodes
+
+Display detailed information in columns:
+
+```delphi
+uses MultiColumn;
+
+procedure CreateDetailedOrgChart;
+var
+  Employee: TTreeNodeShape;
+begin
+  // Enable multi-column support
+  Tree1.Columns.Add('Name');
+  Tree1.Columns.Add('Title');
+  Tree1.Columns.Add('Department');
+  Tree1.Columns.Add('Email');
+
+  Employee := Tree1.AddRoot('');
+  Employee.Columns[0] := 'John Smith';
+  Employee.Columns[1] := 'CEO';
+  Employee.Columns[2] := 'Executive';
+  Employee.Columns[3] := 'jsmith@company.com';
+end;
+```
+
+## Database-Driven Org Charts
+
+Load organizational data from a database:
+
+```delphi
+uses TeeDBTre;
+
+type
+  TForm1 = class(TForm)
+    DBTree1: TDBTree;
+    EmployeeTable: TTable;
+  end;
+
+procedure TForm1.LoadOrgChart;
+begin
+  // Configure database connection
+  with DBTree1.Layout[0] do
+  begin
+    DataSet := EmployeeTable;
+    TextField := 'EmployeeName';
+    ParentField := 'ManagerID';
+    IDField := 'EmployeeID';
+    
+    // Format nodes
+    Format.Width := 140;
+    Format.Height := 70;
+    Format.Style := tssRoundRectangle;
+    Format.Color := clWhite;
+    Format.Border.Width := 2;
+  end;
+
+  // Open database and display
+  EmployeeTable.Open;
+  DBTree1.Refresh;
+end;
+```
+
+## Employee Photos
+
+Add photos to organizational chart nodes:
+
+```delphi
+procedure AddEmployeePhoto(Node: TTreeNodeShape; const PhotoPath: string);
+begin
+  Node.Image.LoadFromFile(PhotoPath);
+  Node.Image.Visible := True;
+  Node.ImageAlignment := iaTop;
+  Node.ImageSize := isPercentWidth;
+  Node.ImageWidth := 40; // 40% of node width
+end;
+```
+
+## Styling Org Charts
+
+Apply professional styling:
+
+```delphi
+procedure ApplyOrgChartStyle;
+begin
+  with Tree1 do
+  begin
+    // Tree background
+    Color := clWhite;
+    
+    // Connection style
+    GlobalFormat.Connection.Border.Color := clGray;
+    GlobalFormat.Connection.Border.Width := 2;
+    GlobalFormat.Connection.Style := csAuto;
+    
+    // Node shadows
+    GlobalFormat.Shadow.Visible := True;
+    GlobalFormat.Shadow.Size := 4;
+    GlobalFormat.Shadow.Transparency := 20;
+    
+    // Hot tracking
+    with HotTrack do
+    begin
+      Active := True;
+      UseFont := True;
+      Font.Size := 11;
+      Border.Width := 3;
+      Border.Color := clHighlight;
+      UseBorder := True;
+    end;
+  end;
+end;
+```
+
+## Interactive Features
+
+### Click to Expand/Collapse
+
+```delphi
+procedure Tree1Click(Sender: TTreeNodeShape; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  // Toggle expansion on click
+  if Sender.HasChildren then
+    Sender.Expanded := not Sender.Expanded;
+end;
+```
+
+### Show Employee Details
+
+```delphi
+procedure Tree1DblClick(Sender: TTreeNodeShape);
+begin
+  // Show detailed employee information
+  ShowEmployeeDetails(Sender.Text.Text);
+end;
+```
+
+### Highlight Reporting Chain
+
+```delphi
+procedure HighlightReportingChain(Employee: TTreeNodeShape);
+var
+  Current: TTreeNodeShape;
+begin
+  // Highlight path to root
+  Current := Employee;
+  while Assigned(Current) do
+  begin
+    Current.Border.Color := clRed;
+    Current.Border.Width := 3;
+    Current := Current.Parent;
+  end;
+end;
+```
+
+## Different Node Styles by Level
+
+```delphi
+procedure StyleByLevel;
+var
+  i: Integer;
+  Node: TTreeNodeShape;
+begin
+  for i := 0 to Tree1.Shapes.Count - 1 do
+  begin
+    Node := Tree1.Shapes[i];
+    case Node.Level of
+      0: // C-Level
+      begin
+        Node.Color := clNavy;
+        Node.Font.Color := clWhite;
+        Node.Font.Size := 12;
+        Node.Height := 80;
+      end;
+      1: // VPs
+      begin
+        Node.Color := clSkyBlue;
+        Node.Font.Size := 10;
+        Node.Height := 70;
+      end;
+      2: // Directors
+      begin
+        Node.Color := clMoneyGreen;
+        Node.Font.Size := 9;
+        Node.Height := 60;
+      end;
+      else // Staff
+      begin
+        Node.Color := clWhite;
+        Node.Font.Size := 8;
+        Node.Height := 50;
+      end;
+    end;
+  end;
+end;
+```
+
+## Export Org Chart
+
+```delphi
+uses Exporting;
+
+procedure ExportOrgChart;
+begin
+  // Export to image
+  Tree1.Export.Image.PNG.SaveToFile('orgchart.png');
+  
+  // Export to PDF
+  Tree1.Export.PDF.SaveToFile('orgchart.pdf');
+  
+  // Export to SVG
+  Tree1.Export.SVG.SaveToFile('orgchart.svg');
+end;
+```
+
+## Printing
+
+Print large organizational charts:
+
+```delphi
+procedure PrintOrgChart;
+begin
+  with Tree1 do
+  begin
+    // Configure print options
+    PrintProportional := True;
+    PrintMargins.Left := 50;
+    PrintMargins.Top := 50;
+    
+    // Print preview
+    PrintPreview;
+    
+    // Or print directly
+    // Print;
+  end;
+end;
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Layout Design">
+    - Keep hierarchy levels to 4-5 maximum for readability
+    - Use consistent node sizes within levels
+    - Provide adequate spacing between nodes and levels
+    - Consider horizontal layout for wide, shallow hierarchies
+  </Accordion>
+
+  <Accordion title="Visual Hierarchy">
+    - Use size and color to indicate importance/level
+    - Make top-level executives more prominent
+    - Use consistent color coding by department or function
+    - Add photos for more engaging, personal charts
+  </Accordion>
+
+  <Accordion title="Interactivity">
+    - Enable expand/collapse for large organizations
+    - Add tooltips with additional employee information
+    - Implement search/filter functionality
+    - Provide zoom controls for navigation
+  </Accordion>
+
+  <Accordion title="Performance">
+    - Use database binding for large organizations (1000+ employees)
+    - Implement lazy loading for deep hierarchies
+    - Consider showing only top levels by default
+    - Use BeginUpdate/EndUpdate when building charts
+  </Accordion>
+</AccordionGroup>
+
+## Related Topics
+
+- [Database Binding](/examples/database-binding) - Load from employee database
+- [Layout Algorithms](/concepts/child-managers) - Auto-layout options
+- [Multi-Column Nodes](/guides/node-formatting) - Display detailed info
+- [Export](/guides/import-export) - Save and share org charts

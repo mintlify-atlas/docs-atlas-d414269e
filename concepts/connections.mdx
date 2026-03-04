@@ -1,0 +1,527 @@
+---
+title: "Tree Connections"
+description: "Understanding TTreeConnection for linking nodes in TeeTree"
+---
+
+The `TTreeConnection` class enables visual linking between nodes. Connections are full components with properties, methods, and events, just like nodes.
+
+## Overview
+
+Connections display single or multi-line segments between nodes, with optional arrows and customizable styles. They're automatically managed when nodes move and can adapt to different layout patterns.
+
+```pascal
+// Create a connection
+var
+  Conn: TTreeConnection;
+begin
+  Conn := FromNode.AddConnection(ToNode);
+  Conn.Border.Color := clBlue;
+  Conn.ArrowTo.Size := 8;
+end;
+```
+
+<Note>
+Connections are derived from `TCustomTreeElement`, sharing the base functionality with nodes including text, font, and cursor properties.
+</Note>
+
+## Creating Connections
+
+There are several ways to create connections:
+
+```pascal
+// Method 1: Using AddConnection
+Connection := Node1.AddConnection(Node2);
+
+// Method 2: Using AddConnectionObject (with data)
+Connection := Node1.AddConnectionObject(Node2, MyDataPointer);
+
+// Method 3: Direct creation
+Connection := TTreeConnection.Create(Tree);
+Connection.FromShape := Node1;
+Connection.ToShape := Node2;
+```
+
+<Info>
+Connections are automatically added to the FromShape's `Connections` list and the Tree's connections collection.
+</Info>
+
+## Connection Styles
+
+Connections support multiple visual styles:
+
+```pascal
+type
+  TTreeConnectionStyle = (
+    csAuto,           // Determined by ChildManager
+    csLine,           // Straight line
+    csSides,          // Multi-segment with sides
+    csCurve,          // Curved Bezier line
+    csInvertedSides   // Inverted multi-segment
+  );
+
+// Apply style
+Connection.Style := csCurve;
+```
+
+<AccordionGroup>
+  <Accordion title="csAuto (Default)">
+    The `ChildManager` class determines the connection points and style:
+
+    ```pascal
+    Connection.Style := csAuto;
+    // Layout controlled by Tree.GlobalFormat.ChildManager
+    ```
+
+    <Info>
+    This is the recommended style for hierarchical trees with parent-child relationships.
+    </Info>
+  </Accordion>
+
+  <Accordion title="csLine">
+    Direct straight line between nodes:
+
+    ```pascal
+    Connection.Style := csLine;
+    // Simple point-to-point connection
+    ```
+  </Accordion>
+
+  <Accordion title="csSides">
+    Multi-segment connection with perpendicular lines:
+
+    ```pascal
+    Connection.Style := csSides;
+    // Uses Points collection for segments
+    ```
+  </Accordion>
+
+  <Accordion title="csCurve">
+    Smooth Bezier curve:
+
+    ```pascal
+    Connection.Style := csCurve;
+    // Calculates 100 curve points automatically
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Border Styling
+
+Connections use a `TTreeConnectionPen` for their border:
+
+```pascal
+// Default connection pen settings
+with Connection.Border do
+begin
+  Color := clGray;      // Default gray
+  Width := 1;
+  Style := psDot;       // Dotted line
+  SmallDots := True;    // Smaller dots
+end;
+
+// Custom styling
+Connection.Border.Color := clBlue;
+Connection.Border.Width := 2;
+Connection.Border.Style := psSolid;
+```
+
+<Note>
+The default connection pen uses dotted style (`psDot`) with gray color, making connections visually distinct from nodes.
+</Note>
+
+## Arrows
+
+Connections can display arrows at start (From) and end (To) points:
+
+### Arrow Styles
+
+```pascal
+type
+  TConnectionArrowStyle = (
+    casNone,     // No arrow
+    casSolid,    // Filled arrow (default for ArrowTo)
+    casLines,    // Line arrow
+    casSquare,   // Square marker
+    casCircle,   // Circular marker
+    casDiamond   // Diamond marker
+  );
+```
+
+### Configuring Arrows
+
+```pascal
+// ArrowFrom (hidden by default)
+with Connection.ArrowFrom do
+begin
+  Style := casSolid;
+  Size := 6;
+  Brush.Color := clRed;
+  Border.Color := clBlack;
+end;
+
+// ArrowTo (solid by default)
+with Connection.ArrowTo do
+begin
+  Style := casSolid;     // Default
+  Size := 8;
+  Brush.Color := clBlue;
+  Border.Color := clNavy;
+  Border.Width := 1;
+end;
+```
+
+<Warning>
+`ArrowFrom` has style `casNone` by default. You must explicitly set a style to make it visible.
+</Warning>
+
+## Connection Points
+
+Connections use a `TConnectionPoints` class to manage their path:
+
+```pascal
+// Access points
+PointCount := Connection.Points.Count;
+
+// Add custom points
+Connection.Points.Clear;
+Connection.Points.Add(100, 50);  // X, Y
+Connection.Points.Add(150, 75);
+Connection.Points.Add(200, 50);
+
+// Add with styles
+Connection.Points.Add(
+  cpsFromPercent, 50,   // 50% from FromShape width
+  cpsToPercent, 0       // 0% from ToShape height
+);
+```
+
+### Point Styles
+
+```pascal
+type
+  TConnectionPointStyle = (
+    cpsAutoFrom,      // Automatic on FromShape
+    cpsAutoTo,        // Automatic on ToShape
+    cpsFromPercent,   // Percentage of FromShape size
+    cpsToPercent,     // Percentage of ToShape size
+    cpsFromRel,       // Relative to FromShape origin
+    cpsToRel,         // Relative to ToShape origin
+    cpsPrevious,      // Relative to previous point
+    cpsNext,          // Relative to next point
+    cpsFixed          // Fixed pixel position
+  );
+```
+
+### Point Structure
+
+```pascal
+type
+  TConnectionPoint = record
+    XStyle: TConnectionPointStyle;
+    YStyle: TConnectionPointStyle;
+    XValue: TCoordinate;  // Value for X calculation
+    YValue: TCoordinate;  // Value for Y calculation
+    X: TCoordinate;       // Calculated X position
+    Y: TCoordinate;       // Calculated Y position
+  end;
+```
+
+## Advanced Point Manipulation
+
+```pascal
+// Add point relative to previous
+Connection.Points.AddFromPrevious(10, 20);
+
+// Change point style
+Connection.Points.ChangeXStyle(0, cpsFixed);
+Connection.Points.ChangeYStyle(0, cpsFixed);
+
+// Move point
+Connection.Points.Move(0, 5, 10);  // Index, DeltaX, DeltaY
+
+// Insert point
+Connection.Points.Insert(1, 125, 60);
+
+// Delete point
+Connection.Points.Delete(2);
+
+// Recalculate point position
+Connection.Points.CalculatePosition(0);
+```
+
+<Info>
+Points are automatically recalculated when nodes move or the connection is redrawn.
+</Info>
+
+## Connection Text
+
+Connections can display text along their path:
+
+```pascal
+// Add text to connection
+Connection.SimpleText := 'Connection Label';
+
+// Multi-line text
+Connection.Text.Clear;
+Connection.Text.Add('Line 1');
+Connection.Text.Add('Line 2');
+
+// Text formatting
+Connection.Font.Name := 'Arial';
+Connection.Font.Size := 10;
+Connection.Font.Color := clBlack;
+```
+
+<Note>
+Connection text is drawn at an angle matching the connection line's direction.
+</Note>
+
+## Format Box
+
+Connections have an optional format box for highlighting text:
+
+```pascal
+with Connection.Format do
+begin
+  Visible := True;
+  Brush.Color := clYellow;
+  Border.Color := clBlack;
+  Transparency := 30;
+end;
+```
+
+## Managing Connections
+
+### Access Node Connections
+
+```pascal
+// Get all connections from a node
+for i := 0 to Node.Connections.Count - 1 do
+  ProcessConnection(Node.Connections[i]);
+
+// Find connection to specific node
+Conn := Node.Connections.ToShape(TargetNode);
+
+if Assigned(Conn) then
+  ShowMessage('Connection exists');
+
+// Delete all connections to a node
+Node.Connections.DeleteAllTo(TargetNode);
+```
+
+### Tree-Level Connection Management
+
+```pascal
+// Access all connections in tree
+for i := 0 to Tree.Connections.Count - 1 do
+  ProcessConnection(Tree.Connections[i]);
+
+// Selected connection
+Tree.Connections.Selected := Connection;
+
+if Assigned(Tree.Connections.Selected) then
+  ShowMessage('A connection is selected');
+```
+
+## Visibility Control
+
+```pascal
+// Hide individual connection
+if not Connection.Visible then
+  Exit;
+
+// Hide all connections from a node
+Node.Connections.Visible := False;
+
+// Show all connections
+Node.Connections.Visible := True;
+```
+
+## Hit Testing
+
+```pascal
+// Check if connection is clicked
+if Connection.Clicked(MouseX, MouseY) then
+  ShowMessage('Connection clicked');
+
+// Find which segment was clicked
+Segment := Connection.ClickedSegment(MouseX, MouseY);
+
+if Segment >= 0 then
+  ShowMessage('Segment ' + IntToStr(Segment) + ' clicked');
+
+// Find clicked point
+PointIndex := Connection.Points.Clicked(MouseX, MouseY);
+```
+
+<Info>
+Hit testing uses `TeeLineClickTolerance` global variable (default: 3 pixels) for click detection.
+</Info>
+
+## Connection Events
+
+```pascal
+// Tree-level connection events
+Tree.OnClickConnection := ConnectionClickHandler;
+Tree.OnNewConnection := NewConnectionHandler;
+Tree.Connections.OnDeleting := ConnectionDeletingHandler;
+
+procedure TForm1.ConnectionClickHandler(Sender: TTreeConnection;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  ShowMessage('Connection clicked: ' +
+    Sender.FromShape.SimpleText + ' -> ' +
+    Sender.ToShape.SimpleText);
+end;
+
+procedure TForm1.ConnectionDeletingHandler(
+  Sender: TTreeConnection; var AllowDelete: Boolean);
+begin
+  // Prevent deletion
+  AllowDelete := False;
+end;
+```
+
+## Deleting Connections
+
+```pascal
+// Delete single connection
+Node.Connections.DeleteConnection(Connection);
+
+// Delete from tree level
+Tree.Connections.DeleteConnection(Connection);
+
+// Free the connection directly
+Connection.Free;
+```
+
+<Warning>
+Deleting a node automatically deletes all its connections. You don't need to manually delete connections when removing nodes.
+</Warning>
+
+## Cursor Management
+
+```pascal
+// Set custom cursor for connection
+Connection.Cursor := crHandPoint;
+
+// Global default cursors
+TeeConnectionCursor := crHandPoint;      // Connection hover
+TeeConnectionPointCursor := crCross;     // Connection point hover
+```
+
+## Drawing and Bounds
+
+```pascal
+// Manually draw connection
+if Connection.Draw then
+  // Connection was drawn
+
+// Get connection bounds
+Bounds := Connection.GetBounds;
+Width := Bounds.Right - Bounds.Left;
+Height := Bounds.Bottom - Bounds.Top;
+
+// Draw handles (when selected)
+Connection.DrawHandles;
+```
+
+## Data Association
+
+```pascal
+// Store custom data
+Connection.Data := MyDataPointer;
+Connection.TagObject := MyObject;
+Connection.Tag := 456;
+
+// Retrieve data
+MyData := PMyDataType(Connection.Data);
+MyObj := Connection.TagObject as TMyClass;
+```
+
+## Child Manager Integration
+
+Child managers control automatic connection drawing:
+
+```pascal
+type
+  TChildManager = class
+    // Override to customize connection drawing
+    function DrawConnection(const AConnection: TTreeConnection): Boolean; virtual;
+  end;
+
+// Example: Explorer-style connections
+function TTreeExplorerAlignChild.DrawConnection(
+  const AConnection: TTreeConnection): Boolean;
+begin
+  Result := True;
+  AConnection.Style := csAuto;
+  // Child manager sets up Points collection
+end;
+```
+
+<Note>
+See [Child Managers](/concepts/child-managers) for details on customizing automatic connection layout.
+</Note>
+
+## Common Patterns
+
+### Creating Hierarchical Connections
+
+```pascal
+// Connections are auto-created with parent-child relationships
+Child := Parent.AddChild('Child');
+// Connection automatically created if ChildManager supports it
+```
+
+### Custom Connection Path
+
+```pascal
+Connection.Style := csSides;
+with Connection.Points do
+begin
+  Clear;
+  Add(cpsAutoFrom, 0, cpsAutoFrom, 0);     // Start at FromShape
+  Add(cpsPrevious, 50, cpsPrevious, 0);    // Right 50 pixels
+  Add(cpsPrevious, 0, cpsPrevious, 30);    // Down 30 pixels
+  Add(cpsAutoTo, 0, cpsAutoTo, 0);         // End at ToShape
+end;
+```
+
+### Bidirectional Arrows
+
+```pascal
+Connection.ArrowFrom.Style := casSolid;
+Connection.ArrowTo.Style := casSolid;
+```
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Use csAuto for Hierarchies" icon="diagram-project">
+    Let the ChildManager handle connection layout for parent-child relationships
+  </Card>
+  <Card title="Style Consistently" icon="palette">
+    Use similar arrow and border styles throughout your tree for visual coherence
+  </Card>
+  <Card title="Minimize Custom Points" icon="route">
+    Rely on automatic point calculation when possible for easier maintenance
+  </Card>
+  <Card title="Handle Events" icon="bolt">
+    Use OnClickConnection for interactive connection features
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<CardGroup cols={3}>
+  <Card title="Child Managers" icon="diagram-project" href="/concepts/child-managers">
+    Learn how layouts control connection drawing
+  </Card>
+  <Card title="Nodes" icon="circle-nodes" href="/concepts/nodes">
+    Understand node properties and methods
+  </Card>
+  <Card title="Styling Guide" icon="palette" href="/guides/styling">
+    Master visual customization techniques
+  </Card>
+</CardGroup>

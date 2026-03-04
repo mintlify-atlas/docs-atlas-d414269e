@@ -1,97 +1,284 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: TeeTree Documentation
+description: Powerful flowcharting, diagramming, and tree-view component library for Delphi/C++ VCL and FireMonkey FMX
+mode: custom
 ---
 
-## Setting up
+<div className="relative overflow-hidden bg-gradient-to-br from-[#003355] via-[#1a4d6b] to-[#003355] dark:from-[#0f1117] dark:via-[#1a2838] dark:to-[#0f1117] py-20">
+  <div className="absolute inset-0 bg-black/40 dark:bg-black/20"></div>
+  <div className="relative max-w-6xl mx-auto px-6 lg:px-8">
+    <div className="grid lg:grid-cols-12 gap-12 items-center">
+      <div className="lg:col-span-7">
+        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6">
+          Build powerful tree diagrams with TeeTree
+        </h1>
+        <p className="text-lg sm:text-xl text-gray-200 dark:text-gray-300 max-w-2xl mb-8">
+          Professional flowcharting, diagramming, and hierarchical tree component library for Delphi and C++ Builder. Works with both VCL and FireMonkey frameworks.
+        </p>
+        <div className="flex flex-wrap gap-4">
+          <a
+            href="/quickstart"
+            className="inline-flex items-center justify-center px-6 py-3 text-base font-semibold text-white bg-[#e77c38] hover:bg-[#d16a2a] rounded-lg transition-colors no-underline"
+          >
+            Get Started
+          </a>
+          <a
+            href="/api/ttree"
+            className="inline-flex items-center justify-center px-6 py-3 text-base font-semibold text-white border border-white/30 bg-white/10 hover:bg-white/20 rounded-lg transition-colors no-underline"
+          >
+            View API Reference
+          </a>
+        </div>
+      </div>
+      <div className="lg:col-span-5 hidden lg:block">
+        <div className="relative">
+          <img
+            src="https://github.com/user-attachments/assets/eaf33ce2-ba93-4366-974a-59fa9b101a06"
+            alt="TeeTree component showing a tree diagram with nodes and connections"
+            noZoom
+            className="w-full h-auto rounded-lg shadow-2xl"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-Get your documentation site up and running in minutes.
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white mb-3">
+    Quick start
+  </h2>
+  <p className="text-base text-gray-600 dark:text-gray-400 mb-8">
+    Get your first TeeTree component up and running in minutes
+  </p>
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
+  <Steps>
+    <Step title="Install TeeTree packages">
+      Open the appropriate package group for your RAD Studio version. For TeeChart Pro users, use packages in `Sources\Packages\Pro`. For the Lite version, use `Sources\Packages\Lite`.
+      
+      ```delphi
+      // Sources\Packages\Lite\TeeTree_Lite.groupproj
+      // Right-click DclVCL and click "Install"
+      // Right-click DclFMX and click "Install" (for FireMonkey)
+      ```
+    </Step>
 
-## Make it yours
+    <Step title="Add TeeTree to your project">
+      You can use TeeTree by adding it to a form at design-time or creating it in code.
+      
+      ```delphi
+      uses TeeTree; // or FMXTee.Tree for FireMonkey
 
-Design a docs site that looks great and empowers your users.
+      var
+        Tree1: TTree;
+      begin
+        Tree1 := TTree.Create(Self);
+        Tree1.Parent := Self;
+      end;
+      ```
+    </Step>
 
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
-  </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
-  </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
-  </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
-  </Card>
-</Columns>
+    <Step title="Create your first tree">
+      Add nodes to build your tree hierarchy.
+      
+      ```delphi
+      var
+        MyRoot: TTreeNodeShape;
+      begin
+        // Add a root node
+        MyRoot := Tree1.Add('Root Node');
+        
+        // Add children to the root
+        MyRoot.AddChild('Child Node 1');
+        MyRoot.AddChild('Child Node 2');
+        
+        // Expand to show the tree
+        MyRoot.Expanded := True;
+      end;
+      ```
+      
+      <Accordion title="View example output">
+        Your tree will display with the root node at the top and child nodes arranged below it. The default layout uses the Windows Explorer style with automatic positioning.
+      </Accordion>
+    </Step>
+  </Steps>
+</div>
 
-## Create beautiful pages
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white mb-3">
+    Explore by topic
+  </h2>
+  <p className="text-base text-gray-600 dark:text-gray-400 mb-8">
+    Learn about TeeTree's powerful features and capabilities
+  </p>
 
-Everything you need to create world-class documentation.
+  <CardGroup cols={2}>
+    <Card title="Core concepts" icon="diagram-project" href="/concepts/trees">
+      Understand trees, nodes, connections, and layout managers
+    </Card>
+    <Card title="Creating trees" icon="plus-square" href="/guides/creating-trees">
+      Learn how to build and populate tree structures
+    </Card>
+    <Card title="Node formatting" icon="palette" href="/guides/node-formatting">
+      Customize colors, fonts, backgrounds, and visual effects
+    </Card>
+    <Card title="Database trees" icon="database" href="/guides/database-trees">
+      Connect trees to datasets for automatic hierarchy display
+    </Card>
+    <Card title="Custom shapes" icon="shapes" href="/guides/custom-shapes">
+      Use flowchart, UML, and electrical diagram shapes
+    </Card>
+    <Card title="Import & export" icon="file-export" href="/guides/import-export">
+      Save and load trees in XML, HTML, JSON, and XLS formats
+    </Card>
+  </CardGroup>
+</div>
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white mb-3">
+    Platform support
+  </h2>
+  <p className="text-base text-gray-600 dark:text-gray-400 mb-8">
+    TeeTree works with both VCL and FireMonkey frameworks
+  </p>
 
-## Need inspiration?
+  <CardGroup cols={3}>
+    <Card title="VCL applications" icon="window" href="/platforms/vcl">
+      Use TeeTree in traditional Windows VCL applications
+    </Card>
+    <Card title="FireMonkey (FMX)" icon="fire" href="/platforms/fmx">
+      Build cross-platform apps with FireMonkey support
+    </Card>
+    <Card title="Migration guide" icon="arrow-right-arrow-left" href="/platforms/migration">
+      Migrate existing projects between VCL and FMX
+    </Card>
+  </CardGroup>
+</div>
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white mb-3">
+    Popular examples
+  </h2>
+  <p className="text-base text-gray-600 dark:text-gray-400 mb-8">
+    Real-world code examples from the TeeTree demo suite
+  </p>
+
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <a
+      href="/examples/adding-nodes"
+      className="group block rounded-2xl border border-gray-200 dark:border-[#27272a] hover:border-[#e77c38] dark:hover:border-[#e77c38] overflow-hidden no-underline transition-colors"
+    >
+      <div className="h-56 bg-gray-100 dark:bg-[#1a1d27] flex items-center justify-center overflow-hidden">
+        <img
+          src="https://github.com/user-attachments/assets/9c8d051d-05b7-493a-b78a-388bc56ecb77"
+          alt="Adding nodes example"
+          noZoom
+          className="w-full h-full object-cover"
+        />
+      </div>
+      <div className="p-5 bg-white dark:bg-[#1a1d27]">
+        <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-2">
+          Adding nodes
+        </h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+          Learn how to add root nodes, children, and siblings to build tree hierarchies
+        </p>
+        <span className="text-sm font-medium text-[#e77c38] group-hover:text-[#d16a2a] transition-colors">
+          View example →
+        </span>
+      </div>
+    </a>
+
+    <a
+      href="/examples/flowcharts"
+      className="group block rounded-2xl border border-gray-200 dark:border-[#27272a] hover:border-[#e77c38] dark:hover:border-[#e77c38] overflow-hidden no-underline transition-colors"
+    >
+      <div className="h-56 bg-gray-100 dark:bg-[#1a1d27] flex items-center justify-center overflow-hidden">
+        <img
+          src="https://github.com/user-attachments/assets/6f69c504-a8d0-40d0-8a45-6ae0ac1493b2"
+          alt="Flowchart shapes example"
+          noZoom
+          className="w-full h-full object-cover"
+        />
+      </div>
+      <div className="p-5 bg-white dark:bg-[#1a1d27]">
+        <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-2">
+          Flowcharts
+        </h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+          Create professional flowcharts with decision, process, and terminal shapes
+        </p>
+        <span className="text-sm font-medium text-[#e77c38] group-hover:text-[#d16a2a] transition-colors">
+          View example →
+        </span>
+      </div>
+    </a>
+
+    <a
+      href="/examples/database-binding"
+      className="group block rounded-2xl border border-gray-200 dark:border-[#27272a] hover:border-[#e77c38] dark:hover:border-[#e77c38] overflow-hidden no-underline transition-colors"
+    >
+      <div className="h-56 bg-gray-100 dark:bg-[#1a1d27] flex items-center justify-center overflow-hidden">
+        <img
+          src="https://github.com/user-attachments/assets/60ba1428-0721-43e6-b358-67618e53cb7b"
+          alt="Database binding example"
+          noZoom
+          className="w-full h-full object-cover"
+        />
+      </div>
+      <div className="p-5 bg-white dark:bg-[#1a1d27]">
+        <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-2">
+          Database binding
+        </h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+          Automatically generate tree hierarchies from database tables and queries
+        </p>
+        <span className="text-sm font-medium text-[#e77c38] group-hover:text-[#d16a2a] transition-colors">
+          View example →
+        </span>
+      </div>
+    </a>
+
+    <a
+      href="/examples/animations"
+      className="group block rounded-2xl border border-gray-200 dark:border-[#27272a] hover:border-[#e77c38] dark:hover:border-[#e77c38] overflow-hidden no-underline transition-colors"
+    >
+      <div className="h-56 bg-gray-100 dark:bg-[#1a1d27] flex items-center justify-center overflow-hidden">
+        <img
+          src="https://github.com/user-attachments/assets/85aaf372-4b3f-426d-b8e1-73fa9c82af0d"
+          alt="Animations example"
+          noZoom
+          className="w-full h-full object-cover"
+        />
+      </div>
+      <div className="p-5 bg-white dark:bg-[#1a1d27]">
+        <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-2">
+          Animations
+        </h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+          Add smooth animations and transitions to nodes for dynamic visualizations
+        </p>
+        <span className="text-sm font-medium text-[#e77c38] group-hover:text-[#d16a2a] transition-colors">
+          View example →
+        </span>
+      </div>
+    </a>
+  </div>
+</div>
+
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <div className="rounded-2xl border border-gray-200 dark:border-[#27272a] bg-gradient-to-br from-gray-50 to-white dark:from-[#1a1d27] dark:to-[#242838] p-8 sm:p-12">
+    <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white mb-4">
+      Ready to get started?
+    </h2>
+    <p className="text-base text-gray-600 dark:text-gray-400 mb-6 max-w-2xl">
+      Install TeeTree in your Delphi or C++ Builder project and start building powerful tree diagrams today. Compatible with RAD Studio 13.0 Florence and earlier versions back to Delphi 5.
+    </p>
+    <a
+      href="/installation"
+      className="inline-flex items-center justify-center px-6 py-3 text-base font-semibold text-white bg-[#e77c38] hover:bg-[#d16a2a] rounded-lg transition-colors no-underline"
+    >
+      View installation guide
+    </a>
+  </div>
+</div>

@@ -1,0 +1,685 @@
+---
+title: 'Flowchart Shapes'
+description: 'Specialized shape classes for creating professional flowcharts and process diagrams'
+---
+
+## Overview
+
+TeeTree includes a comprehensive set of flowchart shapes defined in the `TreeFlow` unit. These shapes follow standard flowchart conventions and are ideal for process diagrams, workflow visualizations, and business process modeling.
+
+## Inheritance Hierarchy
+
+```
+TCustomTreeShape
+  └── TFlowChartShape (base class for flowchart shapes)
+        ├── TDecisionShape
+        ├── TProcessShape
+        ├── TTerminalShape
+        ├── TConnectorShape
+        ├── TInputOutputShape
+        └── ... (other flowchart shapes)
+```
+
+## Process Shapes
+
+### TProcessShape
+
+<Card title="Process" icon="square" color="#4299E1">
+  Represents a process step or action.
+</Card>
+
+**Description:** Standard rectangular shape for process steps.
+
+**Default Style:** `tssRectangle`
+
+**Usage:**
+```pascal
+var
+  Process: TProcessShape;
+begin
+  Process := TProcessShape.Create(Tree);
+  Process.Text.Add('Process Data');
+  Process.X0 := 100;
+  Process.Y0 := 100;
+end;
+```
+
+### TPredefinedProcessShape
+
+<Card title="Predefined Process" icon="bars" color="#4299E1">
+  Represents a predefined process or subroutine.
+</Card>
+
+**Description:** Rectangle with vertical lines on the sides.
+
+**Usage:**
+```pascal
+var
+  SubRoutine: TPredefinedProcessShape;
+begin
+  SubRoutine := TPredefinedProcessShape.Create(Tree);
+  SubRoutine.Text.Add('Call Subroutine');
+end;
+```
+
+### TManualOperationShape
+
+<Card title="Manual Operation" icon="hand" color="#4ECDC4">
+  Represents a manual operation or task.
+</Card>
+
+**Description:** Trapezoid shape with slanted top.
+
+**Default Color:** `clAqua`
+
+**Usage:**
+```pascal
+var
+  ManualOp: TManualOperationShape;
+begin
+  ManualOp := TManualOperationShape.Create(Tree);
+  ManualOp.Text.Add('Manual Entry');
+end;
+```
+
+## Decision and Logic Shapes
+
+### TDecisionShape
+
+<Card title="Decision" icon="diamond" color="#F56565">
+  Represents a decision point in the flow.
+</Card>
+
+**Description:** Diamond shape for yes/no decisions.
+
+**Default Style:** `tssDiamond`
+
+**Default Colors:** Red background, white text
+
+**Alias:** `TConditionShape`
+
+**Usage:**
+```pascal
+var
+  Decision: TDecisionShape;
+begin
+  Decision := TDecisionShape.Create(Tree);
+  Decision.Text.Add('Valid?');
+  // Default colors already set
+end;
+```
+
+### TSelectShape
+
+<Card title="Select" icon="code-branch" color="#48BB78">
+  Represents a multi-way branch or select statement.
+</Card>
+
+**Description:** Hexagon-like shape for multi-path selection.
+
+**Default Color:** `clLime`
+
+**Usage:**
+```pascal
+var
+  Select: TSelectShape;
+begin
+  Select := TSelectShape.Create(Tree);
+  Select.Text.Add('Select Case');
+end;
+```
+
+### TAndShape
+
+<Card title="AND Gate" icon="circle" color="#000000">
+  Logical AND operation.
+</Card>
+
+**Description:** Circle with cross pattern.
+
+**Usage:**
+```pascal
+var
+  AndGate: TAndShape;
+begin
+  AndGate := TAndShape.Create(Tree);
+  AndGate.Style := tssCircle;
+end;
+```
+
+### TOrShape
+
+<Card title="OR Gate" icon="circle" color="#000000">
+  Logical OR operation.
+</Card>
+
+**Description:** Circle with plus pattern.
+
+**Usage:**
+```pascal
+var
+  OrGate: TOrShape;
+begin
+  OrGate := TOrShape.Create(Tree);
+end;
+```
+
+## Input/Output Shapes
+
+### TInputOutputShape
+
+<Card title="Input/Output" icon="arrow-right-arrow-left" color="#F6E05E">
+  Represents input or output operations.
+</Card>
+
+**Description:** Parallelogram with adjustable slant.
+
+**Default Color:** `clYellow`
+
+**Alias:** `TTitleShape`
+
+**Properties:**
+- `Slant`: Controls the angle of slant (default: 12.5%)
+
+**Usage:**
+```pascal
+var
+  IO: TInputOutputShape;
+begin
+  IO := TInputOutputShape.Create(Tree);
+  IO.Text.Add('Read Input');
+  IO.Slant := 15.0; // Adjust slant angle
+end;
+```
+
+### TManualInputShape
+
+<Card title="Manual Input" icon="keyboard" color="#90CDF4">
+  Represents manual input from keyboard.
+</Card>
+
+**Description:** Quadrilateral slanted on one side.
+
+**Default Color:** `clSkyBlue`
+
+**Alias:** `TManualShape`
+
+**Usage:**
+```pascal
+var
+  Input: TManualInputShape;
+begin
+  Input := TManualInputShape.Create(Tree);
+  Input.Text.Add('Enter Data');
+end;
+```
+
+## Data Storage Shapes
+
+### TDocumentShape
+
+<Card title="Document" icon="file" color="#FF80FF">
+  Represents a document or report.
+</Card>
+
+**Description:** Rectangle with wavy bottom.
+
+**Usage:**
+```pascal
+var
+  Doc: TDocumentShape;
+begin
+  Doc := TDocumentShape.Create(Tree);
+  Doc.Text.Add('Report');
+end;
+```
+
+### TPunchCardShape
+
+<Card title="Punched Card" icon="credit-card" color="#FF8000">
+  Represents punched card input/output.
+</Card>
+
+**Alias:** `TCardShape`
+
+**Properties:**
+- `PercentHoriz`: Horizontal cut percentage (default: 25)
+- `PercentVert`: Vertical cut percentage (default: 25)
+
+**Usage:**
+```pascal
+var
+  Card: TPunchCardShape;
+begin
+  Card := TPunchCardShape.Create(Tree);
+  Card.PercentHoriz := 30;
+end;
+```
+
+### TPunchTapeShape
+
+<Card title="Punched Tape" icon="film" color="#808080">
+  Represents punched tape storage.
+</Card>
+
+**Usage:**
+```pascal
+var
+  Tape: TPunchTapeShape;
+begin
+  Tape := TPunchTapeShape.Create(Tree);
+end;
+```
+
+### TOnlineStorageShape
+
+<Card title="Online Storage" icon="database" color="#4299E1">
+  Represents online storage or database.
+</Card>
+
+**Alias:** `TDataShape`
+
+**Usage:**
+```pascal
+var
+  Storage: TOnlineStorageShape;
+begin
+  Storage := TOnlineStorageShape.Create(Tree);
+  Storage.Text.Add('Database');
+end;
+```
+
+### TMagneticTapeShape
+
+<Card title="Magnetic Tape" icon="tape" color="#000000">
+  Represents magnetic tape storage.
+</Card>
+
+**Alias:** `TTapeShape`
+
+**Usage:**
+```pascal
+var
+  Tape: TMagneticTapeShape;
+begin
+  Tape := TMagneticTapeShape.Create(Tree);
+end;
+```
+
+## Flow Control Shapes
+
+### TTerminalShape
+
+<Card title="Terminal" icon="stop" color="#4299E1">
+  Represents start or end of a process.
+</Card>
+
+**Description:** Rounded rectangle (stadium shape).
+
+**Usage:**
+```pascal
+var
+  Start: TTerminalShape;
+begin
+  Start := TTerminalShape.Create(Tree);
+  Start.Text.Add('Start');
+end;
+```
+
+### TConnectorShape
+
+<Card title="Connector" icon="circle" color="#4299E1">
+  Represents a connector or continuation point.
+</Card>
+
+**Default Style:** `tssCircle`
+
+**Usage:**
+```pascal
+var
+  Conn: TConnectorShape;
+begin
+  Conn := TConnectorShape.Create(Tree);
+  Conn.Text.Add('A');
+end;
+```
+
+### TDelayShape
+
+<Card title="Delay" icon="clock" color="#C5FCE9">
+  Represents a delay in the process.
+</Card>
+
+**Description:** Semi-circle on the right side.
+
+**Usage:**
+```pascal
+var
+  Delay: TDelayShape;
+begin
+  Delay := TDelayShape.Create(Tree);
+  Delay.Text.Add('Wait 5s');
+end;
+```
+
+## Additional Geometric Shapes
+
+### TPentagonShape
+
+<Card title="Pentagon" icon="pentagon">
+  Five-sided polygon.
+</Card>
+
+**Usage:**
+```pascal
+var
+  Pentagon: TPentagonShape;
+begin
+  Pentagon := TPentagonShape.Create(Tree);
+  Pentagon.AngleOffset := 18;
+end;
+```
+
+### THexagonShape
+
+<Card title="Hexagon" icon="hexagon">
+  Six-sided polygon.
+</Card>
+
+**Usage:**
+```pascal
+var
+  Hexagon: THexagonShape;
+begin
+  Hexagon := THexagonShape.Create(Tree);
+end;
+```
+
+### TOctagonShape
+
+<Card title="Octagon" icon="octagon">
+  Eight-sided polygon.
+</Card>
+
+**Usage:**
+```pascal
+var
+  Octagon: TOctagonShape;
+begin
+  Octagon := TOctagonShape.Create(Tree);
+  Octagon.AngleOffset := 22.5;
+end;
+```
+
+### TCrossShape
+
+<Card title="Cross" icon="plus">
+  Cross or plus shape.
+</Card>
+
+**Properties:**
+- `PercentHoriz`: Horizontal bar thickness (default: 25)
+- `PercentVert`: Vertical bar thickness (default: 25)
+
+**Usage:**
+```pascal
+var
+  Cross: TCrossShape;
+begin
+  Cross := TCrossShape.Create(Tree);
+  Cross.PercentHoriz := 30;
+  Cross.PercentVert := 30;
+end;
+```
+
+## Arrow Shapes
+
+<CardGroup cols={2}>
+  <Card title="Arrow Up" icon="arrow-up">
+    Upward-pointing arrow
+  </Card>
+  <Card title="Arrow Down" icon="arrow-down">
+    Downward-pointing arrow
+  </Card>
+  <Card title="Arrow Left" icon="arrow-left">
+    Left-pointing arrow
+  </Card>
+  <Card title="Arrow Right" icon="arrow-right">
+    Right-pointing arrow
+  </Card>
+</CardGroup>
+
+**Base Class:** `TTreeCustomArrowShape`
+
+**Properties:**
+- `PercentHoriz`: Horizontal proportion (default: 25)
+- `PercentVert`: Vertical proportion (default: 33)
+
+**Usage:**
+```pascal
+var
+  Arrow: TArrowRightShape;
+begin
+  Arrow := TArrowRightShape.Create(Tree);
+  Arrow.PercentHoriz := 30;
+  Arrow.PercentVert := 40;
+end;
+```
+
+## Special Shapes
+
+### TGridShape
+
+<Card title="Grid" icon="table">
+  Multi-cell grid shape.
+</Card>
+
+**Properties:**
+- `Rows`: Number of rows (default: 3)
+- `Columns`: Number of columns (default: 3)
+- `Cells[Row, Col]`: Access individual cells
+- `GridLines`: Pen for grid lines
+
+**Events:**
+- `OnNewCell`: Triggered when a new cell is created
+
+**Usage:**
+```pascal
+var
+  Grid: TGridShape;
+begin
+  Grid := TGridShape.Create(Tree);
+  Grid.Rows := 4;
+  Grid.Columns := 3;
+  Grid.Cells[0, 0].Text.Add('Header 1');
+  Grid.Cells[0, 1].Text.Add('Header 2');
+  Grid.Cells[1, 0].Text.Add('Data 1');
+end;
+```
+
+### THouseShape
+
+<Card title="House" icon="house">
+  House shape with adjustable roof.
+</Card>
+
+**Properties:**
+- `WallSize`: Percentage of wall height (default: 50)
+
+**Usage:**
+```pascal
+var
+  House: THouseShape;
+begin
+  House := THouseShape.Create(Tree);
+  House.WallSize := 60;
+end;
+```
+
+### TEnvelopeShape
+
+<Card title="Envelope" icon="envelope">
+  Envelope shape.
+</Card>
+
+**Properties:**
+- `OffsetY`: Flap position percentage (default: 33)
+
+**Usage:**
+```pascal
+var
+  Envelope: TEnvelopeShape;
+begin
+  Envelope := TEnvelopeShape.Create(Tree);
+  Envelope.OffsetY := 40;
+end;
+```
+
+### TCallOutShape
+
+<Card title="Callout" icon="comment">
+  Speech bubble or callout.
+</Card>
+
+**Usage:**
+```pascal
+var
+  Callout: TCallOutShape;
+begin
+  Callout := TCallOutShape.Create(Tree);
+  Callout.Text.Add('Note!');
+end;
+```
+
+### TStarShape
+
+<Card title="Star" icon="star">
+  Five-pointed star.
+</Card>
+
+**Usage:**
+```pascal
+var
+  Star: TStarShape;
+begin
+  Star := TStarShape.Create(Tree);
+end;
+```
+
+### TBeveledShape
+
+<Card title="Beveled Panel" icon="square">
+  Panel with 3D bevel effect.
+</Card>
+
+**Properties:**
+- `Bevel`: Bevel style (`bvRaised`, `bvLowered`, `bvNone`)
+- `BevelSize`: Bevel width in pixels (default: 1)
+
+**Default Color:** `clBtnFace`
+
+**Usage:**
+```pascal
+var
+  Panel: TBeveledShape;
+begin
+  Panel := TBeveledShape.Create(Tree);
+  Panel.Bevel := bvRaised;
+  Panel.BevelSize := 2;
+end;
+```
+
+## Complete Flowchart Example
+
+```pascal
+uses
+  TeeTree, TreeFlow;
+
+procedure CreateFlowchartDemo(Tree: TTree);
+var
+  Start, Process1, Decision, Process2, End_: TTreeNodeShape;
+begin
+  // Start terminal
+  Start := TTerminalShape.Create(Tree);
+  with Start do
+  begin
+    Text.Add('Start');
+    X0 := 200;
+    Y0 := 50;
+  end;
+
+  // First process
+  Process1 := TProcessShape.Create(Tree);
+  with Process1 do
+  begin
+    Text.Add('Initialize');
+    Parent := Start;
+  end;
+
+  // Decision point
+  Decision := TDecisionShape.Create(Tree);
+  with Decision do
+  begin
+    Text.Add('Valid?');
+    Parent := Process1;
+  end;
+
+  // Process on true branch
+  Process2 := TProcessShape.Create(Tree);
+  with Process2 do
+  begin
+    Text.Add('Process Data');
+    Parent := Decision;
+  end;
+
+  // End terminal
+  End_ := TTerminalShape.Create(Tree);
+  with End_ do
+  begin
+    Text.Add('End');
+    Parent := Process2;
+  end;
+
+  // Arrange automatically
+  Tree.GlobalFormat.ChildManager.ApplyFormat;
+end;
+```
+
+## Shape Registration
+
+Flowchart shapes are automatically registered in the component palette under the "Flow" tab:
+
+- Decision
+- Process
+- Predefined Process
+- Terminal
+- Connector
+- Input/Output
+- Manual Operation
+- Select
+- Document
+- Punched Card
+- Punched Tape
+- Delay
+- Manual Input
+- AND
+- OR
+- Online Storage
+- Magnetic Tape
+
+## See Also
+
+<CardGroup cols={2}>
+  <Card title="Basic Shapes" icon="shapes" href="/api/shapes/basic-shapes">
+    Fundamental geometric shapes
+  </Card>
+  <Card title="UML Shapes" icon="sitemap" href="/api/shapes/uml-shapes">
+    Shapes for UML diagrams
+  </Card>
+  <Card title="Electric Shapes" icon="bolt" href="/api/shapes/electric-shapes">
+    Circuit diagram shapes
+  </Card>
+  <Card title="Custom Shapes" icon="wand-magic-sparkles" href="/api/shapes/custom-shapes">
+    Create custom shapes
+  </Card>
+</CardGroup>

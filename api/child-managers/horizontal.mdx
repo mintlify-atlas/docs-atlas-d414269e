@@ -1,0 +1,173 @@
+---
+title: 'Horizontal Layout'
+description: 'Left-to-right horizontal tree layout with vertically centered children'
+---
+
+## Overview
+
+The `TTreeLeftRightAlignChild` class arranges child nodes horizontally to the right of their parent, with siblings distributed vertically and centered around the parent's middle point.
+
+## Class Reference
+
+### TTreeLeftRightAlignChild
+
+Positions children horizontally to the right of parent nodes, with vertical centering.
+
+<Note>
+This class is defined in the `TreeChildManagers` unit.
+</Note>
+
+#### Properties
+
+<ParamField path="HorizMargin" type="Integer" default="32">
+  Horizontal spacing between parent and child nodes in pixels.
+</ParamField>
+
+<ParamField path="VertMargin" type="Integer" default="8">
+  Vertical spacing between sibling nodes in pixels.
+</ParamField>
+
+<ParamField path="CrossMargin" type="Integer" default="8">
+  Horizontal margin for the cross-box (expand/collapse control) in pixels.
+</ParamField>
+
+<ParamField path="ToShapeOffset" type="Integer" default="-4">
+  Connection offset from the target shape in pixels.
+</ParamField>
+
+## Layout Behavior
+
+The horizontal layout algorithm:
+
+1. **X Position** - Children are positioned `HorizMargin` pixels to the right of parent's right edge
+2. **Y Position** - Siblings are centered vertically around parent's Y center
+3. **Spacing** - Siblings separated by `VertMargin` pixels
+4. **Connections** - Horizontal connector with vertical distribution to children
+
+### Visual Description
+
+```
+                    ┌─ Child 1
+Root ───────────────┤
+                    └─ Child 2
+```
+
+With grandchildren:
+
+```
+                    ┌─ Child 1 ──┬─ Grandchild 1.1
+                    │            └─ Grandchild 1.2
+Root ───────────────┤
+                    │            ┌─ Grandchild 2.1
+                    └─ Child 2 ──┴─ Grandchild 2.2
+```
+
+## Usage
+
+### Setting Horizontal Layout
+
+```pascal
+uses TreeChildManagers;
+
+// Replace default child manager
+Tree1.GlobalFormat.ChildManager.Free;
+Tree1.GlobalFormat.ChildManager := TTreeLeftRightAlignChild.Create;
+```
+
+### Customizing Spacing
+
+```pascal
+var
+  Manager: TTreeLeftRightAlignChild;
+begin
+  Manager := TTreeLeftRightAlignChild.Create;
+  Manager.HorizMargin := 50;   // Wider horizontal spacing
+  Manager.VertMargin := 15;    // More space between siblings
+  Manager.CrossMargin := 10;
+  
+  Tree1.GlobalFormat.ChildManager := Manager;
+end;
+```
+
+### Creating a Horizontal Tree
+
+```pascal
+var
+  Root: TTreeNodeShape;
+begin
+  // Set horizontal layout first
+  Tree1.GlobalFormat.ChildManager.Free;
+  Tree1.GlobalFormat.ChildManager := TTreeLeftRightAlignChild.Create;
+  
+  // Create nodes
+  Root := Tree1.AddRoot('Start');
+  Root.Expanded := True;
+  
+  // Children will be arranged horizontally
+  Root.AddChild('Process 1');
+  Root.AddChild('Process 2');
+  Root.AddChild('Process 3');
+end;
+```
+
+## Connection Style
+
+The horizontal layout draws connections with:
+
+- **Main line** - Horizontal from parent's right edge
+- **Branch point** - Midpoint between parent and children
+- **Vertical distribution** - Lines extend vertically to each child
+- **Entry point** - Connects to left edge of child nodes
+
+### Connection Points
+
+The layout automatically creates connection points:
+
+1. Start at parent's right edge, vertically centered
+2. Extend horizontally by `HorizMargin / 2`
+3. Branch vertically to each child's Y center
+4. Extend to child's left edge with `ToShapeOffset`
+
+## Common Use Cases
+
+<CardGroup cols={2}>
+  <Card title="Flowcharts" icon="diagram-next">
+    Create left-to-right process flows and workflow diagrams.
+  </Card>
+  <Card title="Timeline Views" icon="timeline">
+    Display chronological events expanding to the right.
+  </Card>
+  <Card title="State Machines" icon="gears">
+    Show state transitions in a horizontal layout.
+  </Card>
+  <Card title="Process Maps" icon="sitemap">
+    Map business processes with horizontal expansion.
+  </Card>
+</CardGroup>
+
+## Comparison with Explorer Layout
+
+| Feature | Explorer | Horizontal |
+|---------|----------|------------|
+| **Child X Position** | Right of parent | Right of parent |
+| **Child Y Position** | Below previous sibling | Centered around parent |
+| **Default HorizMargin** | 19 | 32 |
+| **Default VertMargin** | 1 | 8 |
+| **Best For** | Hierarchies | Flows |
+
+## Tips
+
+<Tip>
+For balanced trees, increase `VertMargin` to prevent overlapping when nodes have many children.
+</Tip>
+
+<Warning>
+Nodes with greatly varying heights may cause layout issues. Consider using uniform node sizes for best results.
+</Warning>
+
+## Related Classes
+
+- [Explorer Layout](/api/child-managers/explorer) - Traditional hierarchical layout
+- [Vertical Layout](/api/child-managers/vertical) - Top-to-bottom expansion  
+- [Circular Layout](/api/child-managers/circular) - Radial arrangement
+- [Custom Layout](/api/child-managers/custom) - Create your own layout algorithm

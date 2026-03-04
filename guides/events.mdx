@@ -1,0 +1,572 @@
+---
+title: "Mouse and Keyboard Events"
+description: "Handle user interactions with comprehensive event system"
+---
+
+## Overview
+
+TeeTree provides a rich event system for responding to mouse clicks, keyboard input, and other user interactions. Events are available at both the tree level and individual node/connection level.
+
+<Note>
+  Events are defined in TeeTree.pas starting at line 1848. Both VCL and FMX versions share the same event signatures.
+</Note>
+
+## Mouse Events
+
+### Tree-Level Click Events
+
+<Tabs>
+  <Tab title="OnClickShape">
+    Fired when any node is clicked:
+
+    ```pascal
+    procedure TForm1.Tree1ClickShape(
+      Sender: TTreeNodeShape; 
+      Button: TMouseButton;
+      Shift: TShiftState; 
+      X, Y: Integer);
+    begin
+      ShowMessage('Clicked: ' + Sender.Text.Text);
+      
+      // Check which button was clicked
+      case Button of
+        mbLeft:   Caption := 'Left click';
+        mbRight:  Caption := 'Right click';
+        mbMiddle: Caption := 'Middle click';
+      end;
+      
+      // Check modifier keys
+      if ssCtrl in Shift then
+        Caption := Caption + ' + Ctrl';
+      if ssShift in Shift then
+        Caption := Caption + ' + Shift';
+    end;
+    ```
+
+    <Note>
+      From TeeTree.pas line 2217: `property OnClickShape: TClickShapeEvent`
+    </Note>
+  </Tab>
+
+  <Tab title="OnClickConnection">
+    Fired when a connection line is clicked:
+
+    ```pascal
+    procedure TForm1.Tree1ClickConnection(
+      Sender: TTreeConnection;
+      Button: TMouseButton;
+      Shift: TShiftState;
+      X, Y: Integer);
+    begin
+      ShowMessage(
+        Format('Connection: %s -> %s',
+          [Sender.FromShape.Text.Text,
+           Sender.ToShape.Text.Text])
+      );
+      
+      // Select the connection
+      Tree1.Connections.Selected := Sender;
+    end;
+    ```
+
+    <Note>
+      From TeeTree.pas line 2215-2216: `property OnClickConnection: TClickConnectionEvent`
+    </Note>
+  </Tab>
+
+  <Tab title="OnClickBackground">
+    Fired when clicking empty tree area:
+
+    ```pascal
+    procedure TForm1.Tree1ClickBackground(
+      Sender: TCustomTree;
+      Button: TMouseButton;
+      Shift: TShiftState;
+      X, Y: Integer);
+    begin
+      // Clear selection when clicking background
+      Tree1.Selected.Clear;
+      
+      // Or add new node at click position
+      if Button = mbLeft then
+        with Tree1.Add('New Node') do
+        begin
+          X0 := X;
+          Y0 := Y;
+        end;
+    end;
+    ```
+
+    <Note>
+      From TeeTree.pas line 2214: `property OnClickBackground: TTreeClick`
+    </Note>
+  </Tab>
+</Tabs>
+
+### Node-Level Events
+
+Individual nodes can have their own event handlers:
+
+```pascal
+var
+  Node: TTreeNodeShape;
+begin
+  Node := Tree1.Add('Click Me');
+  
+  // Assign node-specific click handler
+  Node.OnClick := NodeClickHandler;
+end;
+
+procedure TForm1.NodeClickHandler(
+  Sender: TTreeNodeShape;
+  Button: TMouseButton;
+  Shift: TShiftState;
+  X, Y: Integer);
+begin
+  // This only fires for this specific node
+  Sender.Brush.Color := clYellow;
+end;
+```
+
+<Warning>
+  Node-level `OnClick` fires **after** tree-level `OnClickShape`. Both will execute if both are assigned.
+</Warning>
+
+### Double-Click Events
+
+Handle double-click interactions:
+
+```pascal
+// Tree level - any node double-clicked
+procedure TForm1.Tree1DblClickShape(
+  Sender: TTreeNodeShape;
+  Button: TMouseButton;
+  Shift: TShiftState;
+  X, Y: Integer);
+begin
+  // Edit node text on double-click
+  Sender.Edit;
+end;
+
+// Connection double-click
+procedure TForm1.Tree1DblClickConnection(
+  Sender: TTreeConnection;
+  Button: TMouseButton;
+  Shift: TShiftState;
+  X, Y: Integer);
+begin
+  // Show connection properties dialog
+  EditConnection(Sender);
+end;
+```
+
+From TreeEd.pas (lines 4205-4208), the editor sets up these events:
+
+```pascal
+OnClickConnection     := TheTreeClickConnection;
+OnClickShape          := nil;  // Editor handles differently
+OnDblClickConnection  := TheTreeDblClickConnection;
+OnDblClickShape       := TheTreeDblClickShape;
+```
+
+### Mouse Move Events
+
+<CodeGroup>
+
+```pascal Tree Mouse Move
+procedure TForm1.Tree1MouseMove(
+  Sender: TObject;
+  Shift: TShiftState;
+  X, Y: Integer);
+var
+  Node: TTreeNodeShape;
+begin
+  // Find shape under mouse
+  Node := Tree1.ClickedShape(X, Y);
+  
+  if Assigned(Node) then
+  begin
+    // Show hint or highlight
+    StatusBar1.SimpleText := Node.Text.Text;
+    Node.Border.Color := clHighlight;
+  end
+  else
+    StatusBar1.SimpleText := '';
+end;
+```
+
+```pascal Node Mouse Move
+var
+  Node: TTreeNodeShape;
+begin
+  Node := Tree1.Add('Hover Me');
+  Node.OnMouseMove := NodeMouseMove;
+end;
+
+procedure TForm1.NodeMouseMove(
+  Sender: TTreeNodeShape;
+  Shift: TShiftState;
+  X, Y: Integer);
+begin
+  // Only fires when over this specific node
+  Sender.Shadow.Visible := True;
+end;
+```
+
+</CodeGroup>
+
+From TeeTree.pas (lines 7990-7995):
+
+```pascal
+// Call the OnMouseMove event if assigned
+procedure TTreeNodeShape.DoMouseMove(...);
+begin
+  if Assigned(FOnMouseMove) then
+     FOnMouseMove(Self, Shift, X, Y);
+end;
+```
+
+## Keyboard Events
+
+### OnKeyDown Event
+
+Handle keyboard input:
+
+```pascal
+procedure TForm1.Tree1KeyDown(
+  Sender: TObject;
+  var Key: Word;
+  Shift: TShiftState);
+begin
+  case Key of
+    VK_DELETE:
+      begin
+        // Delete selected nodes
+        if MessageDlg('Delete selected nodes?', 
+                      mtConfirmation, [mbYes, mbNo], 0) = mrYes then
+          Tree1.Selected.Delete;
+        Key := 0;  // Mark as handled
+      end;
+    
+    VK_ESCAPE:
+      begin
+        // Clear selection
+        Tree1.Selected.Clear;
+        Key := 0;
+      end;
+    
+    VK_F2:
+      begin
+        // Edit selected node
+        if Tree1.Selected.Count > 0 then
+          Tree1.Selected.First.Edit;
+        Key := 0;
+      end;
+    
+    VK_UP, VK_DOWN, VK_LEFT, VK_RIGHT:
+      begin
+        // Navigation handled automatically
+        // But you can customize behavior here
+      end;
+  end;
+  
+  // Check modifier keys
+  if ssCtrl in Shift then
+  begin
+    case Key of
+      Ord('C'): Tree1.Selected.Copy;    // Ctrl+C
+      Ord('V'): Tree1.Selected.Paste;   // Ctrl+V
+      Ord('X'): Tree1.Selected.Cut;     // Ctrl+X
+      Ord('A'): SelectAllNodes;          // Ctrl+A
+    end;
+  end;
+end;
+```
+
+From TeeTree.pas line 2244:
+
+```pascal
+property OnKeyDown;  // Inherited from TControl
+```
+
+### Text Editing Events
+
+<Steps>
+  <Step title="OnStartEditing">
+    Fired when node text editing begins:
+
+    ```pascal
+    procedure TForm1.Tree1StartEditing(
+      Sender: TTreeNodeShape);
+    begin
+      // Save original text for potential cancel
+      FOldText := Sender.Text.Text;
+      
+      // Or prevent editing certain nodes
+      if Sender.Tag = 1 then
+      begin
+        ShowMessage('This node cannot be edited');
+        Sender.StopEditing;
+      end;
+    end;
+    ```
+  </Step>
+
+  <Step title="OnStopEditing">
+    Fired when editing completes:
+
+    ```pascal
+    procedure TForm1.Tree1StopEditing(
+      Sender: TTreeNodeShape);
+    begin
+      // Validate new text
+      if Trim(Sender.Text.Text) = '' then
+      begin
+        ShowMessage('Text cannot be empty');
+        Sender.Text.Text := 'Unnamed';
+      end;
+      
+      // Update database, etc.
+      SaveNodeToDatabase(Sender);
+    end;
+    ```
+
+    From TreeEd.pas (line 4207), the editor uses this:
+
+    ```pascal
+    OnStopEditing := TheTreeStopEditing;
+    ```
+  </Step>
+</Steps>
+
+## Selection Events
+
+### OnSelectShape and OnUnSelectShape
+
+<CodeGroup>
+
+```pascal OnSelectShape
+procedure TForm1.Tree1SelectShape(
+  Sender: TTreeNodeShape);
+begin
+  // Node was selected
+  Panel1.Caption := 'Selected: ' + Sender.Text.Text;
+  
+  // Load details panel
+  LoadNodeDetails(Sender);
+  
+  // Highlight related nodes
+  HighlightChildren(Sender);
+end;
+```
+
+```pascal OnUnSelectShape  
+procedure TForm1.Tree1UnSelectShape(
+  Sender: TTreeNodeShape);
+begin
+  // Node was unselected
+  Panel1.Caption := 'Nothing selected';
+  
+  // Clear details panel
+  ClearNodeDetails;
+  
+  // Remove highlights
+  UnhighlightChildren(Sender);
+end;
+```
+
+```pascal Multiple Selection
+procedure TForm1.Tree1SelectShape(
+  Sender: TTreeNodeShape);
+begin
+  // Update multi-selection count
+  StatusBar1.Panels[0].Text := 
+    Format('%d selected', [Tree1.Selected.Count]);
+  
+  // Enable/disable buttons
+  ButtonDelete.Enabled := Tree1.Selected.Count > 0;
+  ButtonEdit.Enabled := Tree1.Selected.Count = 1;
+end;
+```
+
+</CodeGroup>
+
+## Expand/Collapse Events
+
+### OnExpandingCollapsing
+
+Critical for virtual mode and dynamic trees:
+
+```pascal
+procedure TForm1.Tree1ExpandingCollapsing(
+  Sender: TTreeNodeShape;
+  var Expand: Boolean);
+begin
+  if Expand then
+  begin
+    // Before expanding
+    if Sender.Children.Count = 0 then
+    begin
+      // Load children on-demand (virtual mode)
+      LoadChildrenFromDatabase(Sender);
+    end;
+    
+    // Or prevent expansion
+    if not UserHasPermission(Sender) then
+    begin
+      ShowMessage('Access denied');
+      Expand := False;  // Cancel expansion
+      Exit;
+    end;
+  end
+  else
+  begin
+    // Before collapsing
+    // You can prevent collapse by setting Expand := True
+    if Sender.Tag = 1 then  // Keep important nodes expanded
+      Expand := True;
+  end;
+end;
+```
+
+From TeeTree.pas (lines 12654-12657):
+
+```pascal
+if Assigned(FOnExpandingCollapsing) then
+   FOnExpandingCollapsing(AShape, Value);
+
+AShape.FExpanded := Value;  // After calling event
+```
+
+<Warning>
+  The `Expand` parameter is `var` - you can modify it to cancel the expand/collapse action.
+</Warning>
+
+## Advanced Events
+
+### OnMovingShape
+
+Fired continuously while dragging:
+
+```pascal
+procedure TForm1.Tree1MovingShape(
+  Sender: TTreeNodeShape;
+  var DeltaX, DeltaY: Integer);
+begin
+  // Snap to grid while dragging
+  DeltaX := (DeltaX div 10) * 10;
+  DeltaY := (DeltaY div 10) * 10;
+  
+  // Or constrain movement
+  if Sender.X0 + DeltaX < 0 then
+    DeltaX := -Sender.X0;  // Don't move past left edge
+end;
+```
+
+### OnResizingShape
+
+Fired while resizing with handles:
+
+```pascal
+procedure TForm1.Tree1ResizingShape(
+  Sender: TTreeNodeShape;
+  ACorner: TTreeShapeHandle;
+  var DeltaX, DeltaY: Integer);
+begin
+  // Maintain aspect ratio
+  if ssShift in GetKeyState then
+  begin
+    if Abs(DeltaX) > Abs(DeltaY) then
+      DeltaY := DeltaX
+    else
+      DeltaX := DeltaY;
+  end;
+  
+  // Enforce minimum size
+  if (Sender.Width + DeltaX < 50) then
+    DeltaX := 50 - Sender.Width;
+end;
+```
+
+### OnAfterDraw
+
+Custom drawing after tree renders:
+
+```pascal
+procedure TForm1.Tree1AfterDraw(Sender: TObject);
+var
+  R: TRect;
+begin
+  // Draw watermark
+  with Tree1.Canvas do
+  begin
+    Font.Size := 48;
+    Font.Color := clSilver;
+    TextOut(10, 10, 'DRAFT');
+  end;
+  
+  // Draw selection count
+  if Tree1.Selected.Count > 1 then
+  begin
+    R := Tree1.ClientRect;
+    Tree1.Canvas.TextOut(
+      R.Right - 100, R.Top + 10,
+      Format('%d selected', [Tree1.Selected.Count])
+    );
+  end;
+end;
+```
+
+## Event Properties Summary
+
+From TeeTree.pas (lines 2214-2244):
+
+```pascal
+property OnAfterDraw: TNotifyEvent;
+property OnClickBackground: TTreeClick;
+property OnClickConnection: TClickConnectionEvent;
+property OnClickShape: TClickShapeEvent;
+property OnDblClickConnection: TClickConnectionEvent;
+property OnDblClickShape: TClickShapeEvent;
+property OnDeletedShapes: TNotifyEvent;
+property OnDeletingShapes: TDeletingShapesEvent;
+property OnExpandingCollapsing: TExpandingCollapsingEvent;
+property OnMovingShape: TMovingShapeEvent;
+property OnNewConnection: TNewConnectionEvent;
+property OnNewPolygon: TNewPolygonEvent;
+property OnResizingShape: TResizingShapeEvent;
+property OnSelectConnection: TSelectConnectionEvent;
+property OnSelectShape: TSelectShapeEvent;
+property OnStartEditing: TStartEditingEvent;
+property OnStopEditing: TStopEditingEvent;
+property OnUnSelectConnection: TUnSelectConnectionEvent;
+property OnUnSelectShape: TUnSelectShapeEvent;
+property OnZoom: TNotifyEvent;
+property OnZoomedArea: TZoomedAreaEvent;
+```
+
+## Best Practices
+
+<CardGroup cols={2}>
+
+<Card title="Check for nil" icon="shield">
+  Always check if `Sender` is assigned before accessing properties.
+</Card>
+
+<Card title="Use var Parameters" icon="code">
+  Events with `var` parameters let you modify behavior (like canceling expand).
+</Card>
+
+<Card title="BeginUpdate/EndUpdate" icon="gauge">
+  Wrap bulk changes in BeginUpdate/EndUpdate for better performance.
+</Card>
+
+<Card title="Event Order Matters" icon="list">
+  Node events fire after tree events. Plan your logic accordingly.
+</Card>
+
+</CardGroup>
+
+<Note>
+  The TeeTree editor (TreeEd.pas) is an excellent reference for event handling patterns. See lines 4190-4210 for how events are wired up.
+</Note>

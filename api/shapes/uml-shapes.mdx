@@ -1,0 +1,571 @@
+---
+title: 'UML Shapes'
+description: 'Specialized shape classes for creating UML (Unified Modeling Language) diagrams'
+---
+
+## Overview
+
+The `TreeUML` unit provides specialized shapes for creating UML (Unified Modeling Language) diagrams in TeeTree. These shapes support class diagrams, use case diagrams, activity diagrams, and other UML diagram types.
+
+## Inheritance Hierarchy
+
+```
+TCustomTreeShape
+  └── TUMLShape (base class for UML shapes)
+        ├── TActorShape
+        ├── TUMLRectangle
+        │     ├── TClassShape
+        │     └── TInterfaceShape
+        ├── TPackageShape
+        ├── TActionShape
+        ├── TProcShape
+        ├── TNoteShape
+        └── TStoreShape
+```
+
+## Base Classes
+
+### TUMLShape
+
+<Card title="UML Shape" icon="diagram-project">
+  Base class for all UML shapes.
+</Card>
+
+**Description:** Alias for `TCustomTreeShape`, provides foundation for UML-specific shapes.
+
+```pascal
+TUMLShape = class(TCustomTreeShape);
+```
+
+### TUMLRectangle
+
+<Card title="UML Rectangle" icon="square">
+  Base rectangular shape for UML elements.
+</Card>
+
+**Default Properties:**
+- `ImageIndex`: `tiNone` (no default image)
+- `VertTextAlign`: `vtaTop` (text aligned to top)
+
+**Usage:**
+```pascal
+var
+  UMLRect: TUMLRectangle;
+begin
+  UMLRect := TUMLRectangle.Create(Tree);
+  UMLRect.VertTextAlign := vtaTop;
+end;
+```
+
+## Class Diagram Shapes
+
+### TClassShape
+
+<Card title="Class" icon="cube" color="#4299E1">
+  Represents a class in UML class diagrams.
+</Card>
+
+**Description:** Rectangle divided into three sections:
+1. Class name (top)
+2. Attributes (middle)
+3. Methods (bottom)
+
+**Features:**
+- Automatically draws horizontal divider lines
+- Top section for class name
+- Text aligned to top by default
+
+**Usage:**
+```pascal
+var
+  Class_: TClassShape;
+begin
+  Class_ := TClassShape.Create(Tree);
+  with Class_ do
+  begin
+    Text.Add('Customer');
+    Text.Add('----------');
+    Text.Add('+ name: string');
+    Text.Add('+ email: string');
+    Text.Add('----------');
+    Text.Add('+ getName(): string');
+    Text.Add('+ setName(n: string)');
+    X0 := 100;
+    Y0 := 100;
+    Width := 180;
+    AutoSize := True;
+  end;
+end;
+```
+
+**Drawing Behavior:**
+- Draws horizontal line after first text line (class name)
+- Draws another line to separate attributes from methods
+- Lines are calculated based on text height
+
+### TInterfaceShape
+
+<Card title="Interface" icon="plug" color="#48BB78">
+  Represents an interface in UML diagrams.
+</Card>
+
+**Description:** Similar to class shape but with only two sections:
+1. Interface name (with stereotype)
+2. Methods
+
+**Usage:**
+```pascal
+var
+  Interface_: TInterfaceShape;
+begin
+  Interface_ := TInterfaceShape.Create(Tree);
+  with Interface_ do
+  begin
+    Text.Add('<<interface>>');
+    Text.Add('ICustomer');
+    Text.Add('----------');
+    Text.Add('+ getName(): string');
+    Text.Add('+ getEmail(): string');
+    AutoSize := True;
+  end;
+end;
+```
+
+### TPackageShape
+
+<Card title="Package" icon="box" color="#F6AD55">
+  Represents a package or namespace.
+</Card>
+
+**Description:** Rectangle with a tab at the top-left corner.
+
+**Features:**
+- Custom polygon shape with tab
+- Tab size: 1/4 height, 1/3 width
+- Horizontal line separates tab from main body
+
+**Usage:**
+```pascal
+var
+  Package: TPackageShape;
+begin
+  Package := TPackageShape.Create(Tree);
+  Package.Text.Add('com.example.model');
+  Package.Width := 200;
+  Package.Height := 150;
+end;
+```
+
+## Use Case Diagram Shapes
+
+### TActorShape
+
+<Card title="Actor" icon="user" color="#000000">
+  Represents an actor in use case diagrams.
+</Card>
+
+**Description:** Stick figure representing a user or external system.
+
+**Drawing Components:**
+- Circle for head (top 1/3)
+- Horizontal line for arms (at 1/3 from top)
+- Vertical line for body
+- Two diagonal lines for legs
+
+**Usage:**
+```pascal
+var
+  Actor: TActorShape;
+begin
+  Actor := TActorShape.Create(Tree);
+  Actor.Text.Add('User');
+  Actor.Width := 60;
+  Actor.Height := 100;
+  Actor.VertTextAlign := vtaBottom; // Text below figure
+end;
+```
+
+### TActionShape
+
+<Card title="Action/Use Case" icon="circle-dot" color="#4299E1">
+  Represents a use case or action.
+</Card>
+
+**Description:** Ellipse/oval shape.
+
+**Features:**
+- Custom curved shape with rounded ends
+- Uses bezier-like curves for smooth appearance
+- 34 points for smooth rendering
+
+**Usage:**
+```pascal
+var
+  UseCase: TActionShape;
+begin
+  UseCase := TActionShape.Create(Tree);
+  UseCase.Text.Add('Login');
+  UseCase.Width := 120;
+  UseCase.Height := 60;
+end;
+```
+
+## Activity Diagram Shapes
+
+### TProcShape
+
+<Card title="Procedure/Activity" icon="circle" color="#4299E1">
+  Represents a procedure or activity node.
+</Card>
+
+**Description:** Circle with an incoming arrow on the left side.
+
+**Default Style:** `tssCircle`
+
+**Features:**
+- Draws a small incoming arrow line
+- Arrow positioned at left-center
+
+**Usage:**
+```pascal
+var
+  Proc: TProcShape;
+begin
+  Proc := TProcShape.Create(Tree);
+  Proc.Text.Add('Process');
+  Proc.Style := tssCircle;
+end;
+```
+
+### TStoreShape
+
+<Card title="Data Store" icon="database" color="#4299E1">
+  Represents a data store or database in activity diagrams.
+</Card>
+
+**Description:** Circle with an outgoing arrow at the bottom.
+
+**Default Style:** `tssCircle`
+
+**Features:**
+- Draws a small outgoing arrow line at bottom-center
+- Arrow points downward
+
+**Usage:**
+```pascal
+var
+  Store: TStoreShape;
+begin
+  Store := TStoreShape.Create(Tree);
+  Store.Text.Add('Database');
+  Store.Style := tssCircle;
+end;
+```
+
+## Documentation Shapes
+
+### TNoteShape
+
+<Card title="Note/Comment" icon="note-sticky" color="#F6E05E">
+  Represents a note or comment annotation.
+</Card>
+
+**Description:** Rectangle with a folded corner (dog-ear effect).
+
+**Features:**
+- Folded corner at top-right
+- Corner fold is 10% of shape size
+- Lines drawn to show fold
+
+**Usage:**
+```pascal
+var
+  Note: TNoteShape;
+begin
+  Note := TNoteShape.Create(Tree);
+  Note.Text.Add('This is a note');
+  Note.Text.Add('explaining the');
+  Note.Text.Add('design decision');
+  Note.Brush.Color := clYellow;
+  Note.AutoSize := True;
+end;
+```
+
+## Complete UML Class Diagram Example
+
+```pascal
+uses
+  TeeTree, TreeUML;
+
+procedure CreateUMLClassDiagram(Tree: TTree);
+var
+  BaseClass, DerivedClass, Interface_: TTreeNodeShape;
+  Association: TTreeConnection;
+begin
+  // Base class
+  BaseClass := TClassShape.Create(Tree);
+  with TClassShape(BaseClass) do
+  begin
+    Text.Add('Animal');
+    Text.Add('----------');
+    Text.Add('- name: string');
+    Text.Add('- age: integer');
+    Text.Add('----------');
+    Text.Add('+ eat()');
+    Text.Add('+ sleep()');
+    X0 := 100;
+    Y0 := 50;
+    AutoSize := True;
+  end;
+
+  // Derived class
+  DerivedClass := TClassShape.Create(Tree);
+  with TClassShape(DerivedClass) do
+  begin
+    Text.Add('Dog');
+    Text.Add('----------');
+    Text.Add('- breed: string');
+    Text.Add('----------');
+    Text.Add('+ bark()');
+    Text.Add('+ wagTail()');
+    X0 := 100;
+    Y0 := 250;
+    AutoSize := True;
+  end;
+
+  // Interface
+  Interface_ := TInterfaceShape.Create(Tree);
+  with TInterfaceShape(Interface_) do
+  begin
+    Text.Add('<<interface>>');
+    Text.Add('IPet');
+    Text.Add('----------');
+    Text.Add('+ play()');
+    Text.Add('+ cuddle()');
+    X0 := 350;
+    Y0 := 150;
+    AutoSize := True;
+  end;
+
+  // Inheritance connection (filled triangle arrow)
+  Association := DerivedClass.AddConnection(BaseClass);
+  with Association do
+  begin
+    ArrowTo.Style := casLines;
+    ArrowTo.Size := 12;
+    Border.Color := clBlack;
+  end;
+
+  // Implementation connection (dashed line)
+  Association := DerivedClass.AddConnection(Interface_);
+  with Association do
+  begin
+    ArrowTo.Style := casLines;
+    Border.Style := psDash;
+  end;
+end;
+```
+
+## Use Case Diagram Example
+
+```pascal
+procedure CreateUseCaseDiagram(Tree: TTree);
+var
+  Actor1, UseCase1, UseCase2, Note: TTreeNodeShape;
+begin
+  // Actor
+  Actor1 := TActorShape.Create(Tree);
+  with Actor1 do
+  begin
+    Text.Add('Customer');
+    X0 := 50;
+    Y0 := 150;
+    VertTextAlign := vtaBottom;
+  end;
+
+  // Use case 1
+  UseCase1 := TActionShape.Create(Tree);
+  with UseCase1 do
+  begin
+    Text.Add('Place Order');
+    X0 := 200;
+    Y0 := 100;
+  end;
+
+  // Use case 2
+  UseCase2 := TActionShape.Create(Tree);
+  with UseCase2 do
+  begin
+    Text.Add('Make Payment');
+    X0 := 200;
+    Y0 := 200;
+  end;
+
+  // Note
+  Note := TNoteShape.Create(Tree);
+  with TNoteShape(Note) do
+  begin
+    Text.Add('Payment required');
+    Text.Add('for order');
+    X0 := 400;
+    Y0 := 180;
+    Brush.Color := clYellow;
+    AutoSize := True;
+  end;
+
+  // Connect actor to use cases
+  Actor1.AddConnection(UseCase1);
+  Actor1.AddConnection(UseCase2);
+  
+  // Connect note with dashed line
+  with UseCase2.AddConnection(Note) do
+    Border.Style := psDash;
+end;
+```
+
+## Activity Diagram Example
+
+```pascal
+procedure CreateActivityDiagram(Tree: TTree);
+var
+  Start, Action1, Action2, Store, End_: TTreeNodeShape;
+begin
+  // Start node (filled circle)
+  Start := TTreeNodeShape.Create(Tree);
+  with Start do
+  begin
+    Style := tssCircle;
+    Width := 30;
+    Height := 30;
+    Brush.Color := clBlack;
+    X0 := 200;
+    Y0 := 50;
+  end;
+
+  // Activity 1
+  Action1 := TActionShape.Create(Tree);
+  with Action1 do
+  begin
+    Text.Add('Receive Order');
+    Parent := Start;
+  end;
+
+  // Data store
+  Store := TStoreShape.Create(Tree);
+  with Store do
+  begin
+    Text.Add('Save');
+    Parent := Action1;
+  end;
+
+  // Activity 2
+  Action2 := TActionShape.Create(Tree);
+  with Action2 do
+  begin
+    Text.Add('Process Payment');
+    Parent := Store;
+  end;
+
+  // End node (circle with border)
+  End_ := TTreeNodeShape.Create(Tree);
+  with End_ do
+  begin
+    Style := tssCircle;
+    Width := 30;
+    Height := 30;
+    Brush.Color := clBlack;
+    Border.Width := 3;
+    Parent := Action2;
+  end;
+
+  Tree.GlobalFormat.ChildManager.ApplyFormat;
+end;
+```
+
+## UML Shape Registration
+
+UML shapes are automatically registered in the component palette under the "UML" tab:
+
+- Package
+- Class
+- Interface
+- Action
+- Actor
+- Procedure
+- Note
+- Store
+
+## Common UML Patterns
+
+### Inheritance
+
+Use connections with triangle arrows:
+
+```pascal
+with DerivedClass.AddConnection(BaseClass) do
+begin
+  ArrowTo.Style := casLines; // Hollow triangle
+  ArrowTo.Size := 12;
+end;
+```
+
+### Association
+
+Use simple lines:
+
+```pascal
+Class1.AddConnection(Class2);
+```
+
+### Aggregation
+
+Use diamond arrow:
+
+```pascal
+with Container.AddConnection(Element) do
+begin
+  ArrowTo.Style := casDiamond;
+  ArrowTo.Brush.Color := clWhite; // Hollow diamond
+end;
+```
+
+### Composition
+
+Use filled diamond:
+
+```pascal
+with Whole.AddConnection(Part) do
+begin
+  ArrowTo.Style := casDiamond;
+  ArrowTo.Brush.Color := clBlack; // Filled diamond
+end;
+```
+
+### Dependency
+
+Use dashed line:
+
+```pascal
+with Client.AddConnection(Supplier) do
+begin
+  Border.Style := psDash;
+  ArrowTo.Style := casSolid;
+end;
+```
+
+## See Also
+
+<CardGroup cols={2}>
+  <Card title="Basic Shapes" icon="shapes" href="/api/shapes/basic-shapes">
+    Fundamental geometric shapes
+  </Card>
+  <Card title="Flowchart Shapes" icon="diagram-project" href="/api/shapes/flowchart-shapes">
+    Process diagram shapes
+  </Card>
+  <Card title="Electric Shapes" icon="bolt" href="/api/shapes/electric-shapes">
+    Circuit diagram shapes
+  </Card>
+  <Card title="Custom Shapes" icon="wand-magic-sparkles" href="/api/shapes/custom-shapes">
+    Create custom shapes
+  </Card>
+</CardGroup>
