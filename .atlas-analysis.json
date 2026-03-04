@@ -1,0 +1,161 @@
+{
+  "projectType": "sdk-library",
+  "projectName": "TeeTree",
+  "projectDescription": "Flowcharting, diagramming, and tree-view component library for Delphi/C++ VCL and FireMonkey FMX",
+  "theme": "maple",
+  "primaryColor": "#e77c38",
+  "lightColor": "#aecae4",
+  "darkColor": "#4b6d9e",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/trees",
+              "concepts/nodes",
+              "concepts/connections",
+              "concepts/child-managers"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/creating-trees",
+              "guides/working-with-nodes",
+              "guides/node-formatting",
+              "guides/connections",
+              "guides/database-trees",
+              "guides/virtual-mode",
+              "guides/custom-shapes",
+              "guides/events",
+              "guides/printing",
+              "guides/import-export"
+            ]
+          },
+          {
+            "group": "VCL & FMX",
+            "pages": [
+              "platforms/vcl",
+              "platforms/fmx",
+              "platforms/migration"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Components",
+            "pages": [
+              "api/ttree",
+              "api/ttreenodeshape",
+              "api/ttreeconnection",
+              "api/tdbtree"
+            ]
+          },
+          {
+            "group": "Shapes",
+            "pages": [
+              "api/shapes/basic-shapes",
+              "api/shapes/flowchart-shapes",
+              "api/shapes/uml-shapes",
+              "api/shapes/electric-shapes",
+              "api/shapes/custom-shapes"
+            ]
+          },
+          {
+            "group": "Child Managers",
+            "pages": [
+              "api/child-managers/explorer",
+              "api/child-managers/horizontal",
+              "api/child-managers/vertical",
+              "api/child-managers/circular",
+              "api/child-managers/custom"
+            ]
+          },
+          {
+            "group": "Utilities",
+            "pages": [
+              "api/tree-editor",
+              "api/tree-export",
+              "api/tree-animate",
+              "api/tree-navigator"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Examples",
+        "groups": [
+          {
+            "group": "Basic Examples",
+            "pages": [
+              "examples/adding-nodes",
+              "examples/node-selection",
+              "examples/drag-and-drop",
+              "examples/zooming-scrolling"
+            ]
+          },
+          {
+            "group": "Advanced Examples",
+            "pages": [
+              "examples/database-binding",
+              "examples/custom-drawing",
+              "examples/animations",
+              "examples/flowcharts",
+              "examples/organizational-charts"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Per-node formatting with fonts, backgrounds, sizes, and effects",
+    "Node selection, resizing, positioning, and dragging",
+    "Database DBTree for automatic hierarchy from datasets",
+    "Virtual mode with on-demand node creation",
+    "Links and connections between nodes",
+    "Zoom, scroll, and print preview",
+    "Custom node shapes including flowchart, UML, and electric symbols",
+    "Drag and drop with hot-tracking",
+    "Import and export capabilities",
+    "Cross-box styles and checkbox/radiogroup selection",
+    "Tree diagram designer and node editor",
+    "Animation support"
+  ],
+  "publicApiSurface": [
+    "TTree - Main tree control component",
+    "TTreeNodeShape - Individual tree node with properties and events",
+    "TTreeConnection - Connection line between nodes",
+    "TDBTree - Database-aware tree component",
+    "TTreeExplorerAlignChild - Windows Explorer style layout",
+    "TFlowChartShape - Flowchart shapes (Decision, Process, Terminal, etc.)",
+    "TUMLShape - UML diagram shapes (Class, Interface, Actor, etc.)",
+    "TElectricShape - Electronic circuit symbols",
+    "TTreeEditor - Visual tree designer component",
+    "TTreeAnimate - Animation effects for nodes",
+    "TTreeNavigator - Navigation control for trees",
+    "TGridShape - Grid layout shape",
+    "Tree.Add() - Add root or child nodes",
+    "Node.AddChild() - Add child node",
+    "Node.AddBrother() - Add sibling node",
+    "Tree.Roots - Collection of root nodes",
+    "Tree.Selected - Collection of selected nodes",
+    "Node.Expanded - Expand/collapse children",
+    "GlobalFormat.ChildManager - Control node layout",
+    "Import/Export - Various formats (XML, HTML, JSON, XLS)"
+  ]
+}
